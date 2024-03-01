@@ -1,0 +1,4 @@
+baseURL = 'https://purpurina.es/'
+languageCode = 'es-es'
+title = 'Mondongo'
+theme = 'hugo-ficurinia'

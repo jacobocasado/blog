@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><?xml-stylesheet href="/feed_style.xsl" type="text/xsl"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="https://www.rssboard.org/media-rss">
+  <channel>
+    <title>Mondongo</title>
+    <link>http://localhost:1313/</link>
+    <description>Recent content on Mondongo</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>es-es</language>
+    <lastBuildDate>Wed, 28 Feb 2024 20:53:30 +0100</lastBuildDate><atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" /><icon>http://localhost:1313/img/icon.svg</icon>
+    
+    
+    <item>
+      <title>Mondongo</title>
+      <link>http://localhost:1313/posts/mondongo/</link>
+      <pubDate>Wed, 28 Feb 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/posts/mondongo/</guid>
+      <description><![CDATA[<h1 id="mondongo">Mondongo</h1>
+<p><a href="https://www.youtube.com/watch?v=ysABu3bxadk">https://www.youtube.com/watch?v=ysABu3bxadk</a></p>
+]]></description>
+      
+    </item>
+    
+    
+    
+    
+    
+    
+  </channel>
+</rss>

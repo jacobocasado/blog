@@ -1,0 +1,59 @@
+[404message]
+other = "Esta no es la página que está buscando"
+
+[searchbarTxt]
+other = "Buscar"
+
+[tags]
+other = "Etiquetas"
+
+[date]
+other = "Fecha"
+
+[continueReading]
+other = "Continuar leyendo"
+
+[previousPage]
+other = "Página anterior"
+
+[nextPage]
+other = "Página siguiente"
+
+[shareOnTheFediverse]
+other = "Compartir en el Fediverse"
+
+[enterFediverseInstanceAddress]
+other = "Ingrese la dirección de su instancia"
+
+[fediverseInstanceExample]
+other = "Por ej.: mastodon.social"
+
+[cancel]
+other = "Cancelar"
+
+[share]
+other = "Compartir"
+
+[themeCopyrightNotice]
+other = "<a href='https://gitlab.com/gabmus/hugo-ficurinia'>Ficurinia theme</a> para <a href='https://gohugo.io'>Hugo</a> hecho por <a href='https://gabmus.org'>Gabriele Musco</a>. Licenciado bajo <a href='https://www.gnu.org/licenses/agpl-3.0.html'>GNU AGPLv3</a>."
+
+[home]
+other = "Principal"
+
+[posts]
+other = "Posts"
+
+[search]
+other = "Buscar"
+
+[tagsColumn]
+other = "Etiquetas:"
+
+[tagColumn]
+other = "Etiqueta:"
+
+[morePostsLikeThis]
+other = "Más posts como este"
+
+[noResultsFound]
+other = "No se encontraron resultados"

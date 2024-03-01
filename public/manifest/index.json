@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "Mondongo",
+  "short_name": "Mondongo",
+  "start_url": "/",
+  "display": "standalone",
+  
+  
+  
+  "background_color": "#242629",
+  "theme_color": "#db5793"
+  
+  
+}
+
