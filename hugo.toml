@@ -1,4 +1,101 @@
-baseURL = 'https://purpurina.es/'
-languageCode = 'es-es'
-title = 'Mondongo'
+baseURL = 'https://blog.purpurina.es/'
 theme = 'hugo-ficurinia'
+title = 'Purpurina'
+languageCode = 'en'
+defaultContentLanguage = 'en'
+
+# this will be included in the footer after the current year the site is last
+# built, followed by the (c) symbol
+# you can use markdown inside this field
+copyright = "made by jasco with love"
+
+paginate = 5  # number of articles per page in the index
+summaryLength = 90  # number of words for article summaries
+
+[params]
+    author = "Jacobo Casado"
+    description = "Malware development, Malware evasion and Malware research"  # this will be added as metadata
+    posts = "posts"  # content directory where to find home page posts; default searches in "posts" and "post"
+    showPostsLink = true  # show or hide the link to the simple post list
+
+    # It's best to put these icons in the "static" folder of your site
+    # public/static
+    logo = "/static/logo.jpg"
+    favicon = "/static/favicon.png"  # 32x32
+    faviconIco = "/static/favicon.ico"  # 32x32
+    appletouch = "/static/apple-touch-icon.png"  # 180x180
+    svgicon = "/static/logo.svg"
+    icon512 = "/static/icon512.png"  # 512x512 png image
+
+    logoRightOfTitle = false  # positions the logo to the right of the title; default: false
+    showTags = true  # show the Tags menu item; default true
+    showRss = true  # show the link for the RSS feed; default true
+    imageInArticlePreview = false  # show images in article preview; default false
+    fitImageInArticlePreview = false  # make article preview images fit the article preview instead of getting cropped
+    articleSummary = true  # show a summary in article preview; default true
+
+    fontFamily = "JetBrains Mono"  # changes the font, default "JetBrains Mono"
+    titleFontFamily = "JetBrains Mono"  # font used for titles and headings
+    monospaceFontFamily = "JetBrains Mono"  # changes the monospace font for code, default "JetBrains Mono"
+
+    # multipliers applied to font sizes, useful for custom fonts that may be too big or too small
+    titleFontSizeMultiplier = 1.5
+    mainFontSizeMultiplier = 1.1
+    monoFontSizeMultiplier = 1.1
+
+    contentWidth = "1200px"  # maximum width of the site content, css syntax
+
+    paperCards = false  # enable paper card style; default false
+    buttonTags = true  # enable button tag style; default false
+    tagsInArticlePreview = true  # enable tags list in the article preview card
+    gridView = false  # show post list as a grid. goes well with paperCards
+    bigArticleTitle = true  # makes the title in the single article view bigger
+    navtype = "standard"  # changes the style of the pagination, available styles are: "standard", "circles"
+    enableShadow = false  # shows a shadow around some elements
+    menuStyle = "standard"  # changes the style of the main site navigation menu, available styles are: "standard", "buttons"
+    inputStyle = "standard" # changes the style of inputs (like the searchbar), available styles are: "standard", "buttons"
+
+    enableSearch = true  # enable search page
+    searchbarEverywhere = true  # if the searchbar should be shown in every page; requires enableSearch
+    searchMenuLink = false  # add a search link to the navigation menu; requires enableSearch
+    mobileHamburgerNav = false  # alternative hamburger menu layout for the main nav menu when screen is small
+
+    enableShareOnFediverse = false  # enable a button at the end of an article to share it on the fediverse
+
+    # alternative sidebar layout
+    enableSidebarLayout = false
+    tocInSidebar = false  # if the sidebar is enbabled, show the TOC in the sidebar
+
+    # redirect to baseURL if current URL host doesn't match
+    # useful if deploying in gitlab pages with custom domain and don't want
+    # the username.gitlab.io/website url to persist
+    # this requires you to set baseURL (see above)
+    forceRedirect = true
+
+    infiniteScrolling = false  # activates infinite scrolling instead of regular pagination
+    enableFooterColumns = false  # activates footer columns, as described below
+    enableJumbotron = false  # enables jumbotron, as described below
+    # related articles will be selected randomly based on tags and shown at
+    # the bottom of the article, after the comments
+    enableRelatedArticles = true
+    relatedArticlesNum = 4  # how many related articles to show
+    randomRelated = true  # sorts related articles in random order (randomized at built time)
+
+    tocBeforeImage = false  # show the table of contents before the main article image; default false
+
+[menu]
+    # these links will be added to the main navigation menu, sorted by weight
+    # other elements in this menu are added automatically from the "pages" folder
+    # the folder it will look into can be customized with the pages variable
+    # in params above
+    [[menu.main]]
+        identifier = "about"
+        name = "About"
+        url = "/about/"
+        weight = 10
+    # these links (menu.icons) will be added as icon links below the main nav
+    [[menu.icons]]
+        identifier = "discord"
+        name = "Mondongo"
+        url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        weight = 10

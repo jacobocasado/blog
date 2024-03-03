@@ -1,5 +1,5 @@
 ---
-title: Search
+title: Search by tag or post
 layout: search
 outputs:
  - "html"
