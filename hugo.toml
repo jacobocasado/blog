@@ -1,4 +1,4 @@
-baseURL = 'https://blog.purpurina.es/'
+baseURL = '//blog.purpurina.es/'
 theme = 'hugo-ficurinia'
 title = 'Purpurina'
 languageCode = 'en'

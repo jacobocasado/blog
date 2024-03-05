@@ -76,7 +76,7 @@ Given this technique, PE analyzers do not display any information about these ca
 
 
 
-### 
+### TBD
 
 Static analysis can also be based on specific byte sequences, or bad bytes in executables.
 NOte that PID the frist.
