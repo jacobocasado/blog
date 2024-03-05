@@ -1,4 +1,4 @@
-baseURL = '//blog.purpurina.es/'
+baseURL = 'https://blog.purpurina.es/'
 theme = 'hugo-ficurinia'
 title = 'Purpurina'
 languageCode = 'en'
@@ -19,13 +19,13 @@ summaryLength = 90  # number of words for article summaries
     showPostsLink = true  # show or hide the link to the simple post list
 
     # It's best to put these icons in the "static" folder of your site
-    # public/static
-    logo = "/static/logo.jpg"
-    favicon = "/static/favicon.png"  # 32x32
-    faviconIco = "/static/favicon.ico"  # 32x32
-    appletouch = "/static/apple-touch-icon.png"  # 180x180
-    svgicon = "/static/logo.svg"
-    icon512 = "/static/icon512.png"  # 512x512 png image
+    # static is /
+    logo = "/logo.jpg"
+    favicon = "/favicon.png"  # 32x32
+    faviconIco = "/favicon.ico"  # 32x32
+    appletouch = "/apple-touch-icon.png"  # 180x180
+    svgicon = "/logo.svg"
+    icon512 = "/icon512.png"  # 512x512 png image
 
     logoRightOfTitle = false  # positions the logo to the right of the title; default: false
     showTags = true  # show the Tags menu item; default true
