@@ -30,6 +30,8 @@ Please note that I have just started to learn about these things and that I can 
 The final project consists on a **shellcode loader/injector (let's use injector from now on)**. 
 This shellcode injector **is able to bypass Windows Defender with a meterpreter x64 shellcode at the day of this post (2024/03/05) with Cloud Protection enabled.**
 
+**EDIT**: A week after this post was created, the dropper is not anymore evasive and is detected (dinamically) by Defender. I personally thought that this dropper is not stealthy enough to be evasive and a lot of evasive measures can (and will) be added to this dropper in the future. This has just started :P
+
 This injector has the following properties:
 - It is an executable (.EXE) program. No DLL version for now.
 - The shellcode is stored as a resource AND "encrypted" using XOR.
@@ -46,12 +48,12 @@ The API calls performed in this executable are simple:
 
 The injector has the following phases:
 - It starts obtaining the XOR key from the resources section of the file.
-- Using this key to decrypt the string names of the API calls, uses the relevant API functions to obtain the PID from the process name specified as a variable. The process name is hardcoded into the program **as a real malware would do; otherwise, we would need to call this dropper with arguments somehow.** Notepad.exe was used as an example, but it could be performed with more common processes as explorer.exe. Just modify the process name variable.
+- Using this key to decrypt the string names of the API calls, uses the relevant API functions to obtain the PID from the process name specified as a variable. The process name is hardcoded into the program **as a real malware would do; otherwise, we would need to call this dropper with arguments (not a real case most of the time).** Notepad.exe was used as an example, but it could be performed with more common processes as explorer.exe. Just modify the process name variable inside the dropper.
 - The dropper allocates memory in **its own process space and stores the shellcode embedded as a resource in this memory region. Note that the shellcode is stored in this region but not executed, as this is an intermediate step to then move the shellcode to the target process.**
 - Using this obtained PID, the injector opens a handle to the process with the given PID and allocates memory space within the process region. The shellcode is then moved from the region that was previously created to this region.
-- A remote thread is started pointing to the remote memory region.
+- A remote thread pointing to the remote memory region containing the shellcode is started.
 
-The result is a thread in the remote process executing our shellcode, without Windows Defender noticing.
+The result is a thread in the remote process executing our shellcode.
 
 ## Evasion techniques
 Here is a detailed overview of each of the things I implemented in the program to make it stealthier, both statically and dinamically. Overall, I think that it is missing a lot of evasion techniques but as I repeated before, I am just learning slowly to know what I am exactly doing without copypasting.
@@ -71,11 +73,12 @@ auto const pVirtualAllocEx = reinterpret_cast<LPVOID(WINAPI*)(HANDLE hProcess, L
 // Calling the function using the pointer
 	lpBufferAddress = pVirtualAllocEx(hOpenProcess, NULL, shellcode_len, (MEM_RESERVE | MEM_COMMIT), PAGE_EXECUTE_READWRITE);
 ```
+
 The string is encrypted to not use GetProcAddress and insert the hardcoded "`VirtualAllocEx`" function name. **This would result in the function name appearing as a string in the file.** 
-Given this technique, PE analyzers do not display any information about these calls in the IAT nor in the strings:
+Given this technique, PE analyzers do not display any information about these calls in the IAT nor in the strings. We can see an example with PExplorer:
 
-
-
+![](images/firststeps.png)
+![](images/firststeps.png)
 ### TBD
 
 Static analysis can also be based on specific byte sequences, or bad bytes in executables.
