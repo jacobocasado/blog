@@ -120,7 +120,7 @@ Here is a detailed overview of each of the things I implemented in the program t
 The program is compiled specifying `WINDOWS` as the subsystem and not `CONSOLE` as the subsystem in order to avoid the OS allocating a console when the file is executed. 
 In order to do this, we first need to compile the file specifying `WINDOWS` as the `SUBSYSTEM` FLAG:
 
-![](/post_images/firststeps_1.png)
+![](/images/post_images/firststeps_1.png)
 
 After that, the linker will not search for the main function; instead, it will search for the following function:
 ```c
@@ -128,7 +128,7 @@ int WINAPI WinMain(HINSTANCE,HISTANCE,LPSTR,int);
 ```
 
 Therefore we must replace our main function with WinMain:
-![](/post_images/firststeps_2.png)
+![](/images/post_images/firststeps_2.png)
 ### IAT hiding + encrypted strings
 The API calls are resolved dinamically, therefore, not appearing in the IAT of the file.
 Let's see the snippet of the code to obfuscate an API call:
@@ -148,11 +148,11 @@ auto const pVirtualAllocEx = reinterpret_cast<LPVOID(WINAPI*)(HANDLE hProcess, L
 The string is encrypted to not use GetProcAddress and insert the hardcoded "`VirtualAllocEx`" function name. **This would result in the function name appearing as a string in the file.** 
 Given this technique, PE analyzers do not display any information about these calls in the IAT nor in the strings. We can see an example with PExplorer, in which none of the used imports is being shown in the IAT:
 
-![](/post_images/firststeps.png)
+![](/images/post_images/firststeps.png)
 
 Also, strings related to these calls do not appear in the `strings` section:
 
-![](post_images/firststeps_3.png)
+![](/images/post_images/firststeps_3.png)
 
 ### TBD
 
