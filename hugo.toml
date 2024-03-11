@@ -3,6 +3,7 @@ theme = 'hugo-ficurinia'
 title = 'Purpurina'
 languageCode = 'en'
 defaultContentLanguage = 'en'
+canonifyURLs = true
 
 # this will be included in the footer after the current year the site is last
 # built, followed by the (c) symbol
