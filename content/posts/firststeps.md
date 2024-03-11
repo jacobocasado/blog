@@ -174,6 +174,7 @@ Here is a video using this injector to load the previous shellcode with Defender
 
 `{{< video src="/images/post_videos/firststeps_poc.webm" type="video/webm" preload="auto" width="100%">}}`
 
+We can see that no console is being displayed and that it looks stealthy.
 ## Future research areas
 This post is just the start of a big project I have in hand. The main objective of my project is to understand how OS (specially Windows) works, and how EDR solutions work, in order to understand the most advanced EDR evasion techniques and how can I implement my own techniques to evade EDR using the OS facilities.
 
