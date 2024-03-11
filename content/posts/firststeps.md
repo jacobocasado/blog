@@ -152,7 +152,7 @@ Given this technique, PE analyzers do not display any information about these ca
 
 Also, strings related to these calls do not appear in the `strings` section:
 
-![](/post_images/firststeps_3.png)
+![](post_images/firststeps_3.png)
 
 ### TBD
 
