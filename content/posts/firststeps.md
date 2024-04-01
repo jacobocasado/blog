@@ -3,8 +3,8 @@ title = 'My first steps in MalDev'
 date = 2024-02-28T20:53:30+01:00
 draft = false
 showDate = true
-description = 'Aweonao'
 toc = true
+tags = ["evasion", "loader", "firststeps", "maldev"]
 +++
 ## Prelude
 Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so. 
@@ -25,7 +25,7 @@ The result of following these steps was a final course project in which I includ
 
 Please note that I have just started to learn about these things and that I can be wrong; feel free to contact me at any of my social media to improve the quality of this post and my content overall.
 
-## ¿Evasive? loader/injector
+## Evasive? loader/injector
 
 The final project consists on a **shellcode loader/injector (let's use injector from now on)**. 
 This shellcode injector **is able to bypass Windows Defender with a meterpreter x64 shellcode at the day of this post (2024/03/05) with Cloud Protection enabled.**
