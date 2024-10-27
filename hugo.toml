@@ -1,6 +1,6 @@
 baseURL = 'https://blog.purpurina.es/'
 theme = 'hugo-ficurinia'
-title = 'purpurina - A place for hacking'
+title = 'purpurina - a place for hacking'
 languageCode = 'en'
 defaultContentLanguage = 'en'
 canonifyURLs = true
@@ -11,11 +11,11 @@ canonifyURLs = true
 copyright = "made by jaco with love"
 
 paginate = 5  # number of articles per page in the index
-summaryLength = 90  # number of words for article summaries
+summaryLength = 50  # number of words for article summaries
 
 [params]
     author = "jaco"
-    description = "Malware development, Malware evasion, Malware research and OS internals"  # this will be added as metadata
+    description = "Malware development, research and OS internals"  # this will be added as metadata
     posts = "posts"  # content directory where to find home page posts; default searches in "posts" and "post"
     showPostsLink = true  # show or hide the link to the simple post list
 
@@ -25,7 +25,7 @@ summaryLength = 90  # number of words for article summaries
     favicon = "/favicon.png"  # 32x32
     faviconIco = "/favicon.ico"  # 32x32
     appletouch = "/apple-touch-icon.png"  # 180x180
-    svgicon = "/logo.svg"
+    svgicon = "/favicon.png"
     icon512 = "/icon512.png"  # 512x512 png image
 
     logoRightOfTitle = false  # positions the logo to the right of the title; default: false
