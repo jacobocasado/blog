@@ -1,5 +1,5 @@
 +++
-title = 'Understanding Heaven Gate'
+title = 'Understanding Heaven´s Gate'
 date = 2024-09-19T20:53:30+01:00
 draft = false
 showDate = true
@@ -13,16 +13,16 @@ After the group disbanded and their e-zine's site went down, the Heaven's Gate t
 # Why does Heaven's gate exist?
 In a normal environment, we have 64-bit Windows operative systems (or at least, we expect so). Some detection mechanisms, like antivirus software and OS security features, **do not detect a 32-bit process jumps from running 32-bit compatible code to 64-bit code.** And this is because a 32-bit program cannot inject code into 64-bit programs natively.
 Indeed, 32-bit programs can run on a 64-bit OS because there is a compatibility layer: WoW64.
-# The compatibility layer: WoW64
+## The compatibility layer: WoW64
 In a 64-bit Windows kernel, the first piece of code to execute in **any** process is **always** the 64-bit DLL called **ntdll.dll**, also called NTDLL.
 This DLL takes care of **initializing the process in user-mode as a 64-bit process** and setting up the execution of the process. 
 
 **But, what happens when a 64-bit Windows kernel runs a 32-bit process?** How does Windows allow that kind of compatibility?
 Well, after NTDLL is loaded, the **Windows on Windows (WoW64)** interface takes over and **loads a 32-bit version of ntdll.dll, called ntdll32.dll**. After loading this DLL, the execution **turns into a 32-bit mode through a far jump to a compatibility code segment** that changes the processor context to work to 32 bits for this process. From now on, for that process, its environment (registers, instructions) is 32-bit. Nevertheless, the kernel is still 64 bit so, **when the process has to perform a syscall (and interact with the kernel space)** the 32-bit NTDLL that was loaded **changes the execution environment to 64-bit mode, executes the 64-bit syscall (calling the 64-bit NTDLL)**, and, once the *syscall* is performed ntdll32.dll returns the process to 32-bit mode. We can think of ntdll32.dll as a "proxy" so that the processor runs 32-bit code and 64-bit code when necessary (this is mainly when executing *syscalls*) in a 64-bit operative system.
 
-This process is better described in [many](http://download.microsoft.com/download/3/a/9/3a9ad58f-5634-4cdd-8528-c78754d712e8/28-dw04040_winhec2004.ppt) [sources](https://msdn.microsoft.com/en-us/library/windows/desktop/aa384274(v=vs.85).aspx), including in the [Windows Internals books](https://www.safaribooksonline.com/library/view/windows-internals-fifth/9780735625303/ch03s08.html, so if you’re interested in reading more, you can do so, but I’ll try to do my best here.
+This process is better described in [many](http://download.microsoft.com/download/3/a/9/3a9ad58f-5634-4cdd-8528-c78754d712e8/28-dw04040_winhec2004.ppt) [sources](https://msdn.microsoft.com/en-us/library/windows/desktop/aa384274(v=vs.85).aspx), including in the [Windows Internals books](https://www.safaribooksonline.com/library/view/windows-internals-fifth/9780735625303/ch03s08.html), so if you’re interested in reading more, you can do so, but I’ll try to do my best here.
 
-# What is wrong with Heaven's Gate?
+# But, what is wrong with Heaven's Gate?
 Besides the fact that this technique is pretty old (I think this is the [original post](https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT) which has been since 2008), it has been used in a lot of malware campaigns, like [Emotet](https://blogs.blackberry.com/en/2023/01/emotet-returns-with-new-methods-of-evasion), a banking trojan. For example, the Emotet malware uses Heaven's Gate to perform process hollowing (another malware technique) **from a 32-bit process to a 64-bit process**.
 
 **But why is this used?** Well, this technique is used to **bypass the WoW64 API hooks** performed by the security solutions. While a 32-bit process would normally **pass through the 32-bit API hooks** made by the 32-bit NTDLL.dll (which are the ones monitored by the security solutions), malicious programs can **perform a jump instruction past these hooks in order to execute 64-bit code** from a 32-bit process without having to trigger the API call, which is hooked by the security solutions. Overall, **this is used as an evasion mechanism.**
@@ -30,7 +30,7 @@ Besides the fact that this technique is pretty old (I think this is the [origina
 Windows initially developed this on the assumption that the 64-bit ntdll.dll could not be accessed by a 32-bit process, but Heaven’s Gate takes advantage of this by running x64 instructions which will be completely missed by any application expecting x86 instructions.
 
 Also, this technique is used to difficult the analysis of the malware samples, as it makes the debugging and emulation harder (and the *reversing* process of these samples overall).
-# Analyzing a Heaven's Gate implementatipn
+## Analyzing a Heaven's Gate implementation
 There are a lot of different implementations of this technique, but they have 90% of the code in common. I will analyze the Heaven's Gate implementation used in the Metasploit Framework, as it is offered as a C++ function.
 
 The Meterpreter shell [has a functionality to inject 64-bit code in 64-bit processes from 32-bit meterpreter shells](https://github.com/rapid7/meterpreter/blob/5e24206d510a48db284d5f399a6951cd1b4c754b/source/common/arch/win/i386/base_inject.c). I use a slightly modified code to **perform the Heaven's Gate, call CreateRemoteThread with a 64-bit shellcode in order to inject 64-bit code from a 32-bit process to a 64-bit code**. My code is the following: 
@@ -145,10 +145,74 @@ This function receives:
 Then, the steps to execute the 64-bit shellcode in the 64-bit target process are the following:
 - Allocate memory space in the target process and copy the 64-bit shellcode for further execution.
 - In the 32-bit process, a RW buffer is allocated for the EXECUTEX64 function. **This is the function that performs THE TRANSITION FROM 32-bit to 64-bit space, calls X64FUNCTION (we will see what this is in a moment) and returns from 64-bit to 32-bit space.**
-- In the 32-bit process, a RW buffer is allocated for for the X64FUNCTION function (and its context). **This function is basically the 64-bit shellcode of CreateRemoteThread, as we want to create a thread in the remote process with our shellcode as the starting point.**.
+- In the 32-bit process, a RW buffer is allocated for for the X64FUNCTION function (and its context). **This function is basically the 64-bit shellcode of CreateRemoteThread, as we want to create a thread in the remote process with our shellcode as the starting point**.
 - We change the memory properties of the X64FUNCTION function zone (the CreateRemoteThread) as it modifies itself during runtime.
 - We run a new thread in the target process using the EXECUTE64 function, passing the address of the memory we allocated in the first step (therefore, pointing to the shellcode we want to execute).
 - Resume the thread (the thread is created in suspended state, as the flag CREATE_SUSPENDED is used in the shellcode that runs the thread).
 - Free the memory in the 32-bit process as it is no longer needed.
 
 Note that we could **have a modified version of this function so that the 64-bit function that is executed is not CreateRemoteThread**, but a Windows API call (for example), or an arbitrary 64-bit function shellcode.
+
+## Disassembling and analyzing EXECUTE64
+We want to analyze the **protagonist of this technique: the EXECUTE64 shellcode, which acts as the function that performs the "jump" to the 32-bit world to the 64-bit world and executes our function.**
+We could use a [known online disassembler](https://defuse.ca/online-x86-assembler.htm) and copy the `sh_executex64` shellcode that is in the code, but we could also take the official ASM that is [declared in the Metasploit Framework](https://github.com/rapid7/metasploit-framework/blob/master/external/source/shellcode/windows/x86/src/migrate/executex64.asm) that is basically the same code, but in ASM representation. It will be easier for us to comment.
+
+Let's analyze the code:
+```c++
+; A simple function to execute native x64 code from a wow64 (x86) process. 
+; Can be called from C using the following prototype:
+;     typedef DWORD (WINAPI * EXECUTEX64)( X64FUNCTION pFunction, DWORD dwParameter );
+; The native x64 function you specify must be in the following form (as well as being x64 code):
+;     typedef BOOL (WINAPI * X64FUNCTION)( DWORD dwParameter );
+
+; Clobbers: EAX, ECX and EDX (ala the normal stdcall calling convention)
+; Un-Clobbered: EBX, ESI, EDI, ESP and EBP can be expected to remain un-clobbered.
+
+[BITS 32]
+
+WOW64_CODE_SEGMENT	EQU 0x23
+X64_CODE_SEGMENT	EQU 0x33
+
+start:
+	push ebp 								; Stack prologue, save EBP
+	mov ebp, esp							; Create a new stack frame
+	push esi								; Save the registers we shouldn't clobber
+	push edi								;
+	mov esi, [ebp+8]						; ESI = pFunction
+	mov ecx, [ebp+12]						; ECX = dwParameter
+	call delta								;
+delta:
+	pop eax									;
+	add eax, (native_x64-delta)				; get the address of native_x64
+	
+	sub esp, 8								; alloc some space on stack for far jump
+	mov edx, esp							; EDX will be pointer our far jump
+	mov dword [edx+4], X64_CODE_SEGMENT		; set the native x64 code segment
+	mov dword [edx], eax					; set the address we want to jump to (native_x64)
+	
+	call go_all_native						; perform the transition into native x64 and return here when done.
+	
+	mov ax, ds								; fixes an elusive bug on AMD CPUs, http://blog.rewolf.pl/blog/?p=1484
+	mov ss, ax								; found and fixed by ReWolf, incorporated by RaMMicHaeL
+	
+	add esp, (8+4+8)						; remove the 8 bytes we allocated + the return address which was never popped off + the qword pushed from native_x64
+	pop edi									; restore the clobbered registers
+	pop esi									;
+	pop ebp									; restore EBP
+	retn (4*2)								; return to caller (cleaning up our two function params)
+	
+go_all_native:
+	mov edi, [esp]							; EDI is the wow64 return address
+	jmp dword far [edx]						; perform the far jump, which will return to the caller of go_all_native
+	
+native_x64:
+[BITS 64]									; we are now executing native x64 code...
+	xor rax, rax							; zero RAX
+	push rdi								; save RDI (EDI being our wow64 return address)
+	call rsi								; call our native x64 function (the param for our native x64 function is allready in RCX)
+	pop rdi									; restore RDI (EDI being our wow64 return address)
+	push rax								; simply push it to alloc some space
+	mov dword [rsp+4], WOW64_CODE_SEGMENT	; set the wow64 code segment 
+	mov dword [rsp], edi					; set the address we want to jump to (the return address from the go_all_native call)
+	jmp dword far [rsp]						; perform the far jump back to the wow64 caller...
+```

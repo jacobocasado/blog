@@ -7,7 +7,6 @@ toc = true
 tags = ["evasion", "loader", "firststeps", "maldev"]
 +++
 
-
 Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)
 
 **Case of getting the function pointer to a resolving Windows API call:**
