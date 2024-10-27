@@ -1,10 +1,84 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><?xml-stylesheet href="/feed_style.xsl" type="text/xsl"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="https://www.rssboard.org/media-rss">
   <channel>
-    <title>Tags on Mondongo</title>
+    <title>Tags on purpurina - a place for hacking</title>
     <link>http://localhost:1313/tags/</link>
-    <description>Recent content in Tags on Mondongo</description>
+    <description>Recent content in Tags on purpurina - a place for hacking</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>es-es</language><atom:link href="http://localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" /><icon>http://localhost:1313/img/icon.svg</icon>
+    <language>en</language>
+    <copyright>made by jaco with love</copyright>
+    <lastBuildDate>Thu, 19 Sep 2024 20:53:30 +0100</lastBuildDate><atom:link href="http://localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" /><icon>http://localhost:1313/logo.jpg</icon>
+    
+    
+    <item>
+      <title>Evasion</title>
+      <link>http://localhost:1313/tags/evasion/</link>
+      <pubDate>Thu, 19 Sep 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/tags/evasion/</guid>
+      <description><![CDATA[]]></description>
+      
+    </item>
+    
+    
+    
+    <item>
+      <title>Firststeps</title>
+      <link>http://localhost:1313/tags/firststeps/</link>
+      <pubDate>Thu, 19 Sep 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/tags/firststeps/</guid>
+      <description><![CDATA[]]></description>
+      
+    </item>
+    
+    
+    
+    <item>
+      <title>Loader</title>
+      <link>http://localhost:1313/tags/loader/</link>
+      <pubDate>Thu, 19 Sep 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/tags/loader/</guid>
+      <description><![CDATA[]]></description>
+      
+    </item>
+    
+    
+    
+    <item>
+      <title>Maldev</title>
+      <link>http://localhost:1313/tags/maldev/</link>
+      <pubDate>Thu, 19 Sep 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/tags/maldev/</guid>
+      <description><![CDATA[]]></description>
+      
+    </item>
+    
+    
+    
+    <item>
+      <title>Lab</title>
+      <link>http://localhost:1313/tags/lab/</link>
+      <pubDate>Wed, 28 Feb 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/tags/lab/</guid>
+      <description><![CDATA[]]></description>
+      
+    </item>
+    
+    
+    
+    <item>
+      <title>Shellcodes</title>
+      <link>http://localhost:1313/tags/shellcodes/</link>
+      <pubDate>Wed, 28 Feb 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/tags/shellcodes/</guid>
+      <description><![CDATA[]]></description>
+      
+    </item>
+    
     
   </channel>
 </rss>

