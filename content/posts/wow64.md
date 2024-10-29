@@ -11,8 +11,8 @@ tags = ["evasion", "loader", "firststeps", "maldev"]
 The Heaven's Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A. 
 After the group disbanded and their e-zine's site went down, the Heaven's Gate technique was later [reprinted in the 2009 edition of the Valhalla hacker e-zine](https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT). I personally would check this resource, as it was the first time the technique was commented.
 # Why does Heaven's gate exist?
-In a normal environment, we have 64-bit Windows operative systems (or at least, we expect so). Some detection mechanisms, like antivirus software and OS security features, **do not detect a 32-bit process jumps from running 32-bit compatible code to 64-bit code.** And this is because a 32-bit program cannot inject code into 64-bit programs natively.
-Indeed, 32-bit programs can run on a 64-bit OS because there is a compatibility layer: WoW64.
+In a normal environment, we have 64-bit Windows operative systems (or at least, we expect so). Some detection mechanisms, like antivirus software and OS security features, **do not detect a 32-bit process jumping from running 32-bit compatible code to 64-bit code.** And this is because a 32-bit program cannot inject code into 64-bit programs natively.
+Indeed, 32-bit programs can run on a 64-bit OS because there is a compatibility layer: **WoW64**.
 ## The compatibility layer: WoW64
 In a 64-bit Windows kernel, the first piece of code to execute in **any** process is **always** the 64-bit DLL called **ntdll.dll**, also called NTDLL.
 This DLL takes care of **initializing the process in user-mode as a 64-bit process** and setting up the execution of the process. 
@@ -154,7 +154,8 @@ Then, the steps to execute the 64-bit shellcode in the 64-bit target process are
 Note that we could **have a modified version of this function so that the 64-bit function that is executed is not CreateRemoteThread**, but a Windows API call (for example), or an arbitrary 64-bit function shellcode.
 
 ## Disassembling and analyzing EXECUTE64
-We want to analyze the **protagonist of this technique: the EXECUTE64 shellcode, which acts as the function that performs the "jump" to the 32-bit world to the 64-bit world and executes our function.**
+We want to analyze the **protagonist of this technique: the EXECUTE64 shellcode, which acts as the function that performs the "jump" to the 32-bit world to the 64-bit world and executes our function.** This is the function that performs the Heaven's Gate, so it is the interesting one.
+
 We could use a [known online disassembler](https://defuse.ca/online-x86-assembler.htm) and copy the `sh_executex64` shellcode that is in the code, but we could also take the official ASM that is [declared in the Metasploit Framework](https://github.com/rapid7/metasploit-framework/blob/master/external/source/shellcode/windows/x86/src/migrate/executex64.asm) that is basically the same code, but in ASM representation. It will be easier for us to comment.
 
 Let's analyze the code:
@@ -216,3 +217,29 @@ native_x64:
 	mov dword [rsp], edi					; set the address we want to jump to (the return address from the go_all_native call)
 	jmp dword far [rsp]						; perform the far jump back to the wow64 caller...
 ```
+
+The code does the following things:
+- Initializes the stack frame properly.
+- Takes the pFunction (function to execute) and dwParameter from the stack using EBP + offsets and saves it into registers for later usage.
+- Calls `delta`.
+- In `delta` we **prepare the opening of the gate**:
+	- pop the last inserted value in the stack (which is the saved EIP value, as the call instruction inserts EIP so we keep track of what we have to execute after delta). This is a trick to **obtain the address of the code that is being executed dinamically.**
+	- Once we obtain the address of the instruction in which we are dinamically, we add the offset to the native_x64 code section, having the dynamic address of the native_x64 code section.
+	- Expand the stack frame and add 2 variables: The 0x33 code segment, corresponding as a 64-bit execution code segment (this will be used when jumping into 64-bit context), and the dynamic address of native_x64. Both are stored in the stack, the last is pointed by edx, and the other is pointed by edx+4.
+	- Call `go_all_native`.
+- In `go_all_native`, we **go inside the gate**:
+	- We save the 32-bit context return address (stored in ESP by the call operation) into edi.
+	- We **perform a far jump to the memory address stored in edx**, which is the `native_x64` starting point. Also, the edx+4 address is used in the **far jump** to change the code segment to the 0x33 code segment, corresponding to a 64-bit code segment. Now the CPU is ready to understand and execute 64-bit code. **We have opened the Heaven's Gate.**
+- - In `native_x64`, we **execute our x64 arbitrary code and then return to the 32-bit context:**
+	- We reset rax.
+	- We push rdi into the stack, as we stored the 32-bit return address in edi. We will use this to return to the 32-bit code.
+	- We call rsi, which already has the pFunction (the address of the function to execute).
+	- Once our function has been executed, we restore rdi popping its value from the stack (we saved it previously).
+	- We add the 32-bit code address into the stack, and the 32-bit code segment (0x23), to, lastly, perform **another far jmp** to the 32-bit address using the 32-bit code segment. We are finally **closing the Heaven's Gate.**
+- After going back to the 32-bit code, some cleaning is done in order to reestructure the stack. We return to the 32-bit code that triggered this shellcode. As a homework, I have to study why the code does some operations for AMD CPUs.
+
+To be honest, this has been one of the most interesting topics I have researched within this field. I have learnt a lot from OS internals, assembly and I have not only discovered an interesting technique, but I have understood how does it works (or, at least, I have that impression). I personally do not like to use things that are shady to me, so this is one of the best things to take from this learning path.
+
+Let me know what is wrong or tell me your doubts on this topic by contacting me via [LinkedIn](https://www.linkedin.com/in/jacobocasado/?originalSubdomain=es). I'll be glad to hear from you.
+
+Jaco
