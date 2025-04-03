@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html class="" lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    
+        <script>
+            if (location.host != new URL("http:\/\/localhost:1313\/").host) location.href = "http:\/\/localhost:1313\/"
+        </script>
+    
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=7" />
+
+    <link
+    rel="icon"
+    href='http://localhost:1313/favicon.png'
+/>
+<link
+    rel="shortcut icon"
+    href='http://localhost:1313/favicon.ico'
+    type="image/x-icon"
+/>
+<link
+    rel="apple-touch-icon"
+    href='http://localhost:1313/apple-touch-icon.png'
+/>
+
+    <link
+        rel="icon"
+        href='http://localhost:1313/favicon.png'
+        type="image/svg+xml"
+    />
+
+<title>
+        
+            PE parsing  &ndash;
+        
+        purpurina - a place for hacking
+    </title>
+
+    
+    <link href="http://localhost:1313/symbols-nerd-font/symbols-nerd-font.css" rel="stylesheet" integrity="sha512-lydow8GLOLlYNOtHlksNCmGWWCBsbIEtikXpHzfWqx78HLlyQZHOzyLwPpKol4Th6aCwLUXOfODVYgwrd3nwKQ=="/>
+    <link href="http://localhost:1313/jetbrains-mono/jetbrains-mono.css" rel="stylesheet" integrity="sha512-tJxlgL6v1Y7kFf+qB8SloaAMKnOAw6WouknxXtIjkBux9Y/9aX81EUWOJO8c/3l98DmjG8brr4to7zaez606Fg=="/>
+
+    
+    
+    <link type="text/css" rel="stylesheet" href=http://localhost:1313/css/styles.b88203936c598b692d9cbebd7da89eb34e544b8522ae4c14ca657761be96b80c2acee8e6631de04d99ee1bdbc1bcad4a3add6f47a2366f4a29e2c531782be1a8.css integrity="sha512-uIIDk2xZi2ktnL69faies05US4UirkwUymV3Yb6WuAwqzujmYx3gTZnuG9vBvK1KOt1vR6I2b0op4sUxeCvhqA==" />
+<meta name="author" content="jaco" />
+
+    
+        <meta name="keywords" content='binaries, executables, maldev, peparser' />
+    
+    
+        <meta name="description" content="h some information of the PE format file and its main headers.
+Main usage: malware development and malware research.&lt;/p&gt;
+&lt;h1 id=&#34;considerations&#34;&gt;Considerations&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;RVA (&lt;strong&gt;Relative Virtual Address&lt;/strong&gt;): Offset from Image Base. To obtain the absolute virtual address the calculation &amp;ldquo;Image Base &#43; RVA&amp;rdquo; must be performed. Several PE sections include RVAs.&lt;/li&gt;
+&lt;li&gt;Check the &lt;a href=&#34;https://learn.microsoft.com/en-us/windows/win32/debug/pe-format&#34;&gt;official Microsoft documentation&lt;/a&gt; if you want to know more! This is only a summary and my personal studies about the topic.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;dos-header&#34;&gt;DOS header&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;IMAGE_DOS_HEADER&lt;/code&gt; structure definition from &lt;code&gt;winnt.h&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;First 64 bytes of the PE file.&lt;/li&gt;
+&lt;li&gt;Was very important in the MS-DOS era, right now it is not.&lt;/li&gt;
+&lt;li&gt;The actual Windows OS loader uses a field in this header to navigate to the &lt;strong&gt;new executable&lt;/strong&gt; header , which is the header containing most of the needed information.&lt;/li&gt;
+&lt;li&gt;Kept in the binaries for compatibility purposes.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We only want to know about the first and last members of this header:&lt;/p&gt;" />
+    
+
+<meta property="og:site_name"
+    content='purpurina - a place for hacking' />
+
+    <meta property="og:title" content="PE parsing" />
+    <meta property="og:type" content="article" />
+    
+    <meta
+        property="article:author" content="jaco" />
+    <meta
+        property="article:published_time"
+        content='2025-03-27T20:53:30Z&#43;0100' />
+    
+        
+            <meta property="article:tag" content="binaries" />
+        
+            <meta property="article:tag" content="executables" />
+        
+            <meta property="article:tag" content="maldev" />
+        
+            <meta property="article:tag" content="peparser" />
+        
+    
+    <meta property="og:url" content="http://localhost:1313/posts/pe_parsing/" />
+    
+    
+    <meta property="og:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta property="og:description" content="&lt;p&gt;A random page with some information of the PE format file and its main headers.
+Main usage: malware development and malware research.&lt;/p&gt;
+&lt;h1 id=&#34;considerati" />
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:domain"
+      content='localhost:1313'
+/>
+<meta property="twitter:url" content="http://localhost:1313/posts/pe_parsing/" />
+
+
+    <meta name="twitter:title" content="PE parsing" />
+    
+    
+    
+    <meta name="twitter:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta name="twitter:description" content="&lt;p&gt;A random page with some information of the PE format file and its main headers.
+Main usage: malware development and malware research.&lt;/p&gt;
+&lt;h1 id=&#34;considerati" />
+    
+
+<link rel="manifest" href="http://localhost:1313/manifest/index.json" />
+</head>
+
+
+<body>
+        <div id="baseContainer"><header class="">
+<div class="titleAndSearchContainer">
+        <div id="titleContainer">
+            
+                <a class="unstyledLink" href="http://localhost:1313/">
+                    <img src='http://localhost:1313/logo.jpg' alt='Logo'/>
+                </a>
+            
+            <div class="rightOfLogo">
+                <div class="titleAndHamburger">
+                    <h1>
+                        <a class="unstyledLink" href="http://localhost:1313/">purpurina - a place for hacking</a>
+                        
+                    </h1>
+                    
+                </div>
+                <div id="wide_nav"><nav>
+    
+    <ul id="main-nav">
+        <li><a href="http://localhost:1313/">Home</a></li>
+        
+            <li><a href="http://localhost:1313/posts/">Posts</a></li>
+        
+        
+        
+        
+        
+        
+            <li><a href="http://localhost:1313/about/">About</a></li>
+        
+        
+            <li><a href="http://localhost:1313/tags/">Tags</a></li>
+        
+        
+    </ul>
+</nav>
+</div>
+            </div>
+        </div>
+        <div class="search">
+    <input id="searchbar" type="text" placeholder='Search' />
+    <span class="nerdlink" onclick="newSearch();">&#xf002;</span>
+</div>
+<script>
+    function newSearch() {
+        let term = searchbar.value.trim();
+        if (!term) return;
+        location.href = `/search/?q=${term}`;
+    }
+    searchbar.onkeyup = (ev) => {if (ev.keyCode == 13) newSearch()};
+</script>
+
+    </div>
+    <div id="links">
+        
+        
+        <a
+    
+        rel="noreferrer"
+    
+    target="_blank"
+    class="nerdlink"
+    href="https://www.linkedin.com/in/jacobocasado/?originalSubdomain=es">
+    
+    
+        &#xf0e1;
+    
+    <span>
+        LinkedIn
+    </span>
+</a>
+
+    </div>
+    
+
+</header>
+<div id="contentContainer">
+                <div id="content">
+                    <main>
+<article class="card single">
+    
+        <h1>PE parsing</h1>
+    
+    
+        <p class="date">
+            <span title='Date'> </span>
+    2025-03-27
+
+</p>
+    
+    
+    
+    <div class="articleToc">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#signature">Signature</a></li>
+    <li><a href="#file-header">File Header</a></li>
+    <li><a href="#optional-header">Optional Header</a></li>
+  </ul>
+</nav>
+    <hr />
+</div>
+
+    <div><p>A random page with some information of the PE format file and its main headers.
+Main usage: malware development and malware research.</p>
+<h1 id="considerations">Considerations</h1>
+<ul>
+<li>RVA (<strong>Relative Virtual Address</strong>): Offset from Image Base. To obtain the absolute virtual address the calculation &ldquo;Image Base + RVA&rdquo; must be performed. Several PE sections include RVAs.</li>
+<li>Check the <a href="https://learn.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a> if you want to know more! This is only a summary and my personal studies about the topic.</li>
+</ul>
+<h1 id="dos-header">DOS header</h1>
+<ul>
+<li><code>IMAGE_DOS_HEADER</code> structure definition from <code>winnt.h</code>.</li>
+<li>First 64 bytes of the PE file.</li>
+<li>Was very important in the MS-DOS era, right now it is not.</li>
+<li>The actual Windows OS loader uses a field in this header to navigate to the <strong>new executable</strong> header , which is the header containing most of the needed information.</li>
+<li>Kept in the binaries for compatibility purposes.</li>
+</ul>
+<p>We only want to know about the first and last members of this header:</p>
+<ul>
+<li><strong><code>e_magic</code>:</strong> First member of the DOS Header, it’s a WORD (2 bytes), and it&rsquo;s a called a magic number. It has a fixed value of <code>0x5A4D</code> or <code>MZ</code> in ASCII, and it serves as a signature that marks the file as an MS-DOS executable.</li>
+<li><strong><code>e_lfanew</code>:</strong> This is the last member of the DOS header. This member is important to the PE loader on Windows systems because it tells the loader where to look for the <strong>new executable header</strong>. It is basically an &ldquo;offset&rdquo; pointer to the <strong>new executable header (from now on, called PE header).</strong></li>
+</ul>
+<p>This is what the old MS-DOS loader and the new Windows PE Loader do with this header:
+<img src="http://localhost:1313/images/post_images/pe_parsing.png" alt=""></p>
+<h1 id="dos-stub">DOS stub</h1>
+<p>The DOS stub is a MS-DOS program that prints an error message saying that the executable is not compatible with DOS, and exists. This is not executed in the modern Windows OS. This is what gets executed when the program is loaded in MS-DOS.
+If we copy the bytes of the DOS stub into IDA or any disassembler, we can see that the code routine is just to print the string and exit.</p>
+<p><img src="http://localhost:1313/images/post_images/pe_parsing_1.png" alt=""></p>
+<h1 id="nt-header-pe-headernew-executable-header">NT header (PE header/new executable header)</h1>
+<p><code>IMAGE_NT_HEADERS</code>as defined in <code>winnt.h</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_NT_HEADERS64</span> {
+</span></span><span style="display:flex;"><span>    DWORD Signature;
+</span></span><span style="display:flex;"><span>    IMAGE_FILE_HEADER FileHeader;
+</span></span><span style="display:flex;"><span>    IMAGE_OPTIONAL_HEADER64 OptionalHeader;
+</span></span><span style="display:flex;"><span>} IMAGE_NT_HEADERS64, <span style="color:#f92672">*</span>PIMAGE_NT_HEADERS64;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_NT_HEADERS</span> {
+</span></span><span style="display:flex;"><span>    DWORD Signature;
+</span></span><span style="display:flex;"><span>    IMAGE_FILE_HEADER FileHeader;
+</span></span><span style="display:flex;"><span>    IMAGE_OPTIONAL_HEADER32 OptionalHeader;
+</span></span><span style="display:flex;"><span>} IMAGE_NT_HEADERS32, <span style="color:#f92672">*</span>PIMAGE_NT_HEADERS32;
+</span></span></code></pre></div><p>There is one structure for 32-bit executables and other for 64-bit executables.
+The optional header differs, as can be seen in the struct.</p>
+<h2 id="signature">Signature</h2>
+<p>Fixed value of <code>0x50450000</code> which translates to <code>PE\0\0</code> in ASCII. Again, another magic number inside the executable. This is used by the loader to know that it has reached the correct section after querying <strong><code>e_lfanew</code></strong> from the DOS header.</p>
+<h2 id="file-header">File Header</h2>
+<p><a href="https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-image_file_header">Check the official microsoft docs for this struct here</a>.
+Another struct that contains information about the PE file. Some of this information is relevant. Let&rsquo;s see the struct:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_FILE_HEADER</span> {
+</span></span><span style="display:flex;"><span>    WORD    Machine;
+</span></span><span style="display:flex;"><span>    WORD    NumberOfSections;
+</span></span><span style="display:flex;"><span>    DWORD   TimeDateStamp;
+</span></span><span style="display:flex;"><span>    DWORD   PointerToSymbolTable;
+</span></span><span style="display:flex;"><span>    DWORD   NumberOfSymbols;
+</span></span><span style="display:flex;"><span>    WORD    SizeOfOptionalHeader;
+</span></span><span style="display:flex;"><span>    WORD    Characteristics;
+</span></span><span style="display:flex;"><span>} IMAGE_FILE_HEADER, <span style="color:#f92672">*</span>PIMAGE_FILE_HEADER;
+</span></span></code></pre></div><p>Details about the header:</p>
+<ul>
+<li><strong><code>Machine</code></strong>: Target architecture of the executable. Normally, these values <code>0x8864</code> for <code>AMD64</code> and <code>0x14c</code> for <code>i386</code> are the common ones. However, for a complete list of possible values you can check the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a>. However, this value is often ignored by the <strong><code>Magic</code></strong> value in the Optional Header (we will see it later).</li>
+<li><strong><code>NumberOfSections</code></strong>: Number of sections that the binary has (.data is a section, for example).</li>
+<li><strong><code>TimeDateStamp</code></strong>: The unix timestamp that indicates when the file was created.</li>
+<li><strong><code>PointerToSymbolTable</code></strong>: The offset of the symbol table, in bytes, or zero if no COFF symbol table exists. Normally set to zero as the table does not get included by the compiler.</li>
+<li><strong><code>NumberOfSymbols</code></strong>: Number of symbols in the COFF symbol table (normally 0).</li>
+<li><strong><code>SizeOfOptionalHeader</code></strong>: The size of the optional header in bytes (we will see that header later).</li>
+<li><strong><code>Characteristics</code>:</strong> A flag that indicates the attributes of the file, these attributes can be things like the file being executable, the file being a system file and not a user program, and a lot of other things. A complete list of these flags can be found on the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a>.</li>
+</ul>
+<h2 id="optional-header">Optional Header</h2>
+<p>This can be very confusing, but this header, called the optional header, is one of the most important headers in the PE.
+The PE loader looks for specific information from this header in order to load and run the executable.
+<strong>It&rsquo;s called optional header as this header is not included in object files, but it is included in image files, as executables.</strong>
+It doesn’t have a fixed size, that’s why the <code>IMAGE_FILE_HEADER.SizeOfOptionalHeader</code> member exists.</p>
+<p>As mentioned earlier, there are two versions of the Optional Header, one for 32-bit executables and one for 64-bit executables.<br>
+The two versions are different in two aspects:</p>
+<ul>
+<li><strong>The size of the structure itself (or the number of members defined within the structure):</strong> <code>IMAGE_OPTIONAL_HEADER32</code> has 31 members while <code>IMAGE_OPTIONAL_HEADER64</code> only has 30 members, that additional member in the 32-bit version is a DWORD named <code>BaseOfData</code> which holds an RVA of the beginning of the <code>data</code> section.</li>
+<li><strong>The data type of some of the members:</strong> The following 5 members of the Optional Header structure are defined as <code>DWORD</code> in the 32-bit version and as <code>ULONGLONG</code> in the 64-bit version:
+<ul>
+<li><strong><code>ImageBase</code></strong></li>
+<li><strong><code>SizeOfStackReserve</code></strong></li>
+<li><strong><code>SizeOfStackCommit</code></strong></li>
+<li><strong><code>SizeOfHeapReserve</code></strong></li>
+<li><strong><code>SizeOfHeapCommit</code></strong></li>
+</ul>
+</li>
+</ul>
+<p>We will focus in the 64 bit struct, as most of the malware we will create and parse will be of this type:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_OPTIONAL_HEADER64</span> {
+</span></span><span style="display:flex;"><span>    WORD        Magic;
+</span></span><span style="display:flex;"><span>    BYTE        MajorLinkerVersion;
+</span></span><span style="display:flex;"><span>    BYTE        MinorLinkerVersion;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfCode;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfInitializedData;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfUninitializedData;
+</span></span><span style="display:flex;"><span>    DWORD       AddressOfEntryPoint;
+</span></span><span style="display:flex;"><span>    DWORD       BaseOfCode;
+</span></span><span style="display:flex;"><span>    ULONGLONG   ImageBase;
+</span></span><span style="display:flex;"><span>    DWORD       SectionAlignment;
+</span></span><span style="display:flex;"><span>    DWORD       FileAlignment;
+</span></span><span style="display:flex;"><span>    WORD        MajorOperatingSystemVersion;
+</span></span><span style="display:flex;"><span>    WORD        MinorOperatingSystemVersion;
+</span></span><span style="display:flex;"><span>    WORD        MajorImageVersion;
+</span></span><span style="display:flex;"><span>    WORD        MinorImageVersion;
+</span></span><span style="display:flex;"><span>    WORD        MajorSubsystemVersion;
+</span></span><span style="display:flex;"><span>    WORD        MinorSubsystemVersion;
+</span></span><span style="display:flex;"><span>    DWORD       Win32VersionValue;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfImage;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfHeaders;
+</span></span><span style="display:flex;"><span>    DWORD       CheckSum;
+</span></span><span style="display:flex;"><span>    WORD        Subsystem;
+</span></span><span style="display:flex;"><span>    WORD        DllCharacteristics;
+</span></span><span style="display:flex;"><span>    ULONGLONG   SizeOfStackReserve;
+</span></span><span style="display:flex;"><span>    ULONGLONG   SizeOfStackCommit;
+</span></span><span style="display:flex;"><span>    ULONGLONG   SizeOfHeapReserve;
+</span></span><span style="display:flex;"><span>    ULONGLONG   SizeOfHeapCommit;
+</span></span><span style="display:flex;"><span>    DWORD       LoaderFlags;
+</span></span><span style="display:flex;"><span>    DWORD       NumberOfRvaAndSizes;
+</span></span><span style="display:flex;"><span>    IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+</span></span><span style="display:flex;"><span>} IMAGE_OPTIONAL_HEADER64, <span style="color:#f92672">*</span>PIMAGE_OPTIONAL_HEADER64;
+</span></span></code></pre></div><p>Let&rsquo;s talk about the elements (<a href="https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-image-only">information gathered from the Official Microsoft docs</a>):</p>
+<ul>
+<li>
+<p><strong><code>Magic</code>:</strong> The optional header magic number determines whether an image is a PE32 or PE32+ executable. The value of this field is what determines whether the executable is 32-bit or 64-bit, <code>IMAGE_FILE_HEADER.Machine</code> is ignored by the Windows PE loader:</p>
+<ul>
+<li><strong><code>0x10B</code>:</strong> Identifies the image as a <code>PE32</code> executable.</li>
+<li><strong><code>0x20B</code>:</strong> Identifies the image as a <code>PE32+</code> executable.</li>
+<li><strong><code>0x107</code></strong>: Identifies it as a ROM image.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>MajorLinkerVersion</code> and <code>MinorLinkerVersion</code>:</strong> The linker major and minor version numbers.</p>
+</li>
+<li>
+<p><strong><code>SizeOfCode</code>:</strong> This field holds the size of the code (<code>.text</code>) section, or the sum of all code sections if there are multiple sections.</p>
+</li>
+<li>
+<p><strong><code>SizeOfInitializedData</code>:</strong> This field holds the size of the initialized data (<code>.data</code>) section, or the sum of all initialized data sections if there are multiple sections.</p>
+</li>
+<li>
+<p><strong><code>SizeOfUninitializedData</code>:</strong> This field holds the size of the uninitialized data (<code>.bss</code>) section, or the sum of all uninitialized data sections if there are multiple sections.</p>
+</li>
+<li>
+<p><strong><code>AddressOfEntryPoint</code>:</strong> An RVA of the entry point when the file is loaded into memory. For program images, this is the starting address. For device drivers, this is the address of the initialization function. An entry point is optional for DLLs. When no entry point is present, this field must be zero.</p>
+</li>
+<li>
+<p><strong><code>BaseOfCode</code>:</strong> An RVA of the start of the code section when the file is loaded into memory.</p>
+</li>
+<li>
+<p><strong><code>ImageBase</code>:</strong> This field holds the preferred address of the first byte of image when loaded into memory (the preferred base address), this value must be a multiple of 64K.</p>
+<ul>
+<li>Due to memory protections like ASLR, and a lot of other reasons, <strong>the address specified by this field is almost never used</strong>. In such case, the PE loader chooses an unused memory range to load the image into, loads the image in such address, and  starts the <strong>relocation</strong> process.</li>
+<li>In the <strong>relocation process</strong>, the OS fixes the constant addresses within the PE to work with the new image base.</li>
+<li>There’s a special section that holds information about places that will need fixing if relocation is needed, that section is called the relocation section (<code>.reloc</code>).</li>
+</ul>
+</li>
+<li>
+<p><strong><code>SectionAlignment</code>:</strong> The alignment (in bytes) of sections when they are loaded into memory. It must be greater than or equal to FileAlignment. The default is the page size for the architecture.</p>
+</li>
+<li>
+<p><strong><code>FileAlignment</code>:</strong> Similar to <code>SectionAligment</code> this field holds a value that gets used for section raw data alignment <strong>on disk</strong> (in bytes), if the size of the actual data in a section is less than the <code>FileAlignment</code> value, the rest of the chunk gets padded with zeroes to keep the alignment boundaries. The documentation states that this value should be a power of 2 between 512 and 64K, and if the value of <code>SectionAlignment</code> is less than the architecture’s page size then the sizes of <code>FileAlignment</code> and <code>SectionAlignment</code> must match.</p>
+</li>
+<li>
+<p><strong><code>MajorOperatingSystemVersion</code>, <code>MinorOperatingSystemVersion</code>, <code>MajorImageVersion</code>, <code>MinorImageVersion</code>, <code>MajorSubsystemVersion</code> and <code>MinorSubsystemVersion</code>:</strong> These members of the structure specify the major version number of the required operating system, the minor version number of the required operating system, the major version number of the image, the minor version number of the image, the major version number of the subsystem and the minor version number of the subsystem respectively.</p>
+</li>
+<li>
+<p><strong><code>Win32VersionValue</code>:</strong> A reserved field that the documentation says should be set to <code>0</code>.</p>
+</li>
+<li>
+<p><strong><code>SizeOfImage:</code></strong> The size of the image file (in bytes), including all headers. It gets rounded up to a multiple of <code>SectionAlignment</code> because this value is used when loading the image into memory.</p>
+</li>
+<li>
+<p><strong><code>SizeOfHeaders</code>:</strong> The combined size of the DOS stub, PE header (NT Headers), and section headers rounded up to a multiple of <code>FileAlignment</code>.</p>
+</li>
+<li>
+<p><strong><code>CheckSum</code>:</strong> A checksum of the image file, it’s used to validate the image at load time.</p>
+</li>
+<li>
+<p><strong><code>Subsystem</code>:</strong> This field specifies the Windows subsystem (if any) that is required to run the image, A complete list of the possible values of this field can be found on the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a>.</p>
+</li>
+<li>
+<p><strong><code>DLLCharacteristics</code>:</strong> This field defines some characteristics of the executable image file, like if it’s <code>NX</code> compatible and if it can be relocated at run time.</p>
+<ul>
+<li>Although it is called <code>DLLCharacteristics</code>, it exists within normal executable image files and it defines characteristics that can apply to normal executable files. Don&rsquo;t get confused by the name. A complete list of the possible flags for <code>DLLCharacteristics</code> can be found on the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a>.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>SizeOfStackReserve</code>, <code>SizeOfStackCommit</code>, <code>SizeOfHeapReserve</code> and <code>SizeOfHeapCommit</code>:</strong> These fields specify the size of the stack to reserve, the size of the stack to commit, the size of the local heap space to reserve and the size of the local heap space to commit respectively.</p>
+</li>
+<li>
+<p><strong><code>LoaderFlags</code>:</strong> A reserved field that the documentation says should be set to <code>0</code>.</p>
+</li>
+<li>
+<p><strong><code>NumberOfRvaAndSizes</code> :</strong> Size of the <code>DataDirectory</code> array.</p>
+</li>
+<li>
+<p><strong><code>DataDirectory</code>:</strong> An array of <code>IMAGE_DATA_DIRECTORY</code> structures. We will talk about this in the next post.</p>
+</li>
+</ul>
+</div>
+</article>
+
+    <hr />
+    <p class="articleTagsContainer">
+        <span> </span>
+        <strong>Tags:</strong>
+        
+            <a
+                
+                class="buttonTag"
+                
+                href="http://localhost:1313/tags/binaries/">#binaries</a>
+        
+            <a
+                
+                class="buttonTag"
+                
+                href="http://localhost:1313/tags/executables/">#executables</a>
+        
+            <a
+                
+                class="buttonTag"
+                
+                href="http://localhost:1313/tags/maldev/">#maldev</a>
+        
+            <a
+                
+                class="buttonTag"
+                
+                href="http://localhost:1313/tags/peparser/">#peparser</a>
+        
+    </p>
+
+
+
+
+
+    
+    
+        
+            
+        
+        <div class="relatedArticlesContainer">
+            <hr />
+            <h2>More posts like this</h2>
+            <div class="postlist ">
+                <article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/random_stuff/">Random stuff</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-02-28
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <p>Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)</p>
+<p><strong>Case of getting the function pointer to a resolving Windows API call:</strong></p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/random_stuff/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/wow64/">Understanding Heaven´s Gate</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-09-19
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <h1 id="heavens-gate-lore">Heaven&rsquo;s gate lore</h1>
+<p>The Heaven&rsquo;s Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A.
+After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rsquo;s Gate technique was later <a href="https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT">reprinted in the 2009 edition of the Valhalla hacker e-zine</a>. I personally would check this resource, as it was the first time the technique was commented.</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/wow64/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/shellcodes/">Shellcodes for everything</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-02-28
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/lab">#lab</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+                    <a href="http://localhost:1313/tags/shellcodes">#shellcodes</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <p>Shellcodes that will be useful for testing/developing your malware.</p>
+<p>I usually work on the same OS and with the same Compiler version for better reproducibility so here are my specs:</p>
+<ul>
+<li>Windows 10 Pro 22H2
+<ul>
+<li>OS Build <strong>19045.4046</strong></li>
+<li>MSVC vc.exe compiler (64-bit and 32-bit) version <strong>19.41.34123</strong></li>
+</ul>
+</li>
+</ul>
+<p>Shellcodes are not encrypted. You should encrypt them if you want evasion, as these shellcodes are public and not crafted manually by me.</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/shellcodes/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/firststeps/">My first steps in MalDev</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-02-28
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <h2 id="prelude">Prelude</h2>
+<p>Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so.</p>
+<p>As mentioned in many other blogposts, <a href="https://www.google.com/search?client=firefox-b-d&amp;q=sektor7+malware+development">Sektor7 Malware Development Essentials</a> course was a good point to start. Nevertheless, I found this course very short and I felt like most of the important concepts are ignored (e.g., <strong>what is a handle?</strong>) and are just used like if I already know them.</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/firststeps/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+
+            </div>
+        </div>
+    
+
+
+                    </main><footer>
+    <hr />
+
+<p><small>
+        2025 &copy; made by jaco with love
+    </small></p>
+    <p><small>
+        Licensed under <a href='https://www.gnu.org/licenses/agpl-3.0.html'>GNU AGPLv3</a>.
+    </small></p>
+</footer>
+</div>
+            </div>
+        </div>
+
+
+</body>
+</html>

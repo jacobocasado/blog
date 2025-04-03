@@ -49,8 +49,8 @@
         <meta name="keywords" content='evasion, firststeps, loader, maldev' />
     
     
-        <meta name="description" content="aration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)
-Case of getting the function pointer to a resolving Windows API call:" />
+        <meta name="description" content="eclaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Case of getting the function pointer to a resolving Windows API call:&lt;/strong&gt;&lt;/p&gt;" />
     
 
 <meta property="og:site_name"
@@ -81,7 +81,7 @@ Case of getting the function pointer to a resolving Windows API call:" />
     <meta property="og:image"
         content="http://localhost:1313/icon512.png" />
     
-        <meta property="og:description" content="Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer," />
+        <meta property="og:description" content="&lt;p&gt;Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this point" />
     
 
 <meta name="twitter:card" content="summary_large_image" />
@@ -98,7 +98,7 @@ Case of getting the function pointer to a resolving Windows API call:" />
     <meta name="twitter:image"
         content="http://localhost:1313/icon512.png" />
     
-        <meta name="twitter:description" content="Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer," />
+        <meta name="twitter:description" content="&lt;p&gt;Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this point" />
     
 
 <link rel="manifest" href="http://localhost:1313/manifest/index.json" />
@@ -275,7 +275,59 @@ Case of getting the function pointer to a resolving Windows API call:" />
                 <article class="card postlistitem">
     <div>
         <h2>
-            <a href="http://localhost:1313/posts/firststeps/">My first steps in MalDev</a>
+            <a href="http://localhost:1313/posts/pe_parsing/">PE parsing</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2025-03-27
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/binaries">#binaries</a>
+                
+                    <a href="http://localhost:1313/tags/executables">#executables</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+                    <a href="http://localhost:1313/tags/peparser">#peparser</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <p>A random page with some information of the PE format file and its main headers.
+Main usage: malware development and malware research.</p>
+<h1 id="considerations">Considerations</h1>
+<ul>
+<li>RVA (<strong>Relative Virtual Address</strong>): Offset from Image Base. To obtain the absolute virtual address the calculation &ldquo;Image Base + RVA&rdquo; must be performed. Several PE sections include RVAs.</li>
+<li>Check the <a href="https://learn.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a> if you want to know more! This is only a summary and my personal studies about the topic.</li>
+</ul>
+<h1 id="dos-header">DOS header</h1>
+<ul>
+<li><code>IMAGE_DOS_HEADER</code> structure definition from <code>winnt.h</code>.</li>
+<li>First 64 bytes of the PE file.</li>
+<li>Was very important in the MS-DOS era, right now it is not.</li>
+<li>The actual Windows OS loader uses a field in this header to navigate to the <strong>new executable</strong> header , which is the header containing most of the needed information.</li>
+<li>Kept in the binaries for compatibility purposes.</li>
+</ul>
+<p>We only want to know about the first and last members of this header:</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/pe_parsing/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/shellcodes/">Shellcodes for everything</a>
         </h2>
         <p class="date">
             <span title='Date'> </span>
@@ -285,13 +337,11 @@ Case of getting the function pointer to a resolving Windows API call:" />
                 | 
                 <span title='Tags'> </span>
                 
-                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
-                
-                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
-                
-                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                    <a href="http://localhost:1313/tags/lab">#lab</a>
                 
                     <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+                    <a href="http://localhost:1313/tags/shellcodes">#shellcodes</a>
                 
             
         </p>
@@ -300,11 +350,20 @@ Case of getting the function pointer to a resolving Windows API call:" />
             <div class="articlePreview">
                 <p>
                     
-                        Prelude Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so.
-As mentioned in many other blogposts, Sektor7 Malware Development Essentials course was a good point to start.
+                        <p>Shellcodes that will be useful for testing/developing your malware.</p>
+<p>I usually work on the same OS and with the same Compiler version for better reproducibility so here are my specs:</p>
+<ul>
+<li>Windows 10 Pro 22H2
+<ul>
+<li>OS Build <strong>19045.4046</strong></li>
+<li>MSVC vc.exe compiler (64-bit and 32-bit) version <strong>19.41.34123</strong></li>
+</ul>
+</li>
+</ul>
+<p>Shellcodes are not encrypted. You should encrypt them if you want evasion, as these shellcodes are public and not crafted manually by me.</p>
                     
                 </p>
-                <p><a href="http://localhost:1313/posts/firststeps/">Continue reading </a></p>
+                <p><a href="http://localhost:1313/posts/shellcodes/">Continue reading </a></p>
             </div>
         
     </div>
@@ -338,7 +397,9 @@ As mentioned in many other blogposts, Sektor7 Malware Development Essentials cou
             <div class="articlePreview">
                 <p>
                     
-                        Heaven&rsquo;s gate lore The Heaven&rsquo;s Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A. After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rsquo;s Gate technique was later reprinted in the 2009 edition of the Valhalla hacker e-zine.
+                        <h1 id="heavens-gate-lore">Heaven&rsquo;s gate lore</h1>
+<p>The Heaven&rsquo;s Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A.
+After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rsquo;s Gate technique was later <a href="https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT">reprinted in the 2009 edition of the Valhalla hacker e-zine</a>. I personally would check this resource, as it was the first time the technique was commented.</p>
                     
                 </p>
                 <p><a href="http://localhost:1313/posts/wow64/">Continue reading </a></p>
@@ -350,7 +411,7 @@ As mentioned in many other blogposts, Sektor7 Malware Development Essentials cou
 <article class="card postlistitem">
     <div>
         <h2>
-            <a href="http://localhost:1313/posts/shellcodes/">Shellcodes for everything</a>
+            <a href="http://localhost:1313/posts/firststeps/">My first steps in MalDev</a>
         </h2>
         <p class="date">
             <span title='Date'> </span>
@@ -360,11 +421,13 @@ As mentioned in many other blogposts, Sektor7 Malware Development Essentials cou
                 | 
                 <span title='Tags'> </span>
                 
-                    <a href="http://localhost:1313/tags/lab">#lab</a>
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
                 
                     <a href="http://localhost:1313/tags/maldev">#maldev</a>
-                
-                    <a href="http://localhost:1313/tags/shellcodes">#shellcodes</a>
                 
             
         </p>
@@ -373,12 +436,12 @@ As mentioned in many other blogposts, Sektor7 Malware Development Essentials cou
             <div class="articlePreview">
                 <p>
                     
-                        Shellcodes that will be useful for testing/developing your malware.
-I usually work on the same OS and with the same Compiler version for better reproducibility so here are my specs:
-Windows 10 Pro 22H2 OS Build 19045.4046 MSVC vc.exe compiler (64-bit and 32-bit) version 19.41.34123 Shellcodes are not encrypted. You should encrypt them if you want evasion, as these shellcodes are public and not crafted manually by me.
+                        <h2 id="prelude">Prelude</h2>
+<p>Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so.</p>
+<p>As mentioned in many other blogposts, <a href="https://www.google.com/search?client=firefox-b-d&amp;q=sektor7+malware+development">Sektor7 Malware Development Essentials</a> course was a good point to start. Nevertheless, I found this course very short and I felt like most of the important concepts are ignored (e.g., <strong>what is a handle?</strong>) and are just used like if I already know them.</p>
                     
                 </p>
-                <p><a href="http://localhost:1313/posts/shellcodes/">Continue reading </a></p>
+                <p><a href="http://localhost:1313/posts/firststeps/">Continue reading </a></p>
             </div>
         
     </div>
@@ -394,7 +457,7 @@ Windows 10 Pro 22H2 OS Build 19045.4046 MSVC vc.exe compiler (64-bit and 32-bit)
     <hr />
 
 <p><small>
-        2024 &copy; made by jaco with love
+        2025 &copy; made by jaco with love
     </small></p>
     <p><small>
         Licensed under <a href='https://www.gnu.org/licenses/agpl-3.0.html'>GNU AGPLv3</a>.

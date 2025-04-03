@@ -10,7 +10,6 @@ canonifyURLs = true
 # you can use markdown inside this field
 copyright = "made by jaco with love"
 
-paginate = 5  # number of articles per page in the index
 summaryLength = 50  # number of words for article summaries
 
 [params]
@@ -100,3 +99,6 @@ summaryLength = 50  # number of words for article summaries
         name = "LinkedIn"
         url = "https://www.linkedin.com/in/jacobocasado/?originalSubdomain=es"
         weight = 50
+
+[pagination]
+pagerSize = 5

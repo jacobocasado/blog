@@ -6,7 +6,215 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>made by jaco with love</copyright>
-    <lastBuildDate>Thu, 19 Sep 2024 20:53:30 +0100</lastBuildDate><atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" /><icon>http://localhost:1313/logo.jpg</icon>
+    <lastBuildDate>Thu, 27 Mar 2025 20:53:30 +0100</lastBuildDate><atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" /><icon>http://localhost:1313/logo.jpg</icon>
+    
+    
+    <item>
+      <title>PE parsing</title>
+      <link>http://localhost:1313/posts/pe_parsing/</link>
+      <pubDate>Thu, 27 Mar 2025 20:53:30 +0100</pubDate>
+      
+      <guid>http://localhost:1313/posts/pe_parsing/</guid>
+      <description><![CDATA[<p>A random page with some information of the PE format file and its main headers.
+Main usage: malware development and malware research.</p>
+<h1 id="considerations">Considerations</h1>
+<ul>
+<li>RVA (<strong>Relative Virtual Address</strong>): Offset from Image Base. To obtain the absolute virtual address the calculation &ldquo;Image Base + RVA&rdquo; must be performed. Several PE sections include RVAs.</li>
+<li>Check the <a href="https://learn.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a> if you want to know more! This is only a summary and my personal studies about the topic.</li>
+</ul>
+<h1 id="dos-header">DOS header</h1>
+<ul>
+<li><code>IMAGE_DOS_HEADER</code> structure definition from <code>winnt.h</code>.</li>
+<li>First 64 bytes of the PE file.</li>
+<li>Was very important in the MS-DOS era, right now it is not.</li>
+<li>The actual Windows OS loader uses a field in this header to navigate to the <strong>new executable</strong> header , which is the header containing most of the needed information.</li>
+<li>Kept in the binaries for compatibility purposes.</li>
+</ul>
+<p>We only want to know about the first and last members of this header:</p>
+<ul>
+<li><strong><code>e_magic</code>:</strong> First member of the DOS Header, it’s a WORD (2 bytes), and it&rsquo;s a called a magic number. It has a fixed value of <code>0x5A4D</code> or <code>MZ</code> in ASCII, and it serves as a signature that marks the file as an MS-DOS executable.</li>
+<li><strong><code>e_lfanew</code>:</strong> This is the last member of the DOS header. This member is important to the PE loader on Windows systems because it tells the loader where to look for the <strong>new executable header</strong>. It is basically an &ldquo;offset&rdquo; pointer to the <strong>new executable header (from now on, called PE header).</strong></li>
+</ul>
+<p>This is what the old MS-DOS loader and the new Windows PE Loader do with this header:
+<img src="content/images/post_images/pe_parsing.png" alt=""></p>
+<h1 id="dos-stub">DOS stub</h1>
+<p>The DOS stub is a MS-DOS program that prints an error message saying that the executable is not compatible with DOS, and exists. This is not executed in the modern Windows OS. This is what gets executed when the program is loaded in MS-DOS.
+If we copy the bytes of the DOS stub into IDA or any disassembler, we can see that the code routine is just to print the string and exit.</p>
+<p><img src="content/images/post_images/pe_parsing_1.png" alt=""></p>
+<h1 id="nt-header-pe-headernew-executable-header">NT header (PE header/new executable header)</h1>
+<p><code>IMAGE_NT_HEADERS</code>as defined in <code>winnt.h</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_NT_HEADERS64</span> {
+</span></span><span style="display:flex;"><span>    DWORD Signature;
+</span></span><span style="display:flex;"><span>    IMAGE_FILE_HEADER FileHeader;
+</span></span><span style="display:flex;"><span>    IMAGE_OPTIONAL_HEADER64 OptionalHeader;
+</span></span><span style="display:flex;"><span>} IMAGE_NT_HEADERS64, <span style="color:#f92672">*</span>PIMAGE_NT_HEADERS64;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_NT_HEADERS</span> {
+</span></span><span style="display:flex;"><span>    DWORD Signature;
+</span></span><span style="display:flex;"><span>    IMAGE_FILE_HEADER FileHeader;
+</span></span><span style="display:flex;"><span>    IMAGE_OPTIONAL_HEADER32 OptionalHeader;
+</span></span><span style="display:flex;"><span>} IMAGE_NT_HEADERS32, <span style="color:#f92672">*</span>PIMAGE_NT_HEADERS32;
+</span></span></code></pre></div><p>There is one structure for 32-bit executables and other for 64-bit executables.
+The optional header differs, as can be seen in the struct.</p>
+<h2 id="signature">Signature</h2>
+<p>Fixed value of <code>0x50450000</code> which translates to <code>PE\0\0</code> in ASCII. Again, another magic number inside the executable. This is used by the loader to know that it has reached the correct section after querying <strong><code>e_lfanew</code></strong> from the DOS header.</p>
+<h2 id="file-header">File Header</h2>
+<p><a href="https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-image_file_header">Check the official microsoft docs for this struct here</a>.
+Another struct that contains information about the PE file. Some of this information is relevant. Let&rsquo;s see the struct:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_FILE_HEADER</span> {
+</span></span><span style="display:flex;"><span>    WORD    Machine;
+</span></span><span style="display:flex;"><span>    WORD    NumberOfSections;
+</span></span><span style="display:flex;"><span>    DWORD   TimeDateStamp;
+</span></span><span style="display:flex;"><span>    DWORD   PointerToSymbolTable;
+</span></span><span style="display:flex;"><span>    DWORD   NumberOfSymbols;
+</span></span><span style="display:flex;"><span>    WORD    SizeOfOptionalHeader;
+</span></span><span style="display:flex;"><span>    WORD    Characteristics;
+</span></span><span style="display:flex;"><span>} IMAGE_FILE_HEADER, <span style="color:#f92672">*</span>PIMAGE_FILE_HEADER;
+</span></span></code></pre></div><p>Details about the header:</p>
+<ul>
+<li><strong><code>Machine</code></strong>: Target architecture of the executable. Normally, these values <code>0x8864</code> for <code>AMD64</code> and <code>0x14c</code> for <code>i386</code> are the common ones. However, for a complete list of possible values you can check the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a>. However, this value is often ignored by the <strong><code>Magic</code></strong> value in the Optional Header (we will see it later).</li>
+<li><strong><code>NumberOfSections</code></strong>: Number of sections that the binary has (.data is a section, for example).</li>
+<li><strong><code>TimeDateStamp</code></strong>: The unix timestamp that indicates when the file was created.</li>
+<li><strong><code>PointerToSymbolTable</code></strong>: The offset of the symbol table, in bytes, or zero if no COFF symbol table exists. Normally set to zero as the table does not get included by the compiler.</li>
+<li><strong><code>NumberOfSymbols</code></strong>: Number of symbols in the COFF symbol table (normally 0).</li>
+<li><strong><code>SizeOfOptionalHeader</code></strong>: The size of the optional header in bytes (we will see that header later).</li>
+<li><strong><code>Characteristics</code>:</strong> A flag that indicates the attributes of the file, these attributes can be things like the file being executable, the file being a system file and not a user program, and a lot of other things. A complete list of these flags can be found on the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a>.</li>
+</ul>
+<h2 id="optional-header">Optional Header</h2>
+<p>This can be very confusing, but this header, called the optional header, is one of the most important headers in the PE.
+The PE loader looks for specific information from this header in order to load and run the executable.
+<strong>It&rsquo;s called optional header as this header is not included in object files, but it is included in image files, as executables.</strong>
+It doesn’t have a fixed size, that’s why the <code>IMAGE_FILE_HEADER.SizeOfOptionalHeader</code> member exists.</p>
+<p>As mentioned earlier, there are two versions of the Optional Header, one for 32-bit executables and one for 64-bit executables.<br>
+The two versions are different in two aspects:</p>
+<ul>
+<li><strong>The size of the structure itself (or the number of members defined within the structure):</strong> <code>IMAGE_OPTIONAL_HEADER32</code> has 31 members while <code>IMAGE_OPTIONAL_HEADER64</code> only has 30 members, that additional member in the 32-bit version is a DWORD named <code>BaseOfData</code> which holds an RVA of the beginning of the <code>data</code> section.</li>
+<li><strong>The data type of some of the members:</strong> The following 5 members of the Optional Header structure are defined as <code>DWORD</code> in the 32-bit version and as <code>ULONGLONG</code> in the 64-bit version:
+<ul>
+<li><strong><code>ImageBase</code></strong></li>
+<li><strong><code>SizeOfStackReserve</code></strong></li>
+<li><strong><code>SizeOfStackCommit</code></strong></li>
+<li><strong><code>SizeOfHeapReserve</code></strong></li>
+<li><strong><code>SizeOfHeapCommit</code></strong></li>
+</ul>
+</li>
+</ul>
+<p>We will focus in the 64 bit struct, as most of the malware we will create and parse will be of this type:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_OPTIONAL_HEADER64</span> {
+</span></span><span style="display:flex;"><span>    WORD        Magic;
+</span></span><span style="display:flex;"><span>    BYTE        MajorLinkerVersion;
+</span></span><span style="display:flex;"><span>    BYTE        MinorLinkerVersion;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfCode;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfInitializedData;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfUninitializedData;
+</span></span><span style="display:flex;"><span>    DWORD       AddressOfEntryPoint;
+</span></span><span style="display:flex;"><span>    DWORD       BaseOfCode;
+</span></span><span style="display:flex;"><span>    ULONGLONG   ImageBase;
+</span></span><span style="display:flex;"><span>    DWORD       SectionAlignment;
+</span></span><span style="display:flex;"><span>    DWORD       FileAlignment;
+</span></span><span style="display:flex;"><span>    WORD        MajorOperatingSystemVersion;
+</span></span><span style="display:flex;"><span>    WORD        MinorOperatingSystemVersion;
+</span></span><span style="display:flex;"><span>    WORD        MajorImageVersion;
+</span></span><span style="display:flex;"><span>    WORD        MinorImageVersion;
+</span></span><span style="display:flex;"><span>    WORD        MajorSubsystemVersion;
+</span></span><span style="display:flex;"><span>    WORD        MinorSubsystemVersion;
+</span></span><span style="display:flex;"><span>    DWORD       Win32VersionValue;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfImage;
+</span></span><span style="display:flex;"><span>    DWORD       SizeOfHeaders;
+</span></span><span style="display:flex;"><span>    DWORD       CheckSum;
+</span></span><span style="display:flex;"><span>    WORD        Subsystem;
+</span></span><span style="display:flex;"><span>    WORD        DllCharacteristics;
+</span></span><span style="display:flex;"><span>    ULONGLONG   SizeOfStackReserve;
+</span></span><span style="display:flex;"><span>    ULONGLONG   SizeOfStackCommit;
+</span></span><span style="display:flex;"><span>    ULONGLONG   SizeOfHeapReserve;
+</span></span><span style="display:flex;"><span>    ULONGLONG   SizeOfHeapCommit;
+</span></span><span style="display:flex;"><span>    DWORD       LoaderFlags;
+</span></span><span style="display:flex;"><span>    DWORD       NumberOfRvaAndSizes;
+</span></span><span style="display:flex;"><span>    IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+</span></span><span style="display:flex;"><span>} IMAGE_OPTIONAL_HEADER64, <span style="color:#f92672">*</span>PIMAGE_OPTIONAL_HEADER64;
+</span></span></code></pre></div><p>Let&rsquo;s talk about the elements (<a href="https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-image-only">information gathered from the Official Microsoft docs</a>):</p>
+<ul>
+<li>
+<p><strong><code>Magic</code>:</strong> The optional header magic number determines whether an image is a PE32 or PE32+ executable. The value of this field is what determines whether the executable is 32-bit or 64-bit, <code>IMAGE_FILE_HEADER.Machine</code> is ignored by the Windows PE loader:</p>
+<ul>
+<li><strong><code>0x10B</code>:</strong> Identifies the image as a <code>PE32</code> executable.</li>
+<li><strong><code>0x20B</code>:</strong> Identifies the image as a <code>PE32+</code> executable.</li>
+<li><strong><code>0x107</code></strong>: Identifies it as a ROM image.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>MajorLinkerVersion</code> and <code>MinorLinkerVersion</code>:</strong> The linker major and minor version numbers.</p>
+</li>
+<li>
+<p><strong><code>SizeOfCode</code>:</strong> This field holds the size of the code (<code>.text</code>) section, or the sum of all code sections if there are multiple sections.</p>
+</li>
+<li>
+<p><strong><code>SizeOfInitializedData</code>:</strong> This field holds the size of the initialized data (<code>.data</code>) section, or the sum of all initialized data sections if there are multiple sections.</p>
+</li>
+<li>
+<p><strong><code>SizeOfUninitializedData</code>:</strong> This field holds the size of the uninitialized data (<code>.bss</code>) section, or the sum of all uninitialized data sections if there are multiple sections.</p>
+</li>
+<li>
+<p><strong><code>AddressOfEntryPoint</code>:</strong> An RVA of the entry point when the file is loaded into memory. For program images, this is the starting address. For device drivers, this is the address of the initialization function. An entry point is optional for DLLs. When no entry point is present, this field must be zero.</p>
+</li>
+<li>
+<p><strong><code>BaseOfCode</code>:</strong> An RVA of the start of the code section when the file is loaded into memory.</p>
+</li>
+<li>
+<p><strong><code>ImageBase</code>:</strong> This field holds the preferred address of the first byte of image when loaded into memory (the preferred base address), this value must be a multiple of 64K.</p>
+<ul>
+<li>Due to memory protections like ASLR, and a lot of other reasons, <strong>the address specified by this field is almost never used</strong>. In such case, the PE loader chooses an unused memory range to load the image into, loads the image in such address, and  starts the <strong>relocation</strong> process.</li>
+<li>In the <strong>relocation process</strong>, the OS fixes the constant addresses within the PE to work with the new image base.</li>
+<li>There’s a special section that holds information about places that will need fixing if relocation is needed, that section is called the relocation section (<code>.reloc</code>).</li>
+</ul>
+</li>
+<li>
+<p><strong><code>SectionAlignment</code>:</strong> The alignment (in bytes) of sections when they are loaded into memory. It must be greater than or equal to FileAlignment. The default is the page size for the architecture.</p>
+</li>
+<li>
+<p><strong><code>FileAlignment</code>:</strong> Similar to <code>SectionAligment</code> this field holds a value that gets used for section raw data alignment <strong>on disk</strong> (in bytes), if the size of the actual data in a section is less than the <code>FileAlignment</code> value, the rest of the chunk gets padded with zeroes to keep the alignment boundaries. The documentation states that this value should be a power of 2 between 512 and 64K, and if the value of <code>SectionAlignment</code> is less than the architecture’s page size then the sizes of <code>FileAlignment</code> and <code>SectionAlignment</code> must match.</p>
+</li>
+<li>
+<p><strong><code>MajorOperatingSystemVersion</code>, <code>MinorOperatingSystemVersion</code>, <code>MajorImageVersion</code>, <code>MinorImageVersion</code>, <code>MajorSubsystemVersion</code> and <code>MinorSubsystemVersion</code>:</strong> These members of the structure specify the major version number of the required operating system, the minor version number of the required operating system, the major version number of the image, the minor version number of the image, the major version number of the subsystem and the minor version number of the subsystem respectively.</p>
+</li>
+<li>
+<p><strong><code>Win32VersionValue</code>:</strong> A reserved field that the documentation says should be set to <code>0</code>.</p>
+</li>
+<li>
+<p><strong><code>SizeOfImage:</code></strong> The size of the image file (in bytes), including all headers. It gets rounded up to a multiple of <code>SectionAlignment</code> because this value is used when loading the image into memory.</p>
+</li>
+<li>
+<p><strong><code>SizeOfHeaders</code>:</strong> The combined size of the DOS stub, PE header (NT Headers), and section headers rounded up to a multiple of <code>FileAlignment</code>.</p>
+</li>
+<li>
+<p><strong><code>CheckSum</code>:</strong> A checksum of the image file, it’s used to validate the image at load time.</p>
+</li>
+<li>
+<p><strong><code>Subsystem</code>:</strong> This field specifies the Windows subsystem (if any) that is required to run the image, A complete list of the possible values of this field can be found on the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a>.</p>
+</li>
+<li>
+<p><strong><code>DLLCharacteristics</code>:</strong> This field defines some characteristics of the executable image file, like if it’s <code>NX</code> compatible and if it can be relocated at run time.</p>
+<ul>
+<li>Although it is called <code>DLLCharacteristics</code>, it exists within normal executable image files and it defines characteristics that can apply to normal executable files. Don&rsquo;t get confused by the name. A complete list of the possible flags for <code>DLLCharacteristics</code> can be found on the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a>.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>SizeOfStackReserve</code>, <code>SizeOfStackCommit</code>, <code>SizeOfHeapReserve</code> and <code>SizeOfHeapCommit</code>:</strong> These fields specify the size of the stack to reserve, the size of the stack to commit, the size of the local heap space to reserve and the size of the local heap space to commit respectively.</p>
+</li>
+<li>
+<p><strong><code>LoaderFlags</code>:</strong> A reserved field that the documentation says should be set to <code>0</code>.</p>
+</li>
+<li>
+<p><strong><code>NumberOfRvaAndSizes</code> :</strong> Size of the <code>DataDirectory</code> array.</p>
+</li>
+<li>
+<p><strong><code>DataDirectory</code>:</strong> An array of <code>IMAGE_DATA_DIRECTORY</code> structures. We will talk about this in the next post.</p>
+</li>
+</ul>
+]]></description>
+      
+    </item>
+    
     
     
     <item>
@@ -19,8 +227,8 @@
 <p>The Heaven&rsquo;s Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A.
 After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rsquo;s Gate technique was later <a href="https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT">reprinted in the 2009 edition of the Valhalla hacker e-zine</a>. I personally would check this resource, as it was the first time the technique was commented.</p>
 <h1 id="why-does-heavens-gate-exist">Why does Heaven&rsquo;s gate exist?</h1>
-<p>In a normal environment, we have 64-bit Windows operative systems (or at least, we expect so). Some detection mechanisms, like antivirus software and OS security features, <strong>do not detect a 32-bit process jumps from running 32-bit compatible code to 64-bit code.</strong> And this is because a 32-bit program cannot inject code into 64-bit programs natively.
-Indeed, 32-bit programs can run on a 64-bit OS because there is a compatibility layer: WoW64.</p>
+<p>In a normal environment, we have 64-bit Windows operative systems (or at least, we expect so). Some detection mechanisms, like antivirus software and OS security features, <strong>do not detect a 32-bit process jumping from running 32-bit compatible code to 64-bit code.</strong> And this is because a 32-bit program cannot inject code into 64-bit programs natively.
+Indeed, 32-bit programs can run on a 64-bit OS because there is a compatibility layer: <strong>WoW64</strong>.</p>
 <h2 id="the-compatibility-layer-wow64">The compatibility layer: WoW64</h2>
 <p>In a 64-bit Windows kernel, the first piece of code to execute in <strong>any</strong> process is <strong>always</strong> the 64-bit DLL called <strong>ntdll.dll</strong>, also called NTDLL.
 This DLL takes care of <strong>initializing the process in user-mode as a 64-bit process</strong> and setting up the execution of the process.</p>
@@ -153,8 +361,8 @@ Well, after NTDLL is loaded, the <strong>Windows on Windows (WoW64)</strong> int
 </ul>
 <p>Note that we could <strong>have a modified version of this function so that the 64-bit function that is executed is not CreateRemoteThread</strong>, but a Windows API call (for example), or an arbitrary 64-bit function shellcode.</p>
 <h2 id="disassembling-and-analyzing-execute64">Disassembling and analyzing EXECUTE64</h2>
-<p>We want to analyze the <strong>protagonist of this technique: the EXECUTE64 shellcode, which acts as the function that performs the &ldquo;jump&rdquo; to the 32-bit world to the 64-bit world and executes our function.</strong>
-We could use a <a href="https://defuse.ca/online-x86-assembler.htm">known online disassembler</a> and copy the <code>sh_executex64</code> shellcode that is in the code, but we could also take the official ASM that is <a href="https://github.com/rapid7/metasploit-framework/blob/master/external/source/shellcode/windows/x86/src/migrate/executex64.asm">declared in the Metasploit Framework</a> that is basically the same code, but in ASM representation. It will be easier for us to comment.</p>
+<p>We want to analyze the <strong>protagonist of this technique: the EXECUTE64 shellcode, which acts as the function that performs the &ldquo;jump&rdquo; to the 32-bit world to the 64-bit world and executes our function.</strong> This is the function that performs the Heaven&rsquo;s Gate, so it is the interesting one.</p>
+<p>We could use a <a href="https://defuse.ca/online-x86-assembler.htm">known online disassembler</a> and copy the <code>sh_executex64</code> shellcode that is in the code, but we could also take the official ASM that is <a href="https://github.com/rapid7/metasploit-framework/blob/master/external/source/shellcode/windows/x86/src/migrate/executex64.asm">declared in the Metasploit Framework</a> that is basically the same code, but in ASM representation. It will be easier for us to comment.</p>
 <p>Let&rsquo;s analyze the code:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>; A simple function to execute native x64 code from a <span style="color:#a6e22e">wow64</span> (x86) process. 
 </span></span><span style="display:flex;"><span>; Can be called from C <span style="color:#66d9ef">using</span> the following prototype:
@@ -212,7 +420,44 @@ We could use a <a href="https://defuse.ca/online-x86-assembler.htm">known online
 </span></span><span style="display:flex;"><span>	mov dword [rsp<span style="color:#f92672">+</span><span style="color:#ae81ff">4</span>], WOW64_CODE_SEGMENT	; set the wow64 code segment 
 </span></span><span style="display:flex;"><span>	mov dword [rsp], edi					; set the address we want to jump <span style="color:#a6e22e">to</span> (the <span style="color:#66d9ef">return</span> address from the go_all_native call)
 </span></span><span style="display:flex;"><span>	jmp dword far [rsp]						; perform the far jump back to the wow64 caller...
-</span></span></code></pre></div>]]></description>
+</span></span></code></pre></div><p>The code does the following things:</p>
+<ul>
+<li>Initializes the stack frame properly.</li>
+<li>Takes the pFunction (function to execute) and dwParameter from the stack using EBP + offsets and saves it into registers for later usage.</li>
+<li>Calls <code>delta</code>.</li>
+<li>In <code>delta</code> we <strong>prepare the opening of the gate</strong>:
+<ul>
+<li>pop the last inserted value in the stack (which is the saved EIP value, as the call instruction inserts EIP so we keep track of what we have to execute after delta). This is a trick to <strong>obtain the address of the code that is being executed dinamically.</strong></li>
+<li>Once we obtain the address of the instruction in which we are dinamically, we add the offset to the native_x64 code section, having the dynamic address of the native_x64 code section.</li>
+<li>Expand the stack frame and add 2 variables: The 0x33 code segment, corresponding as a 64-bit execution code segment (this will be used when jumping into 64-bit context), and the dynamic address of native_x64. Both are stored in the stack, the last is pointed by edx, and the other is pointed by edx+4.</li>
+<li>Call <code>go_all_native</code>.</li>
+</ul>
+</li>
+<li>In <code>go_all_native</code>, we <strong>go inside the gate</strong>:
+<ul>
+<li>We save the 32-bit context return address (stored in ESP by the call operation) into edi.</li>
+<li>We <strong>perform a far jump to the memory address stored in edx</strong>, which is the <code>native_x64</code> starting point. Also, the edx+4 address is used in the <strong>far jump</strong> to change the code segment to the 0x33 code segment, corresponding to a 64-bit code segment. Now the CPU is ready to understand and execute 64-bit code. <strong>We have opened the Heaven&rsquo;s Gate.</strong></li>
+</ul>
+</li>
+<li>
+<ul>
+<li>In <code>native_x64</code>, we <strong>execute our x64 arbitrary code and then return to the 32-bit context:</strong>
+<ul>
+<li>We reset rax.</li>
+<li>We push rdi into the stack, as we stored the 32-bit return address in edi. We will use this to return to the 32-bit code.</li>
+<li>We call rsi, which already has the pFunction (the address of the function to execute).</li>
+<li>Once our function has been executed, we restore rdi popping its value from the stack (we saved it previously).</li>
+<li>We add the 32-bit code address into the stack, and the 32-bit code segment (0x23), to, lastly, perform <strong>another far jmp</strong> to the 32-bit address using the 32-bit code segment. We are finally <strong>closing the Heaven&rsquo;s Gate.</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>After going back to the 32-bit code, some cleaning is done in order to reestructure the stack. We return to the 32-bit code that triggered this shellcode. As a homework, I have to study why the code does some operations for AMD CPUs.</li>
+</ul>
+<p>To be honest, this has been one of the most interesting topics I have researched within this field. I have learnt a lot from OS internals, assembly and I have not only discovered an interesting technique, but I have understood how does it works (or, at least, I have that impression). I personally do not like to use things that are shady to me, so this is one of the best things to take from this learning path.</p>
+<p>Let me know what is wrong or tell me your doubts on this topic by contacting me via <a href="https://www.linkedin.com/in/jacobocasado/?originalSubdomain=es">LinkedIn</a>. I&rsquo;ll be glad to hear from you.</p>
+<p>Jaco</p>
+]]></description>
       
     </item>
     
@@ -499,6 +744,23 @@ Given this technique, PE analyzers do not display any information about these ca
 </span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">0x31</span>, <span style="color:#ae81ff">0xc0</span>, <span style="color:#ae81ff">0x50</span>, <span style="color:#ae81ff">0xff</span>, <span style="color:#ae81ff">0x55</span>, <span style="color:#ae81ff">0x08</span>
 </span></span><span style="display:flex;"><span>};
 </span></span></code></pre></div>]]></description>
+      
+    </item>
+    
+    
+    
+    <item>
+      <title></title>
+      <link>http://localhost:1313/posts/threatcheck/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/posts/threatcheck/</guid>
+      <description><![CDATA[<p><img src="content/images/post_images/threatcheck.png" alt=""></p>
+<p><img src="content/images/post_images/threatcheck_1.png" alt="">
+<img src="content/images/post_images/threatcheck_2.png" alt=""></p>
+<p><img src="content/images/post_images/threatcheck_3.png" alt=""></p>
+<p><img src="content/images/post_images/threatcheck_4.png" alt=""></p>
+]]></description>
       
     </item>
     

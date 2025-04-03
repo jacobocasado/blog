@@ -1,7 +1,7 @@
 {
 	"version": 3,
 	"file": "styles.css",
-	"sourceRoot": "/home/jaco/Documents/synced/blog",
+	"sourceRoot": "/home/jaco/blog",
 	"sources": [
 		"themes/hugo-ficurinia/assets/scss/style.scss"
 	],

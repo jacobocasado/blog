@@ -49,8 +49,9 @@
         <meta name="keywords" content='evasion, firststeps, loader, maldev' />
     
     
-        <meta name="description" content="last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so.
-As mentioned in many other blogposts, Sektor7 Malware Development Essentials course was a good point to start." />
+        <meta name="description" content="lude&lt;/h2&gt;
+&lt;p&gt;Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so.&lt;/p&gt;
+&lt;p&gt;As mentioned in many other blogposts, &lt;a href=&#34;https://www.google.com/search?client=firefox-b-d&amp;amp;q=sektor7&#43;malware&#43;development&#34;&gt;Sektor7 Malware Development Essentials&lt;/a&gt; course was a good point to start. Nevertheless, I found this course very short and I felt like most of the important concepts are ignored (e.g., &lt;strong&gt;what is a handle?&lt;/strong&gt;) and are just used like if I already know them.&lt;/p&gt;" />
     
 
 <meta property="og:site_name"
@@ -81,7 +82,8 @@ As mentioned in many other blogposts, Sektor7 Malware Development Essentials cou
     <meta property="og:image"
         content="http://localhost:1313/icon512.png" />
     
-        <meta property="og:description" content="Prelude Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt" />
+        <meta property="og:description" content="&lt;h2 id=&#34;prelude&#34;&gt;Prelude&lt;/h2&gt;
+&lt;p&gt;Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge with" />
     
 
 <meta name="twitter:card" content="summary_large_image" />
@@ -98,7 +100,8 @@ As mentioned in many other blogposts, Sektor7 Malware Development Essentials cou
     <meta name="twitter:image"
         content="http://localhost:1313/icon512.png" />
     
-        <meta name="twitter:description" content="Prelude Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt" />
+        <meta name="twitter:description" content="&lt;h2 id=&#34;prelude&#34;&gt;Prelude&lt;/h2&gt;
+&lt;p&gt;Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge with" />
     
 
 <link rel="manifest" href="http://localhost:1313/manifest/index.json" />
@@ -423,6 +426,96 @@ Given this technique, PE analyzers do not display any information about these ca
                 <article class="card postlistitem">
     <div>
         <h2>
+            <a href="http://localhost:1313/posts/pe_parsing/">PE parsing</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2025-03-27
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/binaries">#binaries</a>
+                
+                    <a href="http://localhost:1313/tags/executables">#executables</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+                    <a href="http://localhost:1313/tags/peparser">#peparser</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <p>A random page with some information of the PE format file and its main headers.
+Main usage: malware development and malware research.</p>
+<h1 id="considerations">Considerations</h1>
+<ul>
+<li>RVA (<strong>Relative Virtual Address</strong>): Offset from Image Base. To obtain the absolute virtual address the calculation &ldquo;Image Base + RVA&rdquo; must be performed. Several PE sections include RVAs.</li>
+<li>Check the <a href="https://learn.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a> if you want to know more! This is only a summary and my personal studies about the topic.</li>
+</ul>
+<h1 id="dos-header">DOS header</h1>
+<ul>
+<li><code>IMAGE_DOS_HEADER</code> structure definition from <code>winnt.h</code>.</li>
+<li>First 64 bytes of the PE file.</li>
+<li>Was very important in the MS-DOS era, right now it is not.</li>
+<li>The actual Windows OS loader uses a field in this header to navigate to the <strong>new executable</strong> header , which is the header containing most of the needed information.</li>
+<li>Kept in the binaries for compatibility purposes.</li>
+</ul>
+<p>We only want to know about the first and last members of this header:</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/pe_parsing/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/random_stuff/">Random stuff</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-02-28
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <p>Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)</p>
+<p><strong>Case of getting the function pointer to a resolving Windows API call:</strong></p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/random_stuff/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
             <a href="http://localhost:1313/posts/wow64/">Understanding Heaven´s Gate</a>
         </h2>
         <p class="date">
@@ -448,7 +541,9 @@ Given this technique, PE analyzers do not display any information about these ca
             <div class="articlePreview">
                 <p>
                     
-                        Heaven&rsquo;s gate lore The Heaven&rsquo;s Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A. After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rsquo;s Gate technique was later reprinted in the 2009 edition of the Valhalla hacker e-zine.
+                        <h1 id="heavens-gate-lore">Heaven&rsquo;s gate lore</h1>
+<p>The Heaven&rsquo;s Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A.
+After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rsquo;s Gate technique was later <a href="https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT">reprinted in the 2009 edition of the Valhalla hacker e-zine</a>. I personally would check this resource, as it was the first time the technique was commented.</p>
                     
                 </p>
                 <p><a href="http://localhost:1313/posts/wow64/">Continue reading </a></p>
@@ -483,50 +578,20 @@ Given this technique, PE analyzers do not display any information about these ca
             <div class="articlePreview">
                 <p>
                     
-                        Shellcodes that will be useful for testing/developing your malware.
-I usually work on the same OS and with the same Compiler version for better reproducibility so here are my specs:
-Windows 10 Pro 22H2 OS Build 19045.4046 MSVC vc.exe compiler (64-bit and 32-bit) version 19.41.34123 Shellcodes are not encrypted. You should encrypt them if you want evasion, as these shellcodes are public and not crafted manually by me.
+                        <p>Shellcodes that will be useful for testing/developing your malware.</p>
+<p>I usually work on the same OS and with the same Compiler version for better reproducibility so here are my specs:</p>
+<ul>
+<li>Windows 10 Pro 22H2
+<ul>
+<li>OS Build <strong>19045.4046</strong></li>
+<li>MSVC vc.exe compiler (64-bit and 32-bit) version <strong>19.41.34123</strong></li>
+</ul>
+</li>
+</ul>
+<p>Shellcodes are not encrypted. You should encrypt them if you want evasion, as these shellcodes are public and not crafted manually by me.</p>
                     
                 </p>
                 <p><a href="http://localhost:1313/posts/shellcodes/">Continue reading </a></p>
-            </div>
-        
-    </div>
-    <hr />
-</article>
-<article class="card postlistitem">
-    <div>
-        <h2>
-            <a href="http://localhost:1313/posts/random_stuff/">Random stuff</a>
-        </h2>
-        <p class="date">
-            <span title='Date'> </span>
-    2024-02-28
-
-
-                | 
-                <span title='Tags'> </span>
-                
-                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
-                
-                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
-                
-                    <a href="http://localhost:1313/tags/loader">#loader</a>
-                
-                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
-                
-            
-        </p>
-        
-        
-            <div class="articlePreview">
-                <p>
-                    
-                        Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)
-Case of getting the function pointer to a resolving Windows API call:
-                    
-                </p>
-                <p><a href="http://localhost:1313/posts/random_stuff/">Continue reading </a></p>
             </div>
         
     </div>
@@ -542,7 +607,7 @@ Case of getting the function pointer to a resolving Windows API call:
     <hr />
 
 <p><small>
-        2024 &copy; made by jaco with love
+        2025 &copy; made by jaco with love
     </small></p>
     <p><small>
         Licensed under <a href='https://www.gnu.org/licenses/agpl-3.0.html'>GNU AGPLv3</a>.

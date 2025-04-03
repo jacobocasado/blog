@@ -1,0 +1,7 @@
+{
+  "attachmentFolderPath": "content/images/post_images",
+  "newLinkFormat": "absolute",
+  "alwaysUpdateLinks": true,
+  "useMarkdownLinks": true,
+  "readableLineLength": false
+}
