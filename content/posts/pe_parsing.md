@@ -289,7 +289,7 @@ Some sections have special names that indicate their purpose, we’ll go over so
 # Import table
 There is no rule that says that the import table must begin at the start of a section named `.idata`, but that’s how it is typically done, for reasons both traditional and practical.
 
-The first field, VirtualAddress, is actually the RVA of the table. The RVA is the address of the table relative to the base address of the image when the table is loaded. The second field gives the size in bytes. The data directories, which form the last part of the optional header, are listed in the following table.
+The first field of the import table, VirtualAddress, is actually the RVA of the table. The RVA is the address of the table relative to the base address of the image when the table is loaded. The second field gives the size in bytes. The data directories, which form the last part of the optional header, are listed in the following table.
 
 Note that the number of directories is not fixed. Before looking for a specific directory, check the NumberOfRvaAndSizes field in the optional header.
 
@@ -301,7 +301,7 @@ Also, do not assume that the RVAs in this table point to the beginning of a sect
 If we navigate to the Section headers, we will see that the .rdata section will start before 2DC0C8:
 ![](content/images/post_images/pe_parsing_5.png) 
 
-But we can see that the import directory is not **at the start of the section, but somewhere in the middle, as the .rdata section starts a bit before (0x26000) whereas the import directory starts at 0x2D0C8.**
+But we can see that the import directory is not **at the start of the section, but somewhere in the middle, as the .rdata section starts a bit before (0x26000) whereas the import directory starts at 0x2D0C8.** The tool just says that the Import Directory is inside .rdata, but not at the start of it.
 
 We need to translate the `Import Directory RVA` to the file offset - a place in the binary file where the DLL import information is stored. The way this can be achieved is by using the following formula:
 
@@ -339,9 +339,13 @@ typedef IMAGE_IMPORT_DESCRIPTOR UNALIGNED *PIMAGE_IMPORT_DESCRIPTOR;
 ```
 
 ## Get DLL name
-We need to get the `Name RVA` to a file offset using the technique we used earlier to get the location of the DLL name string.
+We need to get the `Name RVA` (name does not point to the name, but contains a RVA) to a file offset using the technique we used earlier to get the location of the DLL name string.
 This time the formula we need to use is:
-
+```
 offset = imageBase + text.RawOffset + (nameRVA − section.VA)
+```
 
 Where `nameRVA` is `Name RVA` value for ADVAPI32.dll from the Import Directory and `text.VA` is the `Virtual Address` of the `.text` section.
+
+## Get DLL Import Address Table (imported functions)
+TBD
