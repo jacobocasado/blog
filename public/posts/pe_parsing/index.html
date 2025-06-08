@@ -221,7 +221,20 @@ Main usage: malware development and malware research.&lt;/p&gt;
   <ul>
     <li><a href="#signature">Signature</a></li>
     <li><a href="#file-header">File Header</a></li>
-    <li><a href="#optional-header">Optional Header</a></li>
+    <li><a href="#optional-header">Optional Header</a>
+      <ul>
+        <li><a href="#data-directory">Data Directory</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#raw-data-can--virtual-size">Raw Data can != Virtual size</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#get-dll-name">Get DLL name</a></li>
+    <li><a href="#get-dll-import-address-table-imported-functions">Get DLL Import Address Table (imported functions)</a></li>
   </ul>
 </nav>
     <hr />
@@ -420,9 +433,166 @@ The two versions are different in two aspects:</p>
 <p><strong><code>NumberOfRvaAndSizes</code> :</strong> Size of the <code>DataDirectory</code> array.</p>
 </li>
 <li>
-<p><strong><code>DataDirectory</code>:</strong> An array of <code>IMAGE_DATA_DIRECTORY</code> structures. We will talk about this in the next post.</p>
+<p><strong><code>DataDirectory</code>:</strong> An array of <code>IMAGE_DATA_DIRECTORY</code> structures. This is the interesting section of the optional header.</p>
 </li>
 </ul>
+<h3 id="data-directory">Data Directory</h3>
+<p>The optional header field has an array of <code>IMAGE_DATA_DIRECTORY</code> called <code>DataDirectory</code>, with a maximum size of 16 entries (specifed by the constant <code>IMAGE_NUMBEROF_DIRECTORY_ENTRIES</code>):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>    ___IMAGE_DATA_DIRECTORY DataDirectory[___IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+</span></span></code></pre></div><p>An <code>IMAGE_DATA_DIRETORY</code> structure is defines as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_DATA_DIRECTORY</span> {
+</span></span><span style="display:flex;"><span>    DWORD   VirtualAddress;
+</span></span><span style="display:flex;"><span>    DWORD   Size;
+</span></span><span style="display:flex;"><span>} IMAGE_DATA_DIRECTORY, <span style="color:#f92672">*</span>PIMAGE_DATA_DIRECTORY;
+</span></span></code></pre></div><p>It’s a very simple structure with only two members, first one being an RVA pointing to the start of that Data Directory and the second one being the size of that Data Directory.</p>
+<p>But, what is a Data Directory?
+A Data Directory is a piece of data located within one of the sections of the PE file.<br>
+Data Directories contain useful information needed by the Windows loader.
+An example of a very important directory is the <strong>Import Directory</strong>, a data directory that contains the list of external functions imported from other libraries.</p>
+<p>Here’s a list of Data Directories defined in <code>winnt.h</code>. (Each one of these values represents an index in the DataDirectory array):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// Directory Entries
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_EXPORT          0   </span><span style="color:#75715e">// Export Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_IMPORT          1   </span><span style="color:#75715e">// Import Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_RESOURCE        2   </span><span style="color:#75715e">// Resource Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_EXCEPTION       3   </span><span style="color:#75715e">// Exception Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_SECURITY        4   </span><span style="color:#75715e">// Security Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_BASERELOC       5   </span><span style="color:#75715e">// Base Relocation Table
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_DEBUG           6   </span><span style="color:#75715e">// Debug Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//      IMAGE_DIRECTORY_ENTRY_COPYRIGHT       7   // (X86 usage)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_ARCHITECTURE    7   </span><span style="color:#75715e">// Architecture Specific Data
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_GLOBALPTR       8   </span><span style="color:#75715e">// RVA of GP
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_TLS             9   </span><span style="color:#75715e">// TLS Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG    10   </span><span style="color:#75715e">// Load Configuration Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT   11   </span><span style="color:#75715e">// Bound Import Directory in headers
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_IAT            12   </span><span style="color:#75715e">// Import Address Table
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT   13   </span><span style="color:#75715e">// Delay Load Import Descriptors
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR 14   </span><span style="color:#75715e">// COM Runtime descriptor
+</span></span></span></code></pre></div><p>So, for example, to access the Import Directory information we will have to:</p>
+<ul>
+<li>Parse the DOS header.</li>
+<li>Get the e_lfanew variable of the DOS header to get the offset to the PE header.</li>
+<li>Navigate to the optional header.</li>
+<li>Get to the offset where the Data Directory array is.</li>
+<li>Get the position 1 of such array.</li>
+</ul>
+<p>We will obtain a struct containing the RVA and the size of such Data Directory.
+With that information, we can access such directory and parse it. <strong>Note that each directory will be parsed differently, depending on the information that it contains.</strong></p>
+<p>Also note that there can be data directories with no information. If we take a look at the contents of <code>IMAGE_OPTIONAL_HEADER.DataDirectory</code> of an actual PE file, we might see entries where both fields are set to <code>0</code>:
+<img src="http://localhost:1313/images/post_images/pe_parsing_2.png" alt=""></p>
+<p><strong>Important: Data directories can be inside the sections (e.g, the Import Directory Table is usually inside the .idata or .rdata section)</strong>. So, we can say that after the NT header, there are the section headers.dI</p>
+<h1 id="section-headers">Section headers</h1>
+<p>After the PE header, the section headers are the following. They are the last headers in the PE.
+A Section Header is a structure named <code>IMAGE_SECTION_HEADER</code> defined in <code>winnt.h</code> as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_SECTION_HEADER</span> {
+</span></span><span style="display:flex;"><span>    BYTE    Name[IMAGE_SIZEOF_SHORT_NAME];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">union</span> {
+</span></span><span style="display:flex;"><span>            DWORD   PhysicalAddress;
+</span></span><span style="display:flex;"><span>            DWORD   VirtualSize;
+</span></span><span style="display:flex;"><span>    } Misc;
+</span></span><span style="display:flex;"><span>    DWORD   VirtualAddress;
+</span></span><span style="display:flex;"><span>    DWORD   SizeOfRawData;
+</span></span><span style="display:flex;"><span>    DWORD   PointerToRawData;
+</span></span><span style="display:flex;"><span>    DWORD   PointerToRelocations;
+</span></span><span style="display:flex;"><span>    DWORD   PointerToLinenumbers;
+</span></span><span style="display:flex;"><span>    WORD    NumberOfRelocations;
+</span></span><span style="display:flex;"><span>    WORD    NumberOfLinenumbers;
+</span></span><span style="display:flex;"><span>    DWORD   Characteristics;
+</span></span><span style="display:flex;"><span>} IMAGE_SECTION_HEADER, <span style="color:#f92672">*</span>PIMAGE_SECTION_HEADER;
+</span></span></code></pre></div><p>There will be one section header for each of the sections in the PE. Remember that we can retrieve the name of the sections:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;[NT header][file header] number of sections: %u&#34;</span>, <span style="color:#66d9ef">this</span><span style="color:#f92672">-&gt;</span>PEFILE_NT_HEADERS.FileHeader.NumberOfSections);
+</span></span></code></pre></div><p>These are the fields of a section header:</p>
+<ul>
+<li><strong><code>Name</code>:</strong>  A byte array of the size <code>IMAGE_SIZEOF_SHORT_NAME</code> that holds the name of the section.
+<ul>
+<li><code>IMAGE_SIZEOF_SHORT_NAME</code> has the value of <code>8</code> meaning that a section name can’t be longer than 8 characters.</li>
+<li>For longer names the official documentation mentions a work-around by filling this field with an offset in the string table, <strong>however executable images do not use a string table so this limitation of 8 characters holds for executable images</strong>.</li>
+</ul>
+</li>
+<li><strong><code>PhysicalAddress</code> or <code>VirtualSize</code>:</strong> A <code>union</code> variable defines multiple names for the same thing. This field contains the <strong>total size of the section when it’s loaded in memory</strong>.</li>
+<li><strong><code>VirtualAddress</code>:</strong> The documentation states that for executable images this field holds the address of the first byte of the section relative to the image base when loaded in memory, and for object files it holds the address of the first byte of the section before relocation is applied.</li>
+<li><strong><code>SizeOfRawData</code>:</strong> This field contains the size of the section on disk, it must be a multiple of <code>IMAGE_OPTIONAL_HEADER.FileAlignment</code>.  Note that this is the size ondisk, whereas <code>PhysicalAddress</code> or <code>VirtualSize</code> specifies the size once it&rsquo;s loaded in memory (the size can differ).</li>
+<li><strong><code>PointerToRawData</code>:</strong> A pointer to the first page of the section within the file, for executable images it must be a multiple of <code>IMAGE_OPTIONAL_HEADER.FileAlignment</code>.</li>
+<li><strong><code>PointerToRelocations</code>:</strong> A file pointer to the beginning of relocation entries for the section. It’s set to <code>0</code> for executable files.</li>
+<li><strong><code>PointerToLineNumbers</code>:</strong> A file pointer to the beginning of COFF line-number entries for the section. It’s normally set to <code>0</code> because COFF debugging information is deprecated.</li>
+<li><strong><code>NumberOfRelocations</code>:</strong> The number of relocation entries for the section, it’s normally set to <code>0</code> for executable images.</li>
+<li><strong><code>NumberOfLinenumbers</code>:</strong> The number of COFF line-number entries for the section, it’s set to <code>0</code> because COFF debugging information is deprecated.</li>
+<li><strong><code>Characteristics</code>:</strong> Flags that describe the characteristics of the section.
+<ul>
+<li>These characteristics are things like if the section contains executable code, contains initialized/uninitialized data, can be shared in memory.</li>
+<li>A complete list of section characteristics flags can be found on the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a>.</li>
+</ul>
+</li>
+</ul>
+<h2 id="raw-data-can--virtual-size">Raw Data can != Virtual size</h2>
+<p><code>SizeOfRawData</code> and <code>VirtualSize</code> can be different, and this can happen for multiple of reasons.</p>
+<p><code>SizeOfRawData</code> (the size on disk) must be a multiple of <code>IMAGE_OPTIONAL_HEADER.FileAlignment</code>.
+If the raw data size is less than that such value, the rest gets padded to match a multiple of the alignment.
+However, when the section is loaded into memory it doesn’t follow that alignment and only the actual size of the section is occupied.  In this case <code>SizeOfRawData</code> will be greater than <code>VirtualSize</code>.</p>
+<p><strong>The opposite can happen as well.</strong></p>
+<p>If the section contains uninitialized data, these data won’t be accounted for on disk, but when the section gets mapped into memory, the section will expand to reserve memory space for when the uninitialized data gets later initialized and used.<br>
+This means that the section on disk will occupy less than it will do in memory, in this case <code>VirtualSize</code> will be greater than <code>SizeOfRawData</code>.</p>
+<h1 id="sections">Sections</h1>
+<p>Lastly, the PE has the contents of the sections (.text, .data, .rdata).
+Some sections have special names that indicate their purpose, we’ll go over some of them, and a full list of these names can be found on the <a href="https://docs.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a> under the “Special Sections” section.</p>
+<ul>
+<li><strong><code>.text</code>:</strong> Contains the executable code of the program.</li>
+<li><strong><code>.data</code>:</strong> Contains the initialized data.</li>
+<li><strong><code>.bss</code>:</strong> Contains uninitialized data.</li>
+<li><strong><code>.rdata</code>:</strong> Contains read-only initialized data.</li>
+<li><strong><code>.edata</code>:</strong> Contains the export tables.</li>
+<li><strong><code>.idata</code>:</strong> Contains the import tables.</li>
+<li><strong><code>.reloc</code>:</strong> Contains image relocation information.</li>
+<li><strong><code>.rsrc</code>:</strong> Contains resources used by the program, these include images, icons or even embedded binaries.</li>
+<li><strong><code>.tls</code>:</strong> (<strong>T</strong>hread <strong>L</strong>ocal <strong>S</strong>torage), provides storage for every executing thread of the program.</li>
+</ul>
+<h1 id="import-table">Import table</h1>
+<p>There is no rule that says that the import table must begin at the start of a section named <code>.idata</code>, but that’s how it is typically done, for reasons both traditional and practical.</p>
+<p>The first field of the import table, VirtualAddress, is actually the RVA of the table. The RVA is the address of the table relative to the base address of the image when the table is loaded. The second field gives the size in bytes. The data directories, which form the last part of the optional header, are listed in the following table.</p>
+<p>Note that the number of directories is not fixed. Before looking for a specific directory, check the NumberOfRvaAndSizes field in the optional header.</p>
+<p>Also, do not assume that the RVAs in this table point to the beginning of a section or that the sections that contain specific tables have specific names.</p>
+<p><img src="content/images/post_images/pe_parsing_3.png" alt=""></p>
+<p><img src="content/images/post_images/pe_parsing_4.png" alt="">
+If we navigate to the Section headers, we will see that the .rdata section will start before 2DC0C8:
+<img src="content/images/post_images/pe_parsing_5.png" alt=""></p>
+<p>But we can see that the import directory is not <strong>at the start of the section, but somewhere in the middle, as the .rdata section starts a bit before (0x26000) whereas the import directory starts at 0x2D0C8.</strong> The tool just says that the Import Directory is inside .rdata, but not at the start of it.</p>
+<p>We need to translate the <code>Import Directory RVA</code> to the file offset - a place in the binary file where the DLL import information is stored. The way this can be achieved is by using the following formula:</p>
+<p>Location of the Import Directory = imageBase + section.RawOffset + (importDirectory.RVA − section.VA)</p>
+<p>Where:</p>
+<ul>
+<li><code>imageBase</code> is the start address of where the binary image is loaded</li>
+<li><code>section.RawOffset</code> is the <code>Raw Address</code> value from the <code>.text</code> section</li>
+<li><code>text.VA</code> is <code>Virtual Address</code> value from the <code>.text</code> section</li>
+<li><code>importDirectory.RVA</code> is the <code>Import Directory RVA</code> value from <code>Data Directories</code> in <code>Optional Header</code>.</li>
+</ul>
+<p>Let&rsquo;s think how to obtain all the values:</p>
+<ul>
+<li><code>imageBase</code> in our case is 0 since the file is not loaded to memory and we are inspecting it on the disk.</li>
+<li>Import table is located in a specific section of the binary. Since the binary is not loaded to disk, we need to know the file offset of the section that the import directory is in relation to the <code>imageBase</code>.</li>
+<li><code>imageBase + text.RawOffset</code> gives us the file offset to the <code>.text</code> section - we need it, because remember - the import table is inside the <code>.text</code> section</li>
+<li>Since <code>importDirectory.RVA</code>, as mentioned earlier, lives in a section, <code>importDirectory.RVA - text.VA</code> gives us the offset of the import table relative to the start of the <code>.text</code> section</li>
+<li>We take the value of <code>importDirectory.RVA - text.VA</code> and add it to the <code>text.RawOffset</code> and we get the offset of the import table in the raw section data. <strong>After that, we can start parsing the Import Directory.</strong></li>
+</ul>
+<p>It consists of an array of <code>IMAGE_IMPORT_DESCRIPTOR</code> structures, each one of them is for a DLL.<br>
+It doesn’t have a fixed size, so the last <code>IMAGE_IMPORT_DESCRIPTOR</code> of the array is zeroed-out (NULL-Padded) to indicate the end of the Import Directory Table.</p>
+<p><code>IMAGE_IMPORT_DESCRIPTOR</code> is defined as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">_IMAGE_IMPORT_DESCRIPTOR</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">union</span> {
+</span></span><span style="display:flex;"><span>        DWORD   Characteristics;
+</span></span><span style="display:flex;"><span>        DWORD   OriginalFirstThunk;
+</span></span><span style="display:flex;"><span>    } DUMMYUNIONNAME;
+</span></span><span style="display:flex;"><span>    DWORD   TimeDateStamp;
+</span></span><span style="display:flex;"><span>    DWORD   ForwarderChain;
+</span></span><span style="display:flex;"><span>    DWORD   Name;
+</span></span><span style="display:flex;"><span>    DWORD   FirstThunk;
+</span></span><span style="display:flex;"><span>} IMAGE_IMPORT_DESCRIPTOR;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> IMAGE_IMPORT_DESCRIPTOR UNALIGNED <span style="color:#f92672">*</span>PIMAGE_IMPORT_DESCRIPTOR;
+</span></span></code></pre></div><h2 id="get-dll-name">Get DLL name</h2>
+<p>We need to get the <code>Name RVA</code> (name does not point to the name, but contains a RVA) to a file offset using the technique we used earlier to get the location of the DLL name string.
+This time the formula we need to use is:</p>
+<pre tabindex="0"><code>offset = imageBase + text.RawOffset + (nameRVA − section.VA)
+</code></pre><p>Where <code>nameRVA</code> is <code>Name RVA</code> value for ADVAPI32.dll from the Import Directory and <code>text.VA</code> is the <code>Virtual Address</code> of the <code>.text</code> section.</p>
+<h2 id="get-dll-import-address-table-imported-functions">Get DLL Import Address Table (imported functions)</h2>
+<p>TBD</p>
 </div>
 </article>
 
@@ -471,83 +641,6 @@ The two versions are different in two aspects:</p>
             <h2>More posts like this</h2>
             <div class="postlist ">
                 <article class="card postlistitem">
-    <div>
-        <h2>
-            <a href="http://localhost:1313/posts/random_stuff/">Random stuff</a>
-        </h2>
-        <p class="date">
-            <span title='Date'> </span>
-    2024-02-28
-
-
-                | 
-                <span title='Tags'> </span>
-                
-                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
-                
-                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
-                
-                    <a href="http://localhost:1313/tags/loader">#loader</a>
-                
-                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
-                
-            
-        </p>
-        
-        
-            <div class="articlePreview">
-                <p>
-                    
-                        <p>Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)</p>
-<p><strong>Case of getting the function pointer to a resolving Windows API call:</strong></p>
-                    
-                </p>
-                <p><a href="http://localhost:1313/posts/random_stuff/">Continue reading </a></p>
-            </div>
-        
-    </div>
-    <hr />
-</article>
-<article class="card postlistitem">
-    <div>
-        <h2>
-            <a href="http://localhost:1313/posts/wow64/">Understanding Heaven´s Gate</a>
-        </h2>
-        <p class="date">
-            <span title='Date'> </span>
-    2024-09-19
-
-
-                | 
-                <span title='Tags'> </span>
-                
-                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
-                
-                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
-                
-                    <a href="http://localhost:1313/tags/loader">#loader</a>
-                
-                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
-                
-            
-        </p>
-        
-        
-            <div class="articlePreview">
-                <p>
-                    
-                        <h1 id="heavens-gate-lore">Heaven&rsquo;s gate lore</h1>
-<p>The Heaven&rsquo;s Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A.
-After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rsquo;s Gate technique was later <a href="https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT">reprinted in the 2009 edition of the Valhalla hacker e-zine</a>. I personally would check this resource, as it was the first time the technique was commented.</p>
-                    
-                </p>
-                <p><a href="http://localhost:1313/posts/wow64/">Continue reading </a></p>
-            </div>
-        
-    </div>
-    <hr />
-</article>
-<article class="card postlistitem">
     <div>
         <h2>
             <a href="http://localhost:1313/posts/shellcodes/">Shellcodes for everything</a>
@@ -626,6 +719,83 @@ After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rs
                     
                 </p>
                 <p><a href="http://localhost:1313/posts/firststeps/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/random_stuff/">Random stuff</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-02-28
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <p>Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)</p>
+<p><strong>Case of getting the function pointer to a resolving Windows API call:</strong></p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/random_stuff/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/wow64/">Understanding Heaven´s Gate</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-09-19
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <h1 id="heavens-gate-lore">Heaven&rsquo;s gate lore</h1>
+<p>The Heaven&rsquo;s Gate tutorial was written by an anonymous hacker going online as Roy G. Biv, a member of a group called 29A.
+After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rsquo;s Gate technique was later <a href="https://github.com/darkspik3/Valhalla-ezines/blob/master/Valhalla%20%231/articles/HEAVEN.TXT">reprinted in the 2009 edition of the Valhalla hacker e-zine</a>. I personally would check this resource, as it was the first time the technique was commented.</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/wow64/">Continue reading </a></p>
             </div>
         
     </div>

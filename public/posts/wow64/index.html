@@ -499,23 +499,23 @@ Well, after NTDLL is loaded, the <strong>Windows on Windows (WoW64)</strong> int
                 <article class="card postlistitem">
     <div>
         <h2>
-            <a href="http://localhost:1313/posts/firststeps/">My first steps in MalDev</a>
+            <a href="http://localhost:1313/posts/pe_parsing/">PE parsing</a>
         </h2>
         <p class="date">
             <span title='Date'> </span>
-    2024-02-28
+    2025-03-27
 
 
                 | 
                 <span title='Tags'> </span>
                 
-                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                    <a href="http://localhost:1313/tags/binaries">#binaries</a>
                 
-                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
-                
-                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                    <a href="http://localhost:1313/tags/executables">#executables</a>
                 
                     <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+                    <a href="http://localhost:1313/tags/peparser">#peparser</a>
                 
             
         </p>
@@ -524,50 +524,25 @@ Well, after NTDLL is loaded, the <strong>Windows on Windows (WoW64)</strong> int
             <div class="articlePreview">
                 <p>
                     
-                        <h2 id="prelude">Prelude</h2>
-<p>Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so.</p>
-<p>As mentioned in many other blogposts, <a href="https://www.google.com/search?client=firefox-b-d&amp;q=sektor7+malware+development">Sektor7 Malware Development Essentials</a> course was a good point to start. Nevertheless, I found this course very short and I felt like most of the important concepts are ignored (e.g., <strong>what is a handle?</strong>) and are just used like if I already know them.</p>
+                        <p>A random page with some information of the PE format file and its main headers.
+Main usage: malware development and malware research.</p>
+<h1 id="considerations">Considerations</h1>
+<ul>
+<li>RVA (<strong>Relative Virtual Address</strong>): Offset from Image Base. To obtain the absolute virtual address the calculation &ldquo;Image Base + RVA&rdquo; must be performed. Several PE sections include RVAs.</li>
+<li>Check the <a href="https://learn.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a> if you want to know more! This is only a summary and my personal studies about the topic.</li>
+</ul>
+<h1 id="dos-header">DOS header</h1>
+<ul>
+<li><code>IMAGE_DOS_HEADER</code> structure definition from <code>winnt.h</code>.</li>
+<li>First 64 bytes of the PE file.</li>
+<li>Was very important in the MS-DOS era, right now it is not.</li>
+<li>The actual Windows OS loader uses a field in this header to navigate to the <strong>new executable</strong> header , which is the header containing most of the needed information.</li>
+<li>Kept in the binaries for compatibility purposes.</li>
+</ul>
+<p>We only want to know about the first and last members of this header:</p>
                     
                 </p>
-                <p><a href="http://localhost:1313/posts/firststeps/">Continue reading </a></p>
-            </div>
-        
-    </div>
-    <hr />
-</article>
-<article class="card postlistitem">
-    <div>
-        <h2>
-            <a href="http://localhost:1313/posts/random_stuff/">Random stuff</a>
-        </h2>
-        <p class="date">
-            <span title='Date'> </span>
-    2024-02-28
-
-
-                | 
-                <span title='Tags'> </span>
-                
-                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
-                
-                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
-                
-                    <a href="http://localhost:1313/tags/loader">#loader</a>
-                
-                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
-                
-            
-        </p>
-        
-        
-            <div class="articlePreview">
-                <p>
-                    
-                        <p>Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)</p>
-<p><strong>Case of getting the function pointer to a resolving Windows API call:</strong></p>
-                    
-                </p>
-                <p><a href="http://localhost:1313/posts/random_stuff/">Continue reading </a></p>
+                <p><a href="http://localhost:1313/posts/pe_parsing/">Continue reading </a></p>
             </div>
         
     </div>
@@ -621,23 +596,23 @@ Well, after NTDLL is loaded, the <strong>Windows on Windows (WoW64)</strong> int
 <article class="card postlistitem">
     <div>
         <h2>
-            <a href="http://localhost:1313/posts/pe_parsing/">PE parsing</a>
+            <a href="http://localhost:1313/posts/random_stuff/">Random stuff</a>
         </h2>
         <p class="date">
             <span title='Date'> </span>
-    2025-03-27
+    2024-02-28
 
 
                 | 
                 <span title='Tags'> </span>
                 
-                    <a href="http://localhost:1313/tags/binaries">#binaries</a>
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
                 
-                    <a href="http://localhost:1313/tags/executables">#executables</a>
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
                 
                     <a href="http://localhost:1313/tags/maldev">#maldev</a>
-                
-                    <a href="http://localhost:1313/tags/peparser">#peparser</a>
                 
             
         </p>
@@ -646,25 +621,50 @@ Well, after NTDLL is loaded, the <strong>Windows on Windows (WoW64)</strong> int
             <div class="articlePreview">
                 <p>
                     
-                        <p>A random page with some information of the PE format file and its main headers.
-Main usage: malware development and malware research.</p>
-<h1 id="considerations">Considerations</h1>
-<ul>
-<li>RVA (<strong>Relative Virtual Address</strong>): Offset from Image Base. To obtain the absolute virtual address the calculation &ldquo;Image Base + RVA&rdquo; must be performed. Several PE sections include RVAs.</li>
-<li>Check the <a href="https://learn.microsoft.com/en-us/windows/win32/debug/pe-format">official Microsoft documentation</a> if you want to know more! This is only a summary and my personal studies about the topic.</li>
-</ul>
-<h1 id="dos-header">DOS header</h1>
-<ul>
-<li><code>IMAGE_DOS_HEADER</code> structure definition from <code>winnt.h</code>.</li>
-<li>First 64 bytes of the PE file.</li>
-<li>Was very important in the MS-DOS era, right now it is not.</li>
-<li>The actual Windows OS loader uses a field in this header to navigate to the <strong>new executable</strong> header , which is the header containing most of the needed information.</li>
-<li>Kept in the binaries for compatibility purposes.</li>
-</ul>
-<p>We only want to know about the first and last members of this header:</p>
+                        <p>Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)</p>
+<p><strong>Case of getting the function pointer to a resolving Windows API call:</strong></p>
                     
                 </p>
-                <p><a href="http://localhost:1313/posts/pe_parsing/">Continue reading </a></p>
+                <p><a href="http://localhost:1313/posts/random_stuff/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/firststeps/">My first steps in MalDev</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-02-28
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <h2 id="prelude">Prelude</h2>
+<p>Around this last month I have been digging into the Malware Development world. I have always wanted to expand my knowledge within this field, and I felt like it was the moment to do so.</p>
+<p>As mentioned in many other blogposts, <a href="https://www.google.com/search?client=firefox-b-d&amp;q=sektor7+malware+development">Sektor7 Malware Development Essentials</a> course was a good point to start. Nevertheless, I found this course very short and I felt like most of the important concepts are ignored (e.g., <strong>what is a handle?</strong>) and are just used like if I already know them.</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/firststeps/">Continue reading </a></p>
             </div>
         
     </div>

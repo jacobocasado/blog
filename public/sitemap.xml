@@ -56,7 +56,21 @@
     <loc>http://localhost:1313/posts/shellcodes/</loc>
     <lastmod>2024-02-28T20:53:30+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/threatcheck/</loc>
+    <loc>http://localhost:1313/posts/homelab/</loc>
+  </url><url>
+    <loc>http://localhost:1313/posts/osed_egghunter_1/</loc>
+  </url><url>
+    <loc>http://localhost:1313/posts/osed_egghunter_seh/</loc>
+  </url><url>
+    <loc>http://localhost:1313/posts/osed_overflow_1/</loc>
+  </url><url>
+    <loc>http://localhost:1313/posts/osed_rop_1/</loc>
+  </url><url>
+    <loc>http://localhost:1313/posts/osed_rop_2/</loc>
+  </url><url>
+    <loc>http://localhost:1313/posts/osed_seh_1/</loc>
+  </url><url>
+    <loc>http://localhost:1313/posts/osed_seh_2/</loc>
   </url><url>
     <loc>http://localhost:1313/categories/</loc>
   </url><url>

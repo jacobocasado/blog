@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html class="home" lang="en"><head>
-	<meta name="generator" content="Hugo 0.145.0"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+	<meta name="generator" content="Hugo 0.147.5"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
     
         <script>
             if (location.host != new URL("http:\/\/localhost:1313\/").host) location.href = "http:\/\/localhost:1313\/"
@@ -185,7 +185,7 @@
 <article class="card postlistitem">
     <div>
         <h2>
-            <a href="http://localhost:1313/posts/threatcheck/"></a>
+            <a href="http://localhost:1313/posts/homelab/"></a>
         </h2>
         <p class="date">
             <span title='Date'> </span>
@@ -198,14 +198,161 @@
             <div class="articlePreview">
                 <p>
                     
-                        <p><img src="content/images/post_images/threatcheck.png" alt=""></p>
-<p><img src="content/images/post_images/threatcheck_1.png" alt="">
-<img src="content/images/post_images/threatcheck_2.png" alt=""></p>
-<p><img src="content/images/post_images/threatcheck_3.png" alt=""></p>
-<p><img src="content/images/post_images/threatcheck_4.png" alt=""></p>
+                        <h1 id="hardware--software-setup">Hardware / Software setup</h1>
+<h2 id="orange-pi-5-8gb-ram">Orange Pi 5 8GB RAM</h2>
+<ul>
+<li>Ubuntu OS for OrangePi (debian works strange with pihole and some other containers, have tested).</li>
+<li>Static IP address in LAN (192.168.0.2).</li>
+<li>Docker containers:
+<ul>
+<li>Wireguard -&gt; VPN easy to manage</li>
+<li>Pihole -&gt; Act as DNS server</li>
+<li>Syncthing -&gt; Backup of courses, blog, etc</li>
+</ul>
+</li>
+</ul>
+<h1 id="steps-to-deploy-homelab">Steps to deploy homelab</h1>
+<ol>
+<li>Disable CGNAT</li>
+<li>Enable Port Forwarding from 0.0.0.0 WAN to Orange PI LAN IP (UDP port 51820)</li>
+<li>Assign Orange PI LAN IP as main DNS</li>
+<li>Assign Static IP to Orange Pi</li>
+<li>Enable docker containers (<strong>Note: User <code>docker compose</code>, not docker-compose. Install docker from official repo via curl, not apt</strong>)
+Router assigns 192.168.0.128 to 192.168.0.255 via DHCP
+192.168.0.2 to 192.168.0.127 are IP addresses for my personal lab devices.</li>
+</ol>
+<h1 id="proxmox">Proxmox</h1>
+<h2 id="steps-to-add-new-disk">Steps to add new disk</h2>
+<pre tabindex="0"><code>You would need to format the drive via the UI (Click on the Node &gt; Disks &gt; Select your disk &gt; Initialize disk with GPT). Depending on what kind of storage you want to create with your disk, the next steps differ.  
+  
+If you want to create a directory storage, you would simply navigate to Directory in the sidebar and then click &#39;Create&#39;. There you just supply the sdb disk and enter a name and a type of filesystem.  
+Be aware that Directory storage does not support many features offered by PVE such as Snapshots (you can check the capabilities of the different storage types in our documentation: [1]).  
+  
+You could also create an LVM-thin storage, which provides more features than a simple directory storage (which is probably what you currently have on your existing disk with name local). For this, instead of going to Directory in the sidebar, you can navigate to LVM-thin, then click &#39;Create Thinpool&#39; . Then you just enter a name for your new pool and wait until the creation has finished. Your disk should then be ready to use. I would recommend for you to use this for now as LVM-thin offers more features and capabilities than simple Directory storage, while still being relatively simple to use for beginners.  
+  
+[1] [https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_storage_types](https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_storage_types)
+</code></pre><h2 id="steps-to-import-vm">Steps to import VM</h2>
+<h3 id="qcow-format">QCOW format</h3>
+<p>Push via SCP qcow file in qcow folder:</p>
                     
                 </p>
-                <p><a href="http://localhost:1313/posts/threatcheck/">Continue reading </a></p>
+                <p><a href="http://localhost:1313/posts/homelab/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/osed_egghunter_1/"></a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    0001-01-01
+
+
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <h1 id="our-buffer-is-not-always-in-a-predictable-location">Our buffer is not always in a predictable location</h1>
+<p>Normally, in the base stack overflows, after we overwrite EIP we see that the ESP register points to our controlled buffer, which would store the shellcode. Then, we find a JMP ESP to jump to our shellcode.
+However, there are some scenarios in which our shellcode is not directly accessible via ESP, or in a predictable location in memory.
+Sometimes, it is possible to store a payload <strong>somewhere else in the address space of the process,</strong> and point to such address by &ldquo;searching&rdquo; for our payload in the code.
+Let&rsquo;s see how to do it.
+First, we have the Savant Web Server 3.1, which has a vulnerability that allows us overwriting EIP via a large HTTP GET buffer:</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/osed_egghunter_1/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/osed_egghunter_seh/"></a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    0001-01-01
+
+
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <p>When doing the classical egghunter shellcode, we observed that the NtAccessCheckAndAuditAlarm function did not work because the system call number was changed between Windows versions.
+We fixed this by changing the system call number, but this fix comes at the cost of portability. In order for our exploit to work, we would have to identify the Windows version beforehand to craft a proper exploit.</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/osed_egghunter_seh/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/osed_overflow_1/"></a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    0001-01-01
+
+
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <h1 id="locating-the-crash">Locating the crash</h1>
+<p>Generate the pattern with KALI or online.
+Put the pattern as payload and detect the offset of the crash.
+Once the offset is located, fill with As.</p>
+<p>msf-pattern_create -l 2600</p>
+<p>When crashing, EIP will have a certain value.
+Copy the value to obtain the exact offset:
+msf-pattern_offset -l 2600 -q &ldquo;TBD_EIP&rdquo;</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/osed_overflow_1/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/osed_rop_1/"></a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    0001-01-01
+
+
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <h1 id="rop-lore">ROP Lore</h1>
+<h2 id="why-is-rop-needed">Why is ROP needed</h2>
+<p>The classic buffer overflows manage to execute arbitrary code by redirecting the execution flow to <strong>something in the stack (that is normally also user-controlled)</strong>.
+However, the normal program flow does <strong>not need to redirect the execution flow of the stack as the code that is being executed is normally</strong> in the .text section of the binary. The stack is used to store and manage local variables and parameters to functions.</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/osed_rop_1/">Continue reading </a></p>
             </div>
         
     </div>
@@ -239,6 +386,16 @@
             </span>
             
         
+            
+                <a href="http://localhost:1313/page/3/">3</a>
+            
+        
+        
+            <a href="http://localhost:1313/page/3/" title='Next page'>
+                
+                    &gt;&gt;&gt;
+                
+            </a>
         
     </div>
 

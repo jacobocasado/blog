@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="" lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    
+        <script>
+            if (location.host != new URL("http:\/\/localhost:1313\/").host) location.href = "http:\/\/localhost:1313\/"
+        </script>
+    
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=7" />
+
+    <link
+    rel="icon"
+    href='http://localhost:1313/favicon.png'
+/>
+<link
+    rel="shortcut icon"
+    href='http://localhost:1313/favicon.ico'
+    type="image/x-icon"
+/>
+<link
+    rel="apple-touch-icon"
+    href='http://localhost:1313/apple-touch-icon.png'
+/>
+
+    <link
+        rel="icon"
+        href='http://localhost:1313/favicon.png'
+        type="image/svg+xml"
+    />
+
+<title>
+        
+        purpurina - a place for hacking
+    </title>
+
+    
+    <link href="http://localhost:1313/symbols-nerd-font/symbols-nerd-font.css" rel="stylesheet" integrity="sha512-lydow8GLOLlYNOtHlksNCmGWWCBsbIEtikXpHzfWqx78HLlyQZHOzyLwPpKol4Th6aCwLUXOfODVYgwrd3nwKQ=="/>
+    <link href="http://localhost:1313/jetbrains-mono/jetbrains-mono.css" rel="stylesheet" integrity="sha512-tJxlgL6v1Y7kFf+qB8SloaAMKnOAw6WouknxXtIjkBux9Y/9aX81EUWOJO8c/3l98DmjG8brr4to7zaez606Fg=="/>
+
+    
+    
+    <link type="text/css" rel="stylesheet" href=http://localhost:1313/css/styles.b88203936c598b692d9cbebd7da89eb34e544b8522ae4c14ca657761be96b80c2acee8e6631de04d99ee1bdbc1bcad4a3add6f47a2366f4a29e2c531782be1a8.css integrity="sha512-uIIDk2xZi2ktnL69faies05US4UirkwUymV3Yb6WuAwqzujmYx3gTZnuG9vBvK1KOt1vR6I2b0op4sUxeCvhqA==" />
+<meta name="author" content="jaco" />
+
+    
+    
+        <meta name="description" content="ftware-setup&#34;&gt;Hardware / Software setup&lt;/h1&gt;
+&lt;h2 id=&#34;orange-pi-5-8gb-ram&#34;&gt;Orange Pi 5 8GB RAM&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Ubuntu OS for OrangePi (debian works strange with pihole and some other containers, have tested).&lt;/li&gt;
+&lt;li&gt;Static IP address in LAN (192.168.0.2).&lt;/li&gt;
+&lt;li&gt;Docker containers:
+&lt;ul&gt;
+&lt;li&gt;Wireguard -&amp;gt; VPN easy to manage&lt;/li&gt;
+&lt;li&gt;Pihole -&amp;gt; Act as DNS server&lt;/li&gt;
+&lt;li&gt;Syncthing -&amp;gt; Backup of courses, blog, etc&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;steps-to-deploy-homelab&#34;&gt;Steps to deploy homelab&lt;/h1&gt;
+&lt;ol&gt;
+&lt;li&gt;Disable CGNAT&lt;/li&gt;
+&lt;li&gt;Enable Port Forwarding from 0.0.0.0 WAN to Orange PI LAN IP (UDP port 51820)&lt;/li&gt;
+&lt;li&gt;Assign Orange PI LAN IP as main DNS&lt;/li&gt;
+&lt;li&gt;Assign Static IP to Orange Pi&lt;/li&gt;
+&lt;li&gt;Enable docker containers (&lt;strong&gt;Note: User &lt;code&gt;docker compose&lt;/code&gt;, not docker-compose. Install docker from official repo via curl, not apt&lt;/strong&gt;)
+Router assigns 192.168.0.128 to 192.168.0.255 via DHCP
+192.168.0.2 to 192.168.0.127 are IP addresses for my personal lab devices.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&#34;proxmox&#34;&gt;Proxmox&lt;/h1&gt;
+&lt;h2 id=&#34;steps-to-add-new-disk&#34;&gt;Steps to add new disk&lt;/h2&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;You would need to format the drive via the UI (Click on the Node &amp;gt; Disks &amp;gt; Select your disk &amp;gt; Initialize disk with GPT). Depending on what kind of storage you want to create with your disk, the next steps differ.  
+  
+If you want to create a directory storage, you would simply navigate to Directory in the sidebar and then click &amp;#39;Create&amp;#39;. There you just supply the sdb disk and enter a name and a type of filesystem.  
+Be aware that Directory storage does not support many features offered by PVE such as Snapshots (you can check the capabilities of the different storage types in our documentation: [1]).  
+  
+You could also create an LVM-thin storage, which provides more features than a simple directory storage (which is probably what you currently have on your existing disk with name local). For this, instead of going to Directory in the sidebar, you can navigate to LVM-thin, then click &amp;#39;Create Thinpool&amp;#39; . Then you just enter a name for your new pool and wait until the creation has finished. Your disk should then be ready to use. I would recommend for you to use this for now as LVM-thin offers more features and capabilities than simple Directory storage, while still being relatively simple to use for beginners.  
+  
+[1] [https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_storage_types](https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_storage_types)
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;steps-to-import-vm&#34;&gt;Steps to import VM&lt;/h2&gt;
+&lt;h3 id=&#34;qcow-format&#34;&gt;QCOW format&lt;/h3&gt;
+&lt;p&gt;Push via SCP qcow file in qcow folder:&lt;/p&gt;" />
+    
+
+<meta property="og:site_name"
+    content='purpurina - a place for hacking' />
+
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="article" />
+    
+    <meta
+        property="article:author" content="jaco" />
+    <meta
+        property="article:published_time"
+        content='0001-01-01T00:00:00Z&#43;0000' />
+    
+    <meta property="og:url" content="http://localhost:1313/posts/homelab/" />
+    
+    
+    <meta property="og:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta property="og:description" content="&lt;h1 id=&#34;hardware--software-setup&#34;&gt;Hardware / Software setup&lt;/h1&gt;
+&lt;h2 id=&#34;orange-pi-5-8gb-ram&#34;&gt;Orange Pi 5 8GB RAM&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Ubuntu OS for OrangePi (debian w" />
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:domain"
+      content='localhost:1313'
+/>
+<meta property="twitter:url" content="http://localhost:1313/posts/homelab/" />
+
+
+    <meta name="twitter:title" content="" />
+    
+    
+    
+    <meta name="twitter:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta name="twitter:description" content="&lt;h1 id=&#34;hardware--software-setup&#34;&gt;Hardware / Software setup&lt;/h1&gt;
+&lt;h2 id=&#34;orange-pi-5-8gb-ram&#34;&gt;Orange Pi 5 8GB RAM&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Ubuntu OS for OrangePi (debian w" />
+    
+
+<link rel="manifest" href="http://localhost:1313/manifest/index.json" />
+</head>
+
+
+<body>
+        <div id="baseContainer"><header class="">
+<div class="titleAndSearchContainer">
+        <div id="titleContainer">
+            
+                <a class="unstyledLink" href="http://localhost:1313/">
+                    <img src='http://localhost:1313/logo.jpg' alt='Logo'/>
+                </a>
+            
+            <div class="rightOfLogo">
+                <div class="titleAndHamburger">
+                    <h1>
+                        <a class="unstyledLink" href="http://localhost:1313/">purpurina - a place for hacking</a>
+                        
+                    </h1>
+                    
+                </div>
+                <div id="wide_nav"><nav>
+    
+    <ul id="main-nav">
+        <li><a href="http://localhost:1313/">Home</a></li>
+        
+            <li><a href="http://localhost:1313/posts/">Posts</a></li>
+        
+        
+        
+        
+        
+        
+            <li><a href="http://localhost:1313/about/">About</a></li>
+        
+        
+            <li><a href="http://localhost:1313/tags/">Tags</a></li>
+        
+        
+    </ul>
+</nav>
+</div>
+            </div>
+        </div>
+        <div class="search">
+    <input id="searchbar" type="text" placeholder='Search' />
+    <span class="nerdlink" onclick="newSearch();">&#xf002;</span>
+</div>
+<script>
+    function newSearch() {
+        let term = searchbar.value.trim();
+        if (!term) return;
+        location.href = `/search/?q=${term}`;
+    }
+    searchbar.onkeyup = (ev) => {if (ev.keyCode == 13) newSearch()};
+</script>
+
+    </div>
+    <div id="links">
+        
+        
+        <a
+    
+        rel="noreferrer"
+    
+    target="_blank"
+    class="nerdlink"
+    href="https://www.linkedin.com/in/jacobocasado/?originalSubdomain=es">
+    
+    
+        &#xf0e1;
+    
+    <span>
+        LinkedIn
+    </span>
+</a>
+
+    </div>
+    
+
+</header>
+<div id="contentContainer">
+                <div id="content">
+                    <main>
+<article class="card single">
+    
+        <h1></h1>
+    
+    
+        <p class="date">
+            <span title='Date'> </span>
+    0001-01-01
+
+</p>
+    
+    
+    
+    
+    <div><h1 id="hardware--software-setup">Hardware / Software setup</h1>
+<h2 id="orange-pi-5-8gb-ram">Orange Pi 5 8GB RAM</h2>
+<ul>
+<li>Ubuntu OS for OrangePi (debian works strange with pihole and some other containers, have tested).</li>
+<li>Static IP address in LAN (192.168.0.2).</li>
+<li>Docker containers:
+<ul>
+<li>Wireguard -&gt; VPN easy to manage</li>
+<li>Pihole -&gt; Act as DNS server</li>
+<li>Syncthing -&gt; Backup of courses, blog, etc</li>
+</ul>
+</li>
+</ul>
+<h1 id="steps-to-deploy-homelab">Steps to deploy homelab</h1>
+<ol>
+<li>Disable CGNAT</li>
+<li>Enable Port Forwarding from 0.0.0.0 WAN to Orange PI LAN IP (UDP port 51820)</li>
+<li>Assign Orange PI LAN IP as main DNS</li>
+<li>Assign Static IP to Orange Pi</li>
+<li>Enable docker containers (<strong>Note: User <code>docker compose</code>, not docker-compose. Install docker from official repo via curl, not apt</strong>)
+Router assigns 192.168.0.128 to 192.168.0.255 via DHCP
+192.168.0.2 to 192.168.0.127 are IP addresses for my personal lab devices.</li>
+</ol>
+<h1 id="proxmox">Proxmox</h1>
+<h2 id="steps-to-add-new-disk">Steps to add new disk</h2>
+<pre tabindex="0"><code>You would need to format the drive via the UI (Click on the Node &gt; Disks &gt; Select your disk &gt; Initialize disk with GPT). Depending on what kind of storage you want to create with your disk, the next steps differ.  
+  
+If you want to create a directory storage, you would simply navigate to Directory in the sidebar and then click &#39;Create&#39;. There you just supply the sdb disk and enter a name and a type of filesystem.  
+Be aware that Directory storage does not support many features offered by PVE such as Snapshots (you can check the capabilities of the different storage types in our documentation: [1]).  
+  
+You could also create an LVM-thin storage, which provides more features than a simple directory storage (which is probably what you currently have on your existing disk with name local). For this, instead of going to Directory in the sidebar, you can navigate to LVM-thin, then click &#39;Create Thinpool&#39; . Then you just enter a name for your new pool and wait until the creation has finished. Your disk should then be ready to use. I would recommend for you to use this for now as LVM-thin offers more features and capabilities than simple Directory storage, while still being relatively simple to use for beginners.  
+  
+[1] [https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_storage_types](https://pve.proxmox.com/pve-docs/pve-admin-guide.html#_storage_types)
+</code></pre><h2 id="steps-to-import-vm">Steps to import VM</h2>
+<h3 id="qcow-format">QCOW format</h3>
+<p>Push via SCP qcow file in qcow folder:</p>
+<pre tabindex="0"><code>scp /home/jaco/Documents/osed-offline/VM/VM-OSED-X86-01.qcow2 root@192.168.0.4:/var/lib/vz/template/qcow/osed.qcow2
+</code></pre><p>Import the disk to the previously created VM (create a VM without disk):</p>
+<pre tabindex="0"><code>qm importdisk &lt;VM ID&gt; &lt;qcow2 image&gt; &lt;storage name&gt;
+qm importdisk 101 -f qcow2 osed.qcow2 vms_storage
+</code></pre><p>After importing, in the web console click on &ldquo;edit&rdquo; in the unused disk in the &ldquo;Hardware&rdquo; section of the machine. Click OK and the disk should setup for the machine.
+Lastly, change boot order so it boots from the disk first.</p>
+</div>
+</article>
+
+
+
+
+
+
+                    </main><footer>
+    <hr />
+
+<p><small>
+        2025 &copy; made by jaco with love
+    </small></p>
+    <p><small>
+        Licensed under <a href='https://www.gnu.org/licenses/agpl-3.0.html'>GNU AGPLv3</a>.
+    </small></p>
+</footer>
+</div>
+            </div>
+        </div>
+
+
+</body>
+</html>

