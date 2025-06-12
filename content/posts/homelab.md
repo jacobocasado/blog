@@ -14,9 +14,6 @@
 5. Enable docker containers (**Note: User `docker compose`, not docker-compose. Install docker from official repo via curl, not apt**)
 Router assigns 192.168.0.128 to 192.168.0.255 via DHCP
 192.168.0.2 to 192.168.0.127 are IP addresses for my personal lab devices.
-
-
-
 # Proxmox 
 
 ## Steps to add new disk

