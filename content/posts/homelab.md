@@ -36,9 +36,10 @@ scp /home/jaco/Documents/osed-offline/VM/VM-OSED-X86-01.qcow2 root@192.168.0.4:/
 ```
 Import the disk to the previously created VM (create a VM without disk):
 ```
-qm importdisk <VM ID> <qcow2 image> <storage name>
-qm importdisk 101 -f qcow2 osed.qcow2 vms_storage
+qm importdisk <VM ID> -f <qcow2 image> <storage name>
+qm importdisk 101 VM-OSED-X86-01.qcow2 local2-lvm
 ```
 
-After importing, in the web console click on "edit" in the unused disk in the "Hardware" section of the machine. Click OK and the disk should setup for the machine.
+After importing, in the web console click on "edit" in the unused disk in the "Hardware" section of the machine. 
+Click OK and the disk should setup for the machine.
 Lastly, change boot order so it boots from the disk first.

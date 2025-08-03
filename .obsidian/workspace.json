@@ -179,14 +179,14 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "81fa7bfbab3cd6b2",
+  "active": "82f38629013d933f",
   "lastOpenFiles": [
+    "content/posts/firststeps.md",
+    "content/posts/homelab.md",
     "content/posts/osed_rop_2.md",
     "content/posts/aslr_0.md",
     "Untitled",
     "content/posts/osed_egghunter_1.md",
-    "content/posts/firststeps.md",
-    "content/posts/homelab.md",
     "content/posts/osed_seh_2.md",
     "content/posts/pe_parsing.md",
     "content/posts/osed_egghunter_seh.md",
