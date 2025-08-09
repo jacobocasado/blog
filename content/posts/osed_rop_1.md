@@ -403,7 +403,7 @@ Besides supporting a wide array of operating systems, rp++ does not run inside t
 
 We just use the executable targeting the application and a output file to store the results of the search (always **filtering by a gadget length**):
 ```c
-C:\Users\user\Desktop\rp-win>rp-win-x86.exe -f FastBackServer.exe -r 5 > rop.txt
+C:\Users\user\Desktop\rp-win\rp-win-x86.exe -f FastBackServer.exe -r 5 > rop.txt
 ```
 
 This is an output example of the tool:

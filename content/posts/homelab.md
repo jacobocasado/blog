@@ -43,3 +43,10 @@ qm importdisk 101 VM-OSED-X86-01.qcow2 local2-lvm
 After importing, in the web console click on "edit" in the unused disk in the "Hardware" section of the machine. 
 Click OK and the disk should setup for the machine.
 Lastly, change boot order so it boots from the disk first.
+
+# OVA format
+No previous VM creation.
+Just execute command: 
+```
+qm importovf <NEW VM ID> <OVA image> <storage name>
+ ```

