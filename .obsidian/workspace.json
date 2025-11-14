@@ -27,26 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/posts/osed_handmade_badchars_decoder.md",
+                "file": "content/posts/hackiit_canary_aslr_bypass.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "osed_handmade_badchars_decoder"
-            }
-          },
-          {
-            "id": "5470da9d53bf9725",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "content/posts/osed_aslr_0.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "osed_aslr_0"
+              "title": "hackiit_canary_aslr_bypass"
             }
           },
           {
@@ -64,7 +50,7 @@
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -207,29 +193,30 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "5470da9d53bf9725",
+  "active": "81fa7bfbab3cd6b2",
   "lastOpenFiles": [
     "content/posts/osed_handmade_badchars_decoder.md",
-    "content/posts/osed_aslr_0.md",
-    "content/posts/osed_rop_2.md",
     "content/posts/homelab.md",
+    "content/posts/osed_rop_2.md",
+    "().md",
+    "content/posts/hackiit_canary_aslr_bypass.md",
+    "content/posts/osed_egghunter_1.md",
+    "content/posts/osed_egghunter_seh.md",
+    "content/about.md",
+    "content/posts/wow64.md",
+    "content/posts/shellcodes.md",
+    "content/posts/random_stuff.md",
+    "content/posts/pe_parsing.md",
+    "content/posts/osed_aslr_0.md",
+    "content/posts/firststeps.md",
     "content/posts/osed_rop_1.md",
     "content/images/post_images/firststeps.png",
-    "content/posts/osed_egghunter_1.md",
-    "content/posts/hackiit_canary_aslr_bypass.md",
-    "content/posts/firststeps.md",
     "Untitled",
     "content/posts/osed_seh_2.md",
-    "content/posts/pe_parsing.md",
-    "content/posts/osed_egghunter_seh.md",
     "content/posts/osed_overflow_1.md",
     "content/posts/osed_seh_1.md",
-    "content/about.md",
-    "content/posts/random_stuff.md",
     "Untitled.md",
     "Untitled 1.md",
-    "content/posts/shellcodes.md",
-    "content/posts/wow64.md",
     "content/images/post_images/rop_2.png",
     "content/images/post_images/rop_1 1.png",
     "content/images/post_images/rop_1.png",
