@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/posts/hackiit_canary_aslr_bypass.md",
+                "file": "content/posts/hackaprompt_tutorial.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "hackiit_canary_aslr_bypass"
+              "title": "hackaprompt_tutorial"
             }
           },
           {
@@ -41,16 +41,16 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "content/posts/osed_rop_2.md",
+                "file": "content/posts/wow64.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "osed_rop_2"
+              "title": "wow64"
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -185,6 +185,7 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "bases:Create new base": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
@@ -193,40 +194,41 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "81fa7bfbab3cd6b2",
+  "active": "3082e4f2d1bc2f21",
   "lastOpenFiles": [
+    "test.md",
+    "content/posts/wow64.md",
+    "content/posts/pe_parsing.md",
+    "content/posts/osed_seh_1.md",
+    "content/posts/osed_rop_1.md",
+    "content/posts/hackiit_canary_aslr_bypass.md",
+    "content/posts/osed_aslr_0.md",
+    "content/posts/osed_rop_2.md",
+    "content/images/post_images/hackaprompt_tutorial_13.png",
+    "content/images/post_images/hackaprompt_tutorial_12.png",
+    "content/images/post_images/hackaprompt_tutorial_11.png",
+    "content/images/post_images/hackaprompt_tutorial_10.png",
+    "content/images/post_images/hackaprompt_tutorial_9.png",
+    "content/images/post_images/hackaprompt_tutorial_8.png",
+    "content/images/post_images/hackaprompt_tutorial_7.png",
+    "content/images/post_images/hackaprompt_tutorial_6.png",
+    "content/images/post_images/hackaprompt_tutorial_5.png",
+    "content/images/post_images/hackaprompt_tutorial_4.png",
+    "content/posts/hackaprompt_tutorial.md",
     "content/posts/osed_handmade_badchars_decoder.md",
     "content/posts/homelab.md",
-    "content/posts/osed_rop_2.md",
     "().md",
-    "content/posts/hackiit_canary_aslr_bypass.md",
     "content/posts/osed_egghunter_1.md",
     "content/posts/osed_egghunter_seh.md",
     "content/about.md",
-    "content/posts/wow64.md",
     "content/posts/shellcodes.md",
     "content/posts/random_stuff.md",
-    "content/posts/pe_parsing.md",
-    "content/posts/osed_aslr_0.md",
     "content/posts/firststeps.md",
-    "content/posts/osed_rop_1.md",
-    "content/images/post_images/firststeps.png",
     "Untitled",
     "content/posts/osed_seh_2.md",
     "content/posts/osed_overflow_1.md",
-    "content/posts/osed_seh_1.md",
-    "Untitled.md",
     "Untitled 1.md",
-    "content/images/post_images/rop_2.png",
-    "content/images/post_images/rop_1 1.png",
-    "content/images/post_images/rop_1.png",
     "content/posts/threatcheck.md",
-    "content/images/post_images/osed_2_4.png",
-    "content/images/post_images/osed_2_3.png",
-    "content/images/post_images/osed_2_2.png",
-    "content/images/post_images/osed_2_1.png",
-    "content/images/post_images/osed_2.png",
-    "content/images/post_images/osed_1_5.png",
     "public/tags/executables/index.xml",
     "public/tags/peparser/index.xml",
     "public/tags/binaries/index.xml",
@@ -238,7 +240,6 @@
     "public/tags/binaries",
     "content/posts/as.md",
     "archetypes/default.md",
-    "themes/hugo-ficurinia/archetypes/default.md",
-    "themes/hugo-ficurinia/README.md"
+    "themes/hugo-ficurinia/archetypes/default.md"
   ]
 }
